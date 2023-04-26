@@ -50,21 +50,21 @@ Open cmd, enter the directory where the installation package code is downloaded,
 <img src="https://lf3-static.bytednsdoc.com/obj/eden-cn/pkupenuhr/img_v2_7f60d105-5e4f-4567-a62d-aa2734f599eg.jpg" width="500px">
 
 
-### Step 7: Fill in **URL**
+### Step 5: Fill in **URL**
 
  You can use **https://demo.byteplus.com/rtc/demo/rtc_demo_special/login** as the test domain name of the server. However, this domain name only provides testing running and cannot be used for official operations.<br>
 
 <img src="https://lf3-static.bytednsdoc.com/obj/eden-cn/pkupenuhr/urlinput.jpg" width="800px">
 
 
-### Step 8: Enter AppID, AppKey, AccessKeyID, and SecretAccessKey.
+### Step 6: Enter AppID, AppKey, AccessKeyID, and SecretAccessKey.
 
 Enter the **AppID, AppKey, AccessKeyID**, and **SecretAccessKey** obtained from the BytePlus RTC console in the corresponding fields of the file `BuildConfig.h`.<br>
     <img src="https://lf3-static.bytednsdoc.com/obj/eden-cn/pkupenuhr/windows.png" width="800px">
 
-### **Step 9: Compile and run**
+### **Step 7: Compile and run**
 
-1. Enter the `RTC_VideoCall_Demo/windows/RTCSolution/build_win` directory, and use Visual Studio to open the project file `BytePlus .sln`.
+1. Enter the `RTC_VideoCall_Demo/windows/RTCSolution/build_win` directory, and use Visual Studio to open the project file `BytePlus.sln`.
 
 <img src="https://lf3-static.bytednsdoc.com/obj/eden-cn/pkupenuhr/4.jpg" width="500px">
 
