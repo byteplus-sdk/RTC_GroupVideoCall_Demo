@@ -49,6 +49,7 @@ function PlayerLayout(props: IProps) {
       const w = (Width - (cols - 1) * FLEX_GAP) / cols;
 
       const h = (Height - (rows - 1) * FLEX_GAP) / rows;
+      // 默认宽度有剩余可以放下16 / 9  的视频区
       let eleHeight = h;
       let eleWidth = (h / 9) * 16;
       if (w / h < 16 / 9) {

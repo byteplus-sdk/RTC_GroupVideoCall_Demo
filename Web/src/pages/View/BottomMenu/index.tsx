@@ -4,13 +4,13 @@ import { useMemo } from 'react';
 import styles from './index.module.less';
 import { RootState } from '@/store';
 import Stop from './Stop';
-import Setting from './Setting';
 import RealTime from './RealTime';
 import RtcClient from '@/lib/RtcClient';
 import DeviceButton from './DeviceButton';
 import ShareButton from './ShareButton';
 import StopShareBtn from './StopShareBtn';
 import { updateLocalUser } from '@/store/slices/room';
+import BeautifyButton from './BeautifyButton';
 
 function BottomMenu() {
   const dispatch = useDispatch();
@@ -18,7 +18,7 @@ function BottomMenu() {
 
   const isLocalUserShared = useMemo(() => {
     const user = room.localUser;
-    return user?.userId === room.shareUser;
+    return !user?.userId ? false : user?.userId === room.shareUser;
   }, [room.localUser, room.shareUser]);
 
   const handleSreamPublish = (deviceType: 'camera' | 'microphone') => {
@@ -49,7 +49,8 @@ function BottomMenu() {
         <DeviceButton deviceType="microphone" onClick={handleSreamPublish} shared />
         <RealTime shared />
         <ShareButton shared />
-        <Setting shared />
+
+        <BeautifyButton shared />
 
         <StopShareBtn />
       </div>
@@ -65,7 +66,8 @@ function BottomMenu() {
         <RealTime />
 
         <ShareButton />
-        <Setting />
+
+        <BeautifyButton />
       </div>
       <Stop />
     </div>

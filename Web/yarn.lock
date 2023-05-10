@@ -1104,10 +1104,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@byteplus/rtc@4.47.6":
-  version "4.47.6"
-  resolved "https://registry.yarnpkg.com/@byteplus/rtc/-/rtc-4.47.6.tgz#9018cfa5baefa3065367407cbf02bedd0f55f587"
-  integrity sha512-KQFbwHSZEPhaIwCB41zr/AnuvjvkdtBudTulPijxSkyCr+sPrEJs6XpBA8q6Woz2tZCiaMfv4rW91V3FKH914A==
+"@byteplus/rtc@4.51.0":
+  version "4.51.0"
+  resolved "https://registry.yarnpkg.com/@byteplus/rtc/-/rtc-4.51.0.tgz#0d2003861f723383184de431a5a26be8b1c95952"
+  integrity sha512-Q2ZsJ3LG9z8ONjdt5XVRk3IH3z3unbewJ3MnQazDkRqQTsROE3HStAVFw1iH/48TTJzZns4rzJGof7FfTjhWAA==
   dependencies:
     eventemitter3 "^4.0.7"
 

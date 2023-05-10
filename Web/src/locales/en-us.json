@@ -38,5 +38,11 @@
   "safariShare": "About to share your entire screen , are you sure?",
   "videocalls": "Video Call",
   "noCameraPerm": "No Camera Permission!",
-  "noMicPerm": "No Microphone Permission!"
+  "noMicPerm": "No Microphone Permission!",
+  "Beautify": "Beautify",
+  "White": "White",
+  "Smooth": "Smooth",
+  "Sharpen": "Sharpen",
+  "limitUserInRoom": "The number of people in the room exceeds the limit",
+  "notSupported": "Current browser doesn't support"
 }

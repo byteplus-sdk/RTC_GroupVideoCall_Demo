@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import {
   AudioPropertiesInfo,
   LocalAudioStats,
@@ -26,18 +26,24 @@ export type LocalUser = Omit<IUser, 'audioStats' | 'videoStats'> & {
 
 export interface RoomState {
   time: number;
+  beautyOn: boolean;
+  beautyEnabled: boolean;
   roomId?: string;
   localUser: LocalUser;
   remoteUsers: IUser[];
   shareUser?: string;
+  autoPlayFailUser: string[];
 }
 const initialState: RoomState = {
+  beautyOn: false,
+  beautyEnabled: false,
   time: -1,
   remoteUsers: [],
   localUser: {
     publishAudio: true,
     publishVideo: true,
   },
+  autoPlayFailUser: [],
 };
 
 export const roomSlice = createSlice({
@@ -59,6 +65,7 @@ export const roomSlice = createSlice({
       state.localUser = payload.user;
     },
     localLeaveRoom: (state) => {
+      console.log('localLeaveRoom clear', state);
       state.roomId = undefined;
       state.time = -1;
       state.localUser = {
@@ -115,6 +122,30 @@ export const roomSlice = createSlice({
     updateRoomTime: (state, { payload }) => {
       state.time = payload.time;
     },
+
+    setBeauty: (state, action: PayloadAction<boolean>) => {
+      state.beautyOn = action.payload;
+    },
+
+    setBeautyEnabled: (state, action: PayloadAction<boolean>) => {
+      state.beautyEnabled = action.payload;
+    },
+
+    addAutoPlayFail: (state, { payload }) => {
+      const autoPlayFailUser = state.autoPlayFailUser;
+      const index = autoPlayFailUser.findIndex((item) => item === payload.userId);
+      if (index === -1) {
+        state.autoPlayFailUser.push(payload.userId);
+      }
+    },
+    removeAutoPlayFail: (state, { payload }) => {
+      const autoPlayFailUser = state.autoPlayFailUser;
+      const _autoPlayFailUser = autoPlayFailUser.filter((item) => item !== payload.userId);
+      state.autoPlayFailUser = _autoPlayFailUser;
+    },
+    clearAutoPlayFail: (state) => {
+      state.autoPlayFailUser = [];
+    },
   },
 });
 
@@ -128,6 +159,11 @@ export const {
   startShare,
   stopShare,
   updateRoomTime,
+  setBeauty,
+  setBeautyEnabled,
+  addAutoPlayFail,
+  removeAutoPlayFail,
+  clearAutoPlayFail,
 } = roomSlice.actions;
 
 export default roomSlice.reducer;

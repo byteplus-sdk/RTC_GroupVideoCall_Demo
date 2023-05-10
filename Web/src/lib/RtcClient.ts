@@ -17,8 +17,12 @@ import VERTC, {
   DeviceInfo,
   UserMessageEvent,
   TrackCaptureConfig,
+  AutoPlayFailedEvent,
+  PlayerEvent,
 } from '@byteplus/rtc';
+
 import { v4 as uuid } from 'uuid';
+import RTCBeautyExtension from '@byteplus/rtc/extension-beauty';
 import Utils from '@/utils/utils';
 import { BasicBody } from '@/app/baseQuery';
 
@@ -50,6 +54,8 @@ export interface IEventListener {
   handleUserMessageReceivedOutsideRoom: (e: { userId: string; message: any }) => void;
   handleUserMessageReceived: (e: { userId: string; message: any }) => void;
   handleRoomMessageReceived: (e: { userId: string; message: any }) => void;
+  handleAutoPlayFail: (e: AutoPlayFailedEvent) => void;
+  handlePlayerEvent: (e: PlayerEvent) => void;
 }
 
 interface EngineOptions {
@@ -76,6 +82,8 @@ const DefaultEncoderConfig = {
   maxKbps: 1200,
 };
 
+export const beautyExtension = new RTCBeautyExtension();
+
 export class RtcClient {
   engine!: IRTCEngine;
 
@@ -93,7 +101,11 @@ export class RtcClient {
 
   private _encoderConfig: VideoEncoderConfig | VideoEncoderConfig[] = DefaultEncoderConfig;
 
-  createEngine = (props: EngineOptions): void => {
+  private _promiseList: any = {};
+
+  beautyEnabled: boolean = false;
+
+  createEngine = async (props: EngineOptions) => {
     this.config = props;
     this.rtsBody = {
       room_id: props.roomId,
@@ -101,6 +113,14 @@ export class RtcClient {
       login_token: Utils.getLoginToken(),
     };
     this.engine = VERTC.createEngine(this.config.appId);
+    try {
+      await this.engine.registerExtension(beautyExtension);
+      beautyExtension.disable();
+      this.beautyEnabled = true;
+    } catch (error) {
+      console.error((error as any).message);
+      this.beautyEnabled = false;
+    }
   };
 
   joinWithRTS = async () => {
@@ -108,9 +128,11 @@ export class RtcClient {
     await this.engine.setServerParams(this.config.serverSignature, this.config.serverUrl);
   };
 
-  sendServerMessage = async (eventname: string) => {
+  sendServerMessage = (eventname: string) => {
+    console.log('eventname', eventname);
     return new Promise((resolve, reject) => {
       const requestId = uuid();
+
       const content = {
         app_id: this.config.appId,
         device_id: Utils.getDeviceId(),
@@ -121,26 +143,12 @@ export class RtcClient {
         content: JSON.stringify(this.rtsBody),
       };
 
-      const callback = (e: UserMessageEvent) => {
-        const { userId, message } = e;
-
-        if (userId === 'server') {
-          try {
-            const res = JSON.parse(message as string);
-            if (res.request_id === requestId) {
-              this.engine.removeListener(VERTC.events.onUserMessageReceivedOutsideRoom, callback);
-
-              resolve(res);
-            }
-          } catch (e) {
-            reject(e);
-          }
-        }
-      };
-
-      this.engine.on(VERTC.events.onUserMessageReceivedOutsideRoom, callback);
-
-      this.engine.sendServerMessage(JSON.stringify(content));
+      this._promiseList[requestId] = { resolve, reject };
+	  console.log("requestId:",requestId)
+      this.engine
+        .sendServerMessage(JSON.stringify(content))
+        .then((res) => console.log('sendServerMessage', res))
+        .catch((err) => console.log('err', err));
     });
   };
 
@@ -164,6 +172,8 @@ export class RtcClient {
     handleUserMessageReceivedOutsideRoom,
     handleUserMessageReceived,
     handleRoomMessageReceived,
+    handleAutoPlayFail,
+    handlePlayerEvent,
   }: IEventListener) => {
     this.engine.on(VERTC.events.onError, handleError);
     this.engine.on(VERTC.events.onTrackEnded, handleTrackEnded);
@@ -172,33 +182,43 @@ export class RtcClient {
     this.engine.on(VERTC.events.onUserPublishStream, handleUserPublishStream);
     this.engine.on(VERTC.events.onUserUnpublishStream, handleUserUnpublishStream);
     this.engine.on(VERTC.events.onUserStartVideoCapture, handleUserStartVideoCapture);
-    this.engine.on(VERTC.events.onUserStopVideoCapture, (e) => {
-      console.log('VERTC.events.onUserStopVideoCapture', e);
-      handleUserStopVideoCapture(e);
-    });
+    this.engine.on(VERTC.events.onUserStopVideoCapture, handleUserStopVideoCapture);
     this.engine.on(VERTC.events.onUserPublishScreen, handleUserPublishScreen);
-    this.engine.on(VERTC.events.onUserUnpublishScreen, (e) => {
-      console.log('VERTC.events.onUserUnpublishScreen', e);
-      handleUserUnpublishScreen(e);
-    });
+    this.engine.on(VERTC.events.onUserUnpublishScreen, handleUserUnpublishScreen);
     this.engine.on(VERTC.events.onRemoteStreamStats, handleRemoteStreamStats);
     this.engine.on(VERTC.events.onLocalStreamStats, handleLocalStreamStats);
     this.engine.on(VERTC.events.onVideoDeviceStateChanged, handleVideoDeviceStateChanged);
     this.engine.on(VERTC.events.onAudioDeviceStateChanged, handleAudioDeviceStateChanged);
 
-    this.engine.on(VERTC.events.onLocalAudioPropertiesReport, (e) => {
-      handleLocalAudioPropertiesReport(e);
-    });
-    this.engine.on(VERTC.events.onRemoteAudioPropertiesReport, (e) => {
-      handleRemoteAudioPropertiesReport(e);
-    });
+    this.engine.on(VERTC.events.onLocalAudioPropertiesReport, handleLocalAudioPropertiesReport);
+    this.engine.on(VERTC.events.onRemoteAudioPropertiesReport, handleRemoteAudioPropertiesReport);
 
     this.engine.on(
       VERTC.events.onUserMessageReceivedOutsideRoom,
       handleUserMessageReceivedOutsideRoom
     );
+
+    this.engine.on(VERTC.events.onUserMessageReceivedOutsideRoom, (e: UserMessageEvent) => {
+      const { userId, message } = e;
+	  console.log(" VERTC.events.onUserMessageReceivedOutsideRoom",e)
+      if (userId === 'server') {
+        const res = JSON.parse(message as string);
+        const promiseRes = this._promiseList[res.request_id];
+        try {
+          if (promiseRes) {
+            // this.engine.removeListener(VERTC.events.onUserMessageReceivedOutsideRoom, callback);
+            promiseRes.resolve(res);
+          }
+        } catch (e) {
+          console.log('--e---');
+          promiseRes.reject(e);
+        }
+      }
+    });
     this.engine.on(VERTC.events.onUserMessageReceived, handleUserMessageReceived);
     this.engine.on(VERTC.events.onRoomMessageReceived, handleRoomMessageReceived);
+    this.engine.on(VERTC.events.onAutoplayFailed, handleAutoPlayFail);
+    this.engine.on(VERTC.events.onPlayerEvent, handlePlayerEvent);
   };
 
   joinRoom = (token: string | null, username: string): Promise<void> => {
@@ -237,6 +257,7 @@ export class RtcClient {
     video: boolean;
     audio: boolean;
   }> {
+    console.log('enableDevicesenableDevicesenableDevices');
     return VERTC.enableDevices({
       video: true,
       audio: true,
@@ -252,22 +273,20 @@ export class RtcClient {
     videoInputs: MediaDeviceInfo[];
     audioOutputs: MediaDeviceInfo[];
   }> {
-    const permissions = await this.checkPermission();
-    let audioInputs: MediaDeviceInfo[] = [];
+    // const permissions = await this.checkPermission();
+    const devices = await VERTC.enumerateDevices();
 
-    if (permissions.audio) {
-      audioInputs = await VERTC.enumerateAudioCaptureDevices();
-      audioInputs = audioInputs.filter((i) => i.deviceId);
-    }
+    const audioInputs: MediaDeviceInfo[] = devices.filter(
+      (i) => i.deviceId && i.kind === 'audioinput'
+    );
 
-    let videoInputs: MediaDeviceInfo[] = [];
-    if (permissions.video) {
-      videoInputs = await VERTC.enumerateVideoCaptureDevices();
-      videoInputs = videoInputs.filter((i) => i.deviceId);
-    }
+    const videoInputs: MediaDeviceInfo[] = devices.filter(
+      (i) => i.deviceId && i.kind === 'videoinput'
+    );
 
-    let audioOutputs = await VERTC.enumerateAudioPlaybackDevices();
-    audioOutputs = audioOutputs.filter((i) => i.deviceId);
+    const audioOutputs: MediaDeviceInfo[] = devices.filter(
+      (i) => i.deviceId && i.kind === 'audiooutput'
+    );
 
     this._audioCaptureDevice = audioInputs.filter((i) => i.deviceId)?.[0]?.deviceId;
     this._videoCaptureDevice = videoInputs.filter((i) => i.deviceId)?.[0]?.deviceId;
@@ -289,7 +308,8 @@ export class RtcClient {
   };
 
   startVideoCapture = async (camera?: string) => {
-    this.engine.setVideoCaptureConfig(this._captureConfig);
+    // 4.51 后废弃
+    // this.engine.setVideoCaptureConfig(this._captureConfig);
 
     this.engine.setVideoEncoderConfig(this._encoderConfig);
 
@@ -298,10 +318,11 @@ export class RtcClient {
     await this.engine.startVideoCapture(this._videoCaptureDevice);
   };
 
-  setVideoCaptureConfig = async (config: TrackCaptureConfig) => {
-    this._captureConfig = config;
-    this.engine.setVideoCaptureConfig(config);
-  };
+  // 4.51 后废弃
+  //   setVideoCaptureConfig = async (config: TrackCaptureConfig) => {
+  //     this._captureConfig = config;
+  //     this.engine.setVideoCaptureConfig(config);
+  //   };
 
   stopVideoCapture = async () => {
     await this.engine.stopVideoCapture();
@@ -320,17 +341,21 @@ export class RtcClient {
   };
 
   /**
+   * 设置视频流播放器
    * @param userId
    * @param renderDom
    */
   setVideoPlayer = (userId: string, renderDom?: string | HTMLElement) => {
+    // 本端用户
     if (userId === this.config.uid) {
       this.engine.setLocalVideoPlayer(StreamIndex.STREAM_INDEX_MAIN, {
         renderDom,
         userId,
         renderMode: VideoRenderMode.RENDER_MODE_FIT,
       });
-    } else {
+    }
+    // 远端用户
+    else {
       this.engine.setRemoteVideoPlayer(StreamIndex.STREAM_INDEX_MAIN, {
         renderDom,
         userId,
@@ -340,17 +365,21 @@ export class RtcClient {
   };
 
   /**
+   * 设置分享流播放器
    * @param userId
    * @param renderDom
    */
   setScreenPlayer = (userId: string, renderDom?: string | HTMLElement) => {
+    // 本端用户
     if (userId === this.config.uid) {
       this.engine.setLocalVideoPlayer(StreamIndex.STREAM_INDEX_SCREEN, {
         renderDom,
         userId,
         renderMode: VideoRenderMode.RENDER_MODE_FIT,
       });
-    } else {
+    }
+    // 远端用户
+    else {
       this.engine.setRemoteVideoPlayer(StreamIndex.STREAM_INDEX_SCREEN, {
         renderDom,
         userId,
@@ -360,6 +389,7 @@ export class RtcClient {
   };
 
   /**
+   * 订阅远端用户屏幕流
    * @param userId
    */
   subscribeScreen = async (userId: string): Promise<void> => {
@@ -367,12 +397,16 @@ export class RtcClient {
   };
 
   /**
+   * 设置业务标识参数
    * @param businessId
    */
   setBusinessId = (businessId: string) => {
     this.engine.setBusinessId(businessId);
   };
 
+  /**
+   * 开始屏幕共享
+   */
   startScreenCapture = async () => {
     try {
       await this.engine.startScreenCapture({
@@ -385,23 +419,31 @@ export class RtcClient {
     }
   };
 
+  /**
+   * 停止屏幕共享
+   */
   stopScreenCapture = async () => {
     await this.engine.stopScreenCapture();
     await this.engine.unpublishScreen(MediaType.AUDIO_AND_VIDEO);
   };
 
   /**
+   * 镜像模式
    * @param mirrorType
    */
   setMirrorType = (mirrorType: MirrorType) => {
     this.engine.setLocalVideoMirrorType(mirrorType);
   };
 
+  /**
+   * 设置音质档位
+   */
   setAudioProfile = (profile: AudioProfileType) => {
     this.engine.setAudioProfile(profile);
   };
 
   /**
+   * 设置画质
    * @param streamIndex
    * @param descriptions
    */
@@ -415,6 +457,9 @@ export class RtcClient {
     this._encoderConfig = descriptions;
   };
 
+  /**
+   * 切换设备
+   */
   switchDevice = (deviceType: 'camera' | 'microphone', deviceId: string) => {
     if (deviceType === 'microphone') {
       this._audioCaptureDevice = deviceId;

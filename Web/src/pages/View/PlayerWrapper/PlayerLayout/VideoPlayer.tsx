@@ -79,8 +79,8 @@ function VideoPlayer(props: IProps) {
 
         {isUserShare && <Icon src={getIcon('shareScreen')} className={styles.userScreen} />}
 
-        <span>
-          {user?.username}
+        <span className={styles.usernameWrapper}>
+          <span className={styles.username}>{user?.username}</span>
           {isLocalUser ? `(${t('Me')})` : ''}
         </span>
       </div>

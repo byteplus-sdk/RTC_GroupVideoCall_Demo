@@ -82,6 +82,7 @@ function ShareButton(props: ShareButtonProps) {
     }
     if (shareRes.code !== 200) {
       if (shareRes.code === 485) {
+        // todo “xxx正在屏幕共享中，请稍后…
         Message.error(t('isSharing'));
       }
       setAllowShare(false);
