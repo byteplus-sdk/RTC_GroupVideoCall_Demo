@@ -1,0 +1,43 @@
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { appId, appKey, accessKeyID, secretAccesskey } from '@/appConfig';
+import baseQuery from './baseQuery';
+
+export const roomQuery = createApi({
+  baseQuery,
+  reducerPath: 'room',
+  endpoints: (build) => ({
+    freeLogin: build.mutation({
+      query: (body: { device_id: string; user_name: string }) => ({
+        url: '/login',
+        method: 'POST',
+        body: {
+          event_name: 'passwordFreeLogin',
+          device_id: body.device_id,
+          content: JSON.stringify({
+            user_name: body.user_name,
+          }),
+        },
+      }),
+    }),
+    joinRTM: build.mutation({
+      query: (body: { login_token: string; device_id: string }) => ({
+        url: '/login',
+        method: 'POST',
+        body: {
+          event_name: 'setAppInfo',
+          device_id: body.device_id,
+          content: JSON.stringify({
+            app_id: appId,
+            app_key: appKey,
+            volc_ak: accessKeyID,
+            volc_sk: secretAccesskey,
+            scenes_name: 'videocall',
+            login_token: body.login_token,
+          }),
+        },
+      }),
+    }),
+  }),
+});
+
+export const { useJoinRTMMutation, useFreeLoginMutation } = roomQuery;
