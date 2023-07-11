@@ -75,7 +75,7 @@ struct VirtualBackgroundSource {
      *       + The image with a resolution higher than 1080p(Full HD) will be rescaled proportionally to fit in the video.  <br>
      *       + If the image's aspect ratio matches the video's, the image will be rescaled proportionally to fit in the video.  <br>
      *       + If the image’s aspect ratio doesn't match the video's, the shortest side (either height or width) of the image will be stretched proportionally to match the video. Then the image will be cropped to fill in the video.  <br>
-     *       + The transparent area in the image will be filled with white color.
+     *       + The transparent area in the image will be filled with black.
      */
     const char* source_path = nullptr;
 };
@@ -252,7 +252,7 @@ public:
      * @deprecated since 3.50 and will be deleted in 3.55, use initCVResource{@link #IVideoEffect#initCVResource} instead.
      * @type api
      * @region Video Effects
-     * @brief Set the video effects algorithm model path
+     * @brief Sets the video effects algorithm model path
      * @param [in] modelPath  Model path
      */
     virtual void setAlgoModelPath(const char* modelPath) = 0;
@@ -474,8 +474,7 @@ public:
     /** 
      * @hidden for internal use only
      * @type api
-     * @brief Private method
-     * Sets the video effects material package.
+     * @brief Private method，Sets the video effects material package.
      * @param [in] stickerPath effect material package path. <br>
      *        To remove the current video effect, set it to null.
      * @return   <br>

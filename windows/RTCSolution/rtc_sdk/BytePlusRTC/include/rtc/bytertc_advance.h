@@ -125,7 +125,7 @@ attribute_deprecated
  *        1. This function is optional function, the default use of official environment;
  *        2. This function must be called before creating the RtcEngine instance createRtcEngine{@link #createRtcEngine}.
  */
-BYTERTC_API int setEnv(Env env);
+BYTERTC_API BYTERTC_DEPRECATED int setEnv(Env env);
 
 attribute_deprecated
 /** 
@@ -134,7 +134,7 @@ attribute_deprecated
  * @brief  Set the device ID
  * @param  [in] device_id App to generate a unique device id based on the current software and hardware environment
  */
-BYTERTC_API void setDeviceId(const char* device_id);
+BYTERTC_API BYTERTC_DEPRECATED void setDeviceId(const char* device_id);
 /** 
  * @hidden for internal use only
  * @brief  Set the state of the application
@@ -208,7 +208,6 @@ BYTERTC_API void setApplicationContext(jobject j_application_context);
 #endif
 
 /** 
- * @hidden for internal use only
  * @type api
  * @region  video management
  * @type keytype
@@ -290,7 +289,6 @@ enum HWDeviceContextKey {
 };
 
 /** 
- * @hidden for internal use only
  * @type keytype
  * @brief Hardware acceleration device context
  */
@@ -628,6 +626,7 @@ protected:
 };
 
 /** 
+ * @deprecated since 3.51 and will be deleted in 3.53, use getAudioDeviceManager{@link #IRTCVideo#getAudioDeviceManager} instead
  * @hidden for internal use only
  * @type api
  * @brief Audio Facility Management interface is created, this interface does not depend on the engine, and is mainly used for audio Facility Management without an engine

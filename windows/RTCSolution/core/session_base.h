@@ -15,7 +15,11 @@ namespace vrd {
 
 using CallBackFunction = std::function<void(int)>;
 
-/**
+/** {zh}
+ * RTS相关接口和回调封装类
+ */
+
+/** {en}
 * RTS-related interfaces and callback wrapper class
 */
 class SessionBase : public QObject, public IComponent {
@@ -69,13 +73,18 @@ private:
     std::string user_id_;
 	std::string token_;
 	std::string room_id_;
-	// Whether to complete the business server initialization flag
+	// {zh} 是否完成业务服务器初始化标志
+	// {en} Whether to complete the business server initialization flag
     bool init_server_completed_{ false };
-	// RTS request message feedback collection, the keyword is the request ID, and the value is the request callback and display error flag
+
+	// {zh} RTS请求消息反馈集合，关键字为请求ID, 值为请求回调及显示错误标志
+	// {en} RTS request message feedback collection, the keyword is the request ID, and the value is the request callback and display error flag
 	std::map<QString, std::tuple<std::function<void(const QJsonObject& response)>, bool>> callback_with_requsetId_;
-	// RTS request message result set, the keyword is the sent message id, and the value is the request callback
+	// {zh} RTS请求消息结果集合，关键字为发送消息id, 值为请求回调
+	// {en} RTS request message result set, the keyword is the sent message id, and the value is the request callback
 	std::map<int64_t, QJsonObject> callback_with_messageId_;
-	// RTS notification message listener, the keyword is the message name, and the value is the notification processing callback
+	// {zh} RTS通知消息监听器, 关键字为消息名，值为通知处理回调
+	// {en} RTS notification message listener, the keyword is the message name, and the value is the notification processing callback
 	std::map<std::string, std::function<void(const QJsonObject& data)>> event_listeners_;
 };
 }  // namespace vrd

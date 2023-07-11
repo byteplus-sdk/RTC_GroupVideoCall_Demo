@@ -7,7 +7,7 @@
 
 #ifdef WIN32
 #define BYTERTC_API extern "C" __declspec(dllexport)
-#elif __APPLE__
+#elif defined(__APPLE__)
 #include <TargetConditionals.h>
 #if TARGET_OS_MAC && !(TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR)
 #define BYTERTC_API __attribute__((__visibility__("default"))) extern "C"
@@ -16,6 +16,20 @@
 #endif
 #else
 #define BYTERTC_API __attribute__((__visibility__("default")))
+#endif
+
+#ifdef __GNUC__
+#    define GCC_VERSION_AT_LEAST(x,y) (__GNUC__ > (x) || __GNUC__ == (x) && __GNUC_MINOR__ >= (y))
+#else
+#    define GCC_VERSION_AT_LEAST(x,y) 0
+#endif
+
+#if GCC_VERSION_AT_LEAST(3,1)
+#    define BYTERTC_DEPRECATED __attribute__((deprecated))
+#elif defined(_MSC_VER)
+#    define BYTERTC_DEPRECATED __declspec(deprecated)
+#else
+#    define BYTERTC_DEPRECATED
 #endif
 
 #include <stdint.h>
@@ -353,9 +367,8 @@ enum NetworkQuality {
      */
     kNetworkQualityVbad,
     /** 
-     * @brief Disconnected means the SDK gets no response from the RTC server for 12 s.
-     * You can also get the disconnection notification from kConnectionStateDisconnected = 1 via onConnectionStateChanged.
-     * Refer to [Get connection state](https://docs.byteplus.com/byteplus-rtc/docs/95376) for more details about getting connection state.
+     * @brief The network is down. It may be down due to no answer within 12s, airplane mode on, disconnected cable, etc.
+     *        Refer to [Get connection state](https://docs.byteplus.com/byteplus-rtc/docs/95376) for more details about getting connection state.
      */
     kNetworkQualityDown,
 };
@@ -666,5 +679,113 @@ struct CloudProxyConfiguration {
  * @brief The maximum length of an ID.
  */
 const unsigned int MAX_DEVICE_ID_LENGTH = 512;
+
+/** 
+ * @type keytype
+ * @brief Types of local proxies.
+ */
+enum LocalProxyType {
+    /** 
+     * @brief Socks5 proxy. If you chose Socks5 as the local proxy, you need to make sure all requirements listed in the Socks5 document are satisfied. 
+     */
+    kLocalProxyTypeSocks5 = 1,
+    /** 
+     * @brief Http tunnel proxy.
+     */
+    kLocalProxyTypeHttpTunnel = 2
+};
+
+/** 
+ * @type keytype
+ * @brief Detailed information of local proxy configurations.
+ */
+struct LocalProxyConfiguration {
+    /** 
+     * @brief Types of local proxies. Refer to LocalProxyType{@link #LocalProxyType} for details.
+     */
+    LocalProxyType local_proxy_type;
+    /** 
+     * @type keytype
+     * @brief Local proxy IP.
+     */
+    const char* local_proxy_ip;
+    /** 
+     * @type keytype
+     * @brief Local proxy port.
+     */
+    int local_proxy_port;
+    /** 
+     * @type keytype
+     * @brief The username of the local proxy.
+     */
+    const char* local_proxy_username;
+    /** 
+     * @type keytype
+     * @brief The password of the local proxy.
+     */
+    const char* local_proxy_password;
+};
+
+/** 
+ * @type keytype
+ * @brief The states of local proxy connection.
+ */
+enum LocalProxyState {
+    /** 
+     * @brief TCP proxy server is connected.
+     */
+    kLocalProxyStateInited = 0,
+
+    /** 
+     * @brief The local proxy is connected.
+     */
+    kLocalProxyStateConnected = 1,
+
+    /** 
+     * @brief Errors occurred when connecting to the local proxy.  
+     */
+    kLocalProxyStateError = 2,
+};
+
+/** 
+ * @type keytype
+ * @brief The errors of local proxy connection.
+ */
+enum LocalProxyError {
+    /** 
+     * @brief There are no errors in local proxies. 
+     */
+    kLocalProxyErrorOK = 0,
+
+    /** 
+     * @brief The connection to Socks5 proxy failed because the proxy server replies wrong version numbers which don't accord with the Socks5 document. Please check the proxy server. 
+     */
+    kLocalProxyErrorSocks5VersionError = 1,
+
+    /** 
+     * @brief The connection to Socks5 proxy failed because the format of the proxy's replies doesn't accord with the Socks5 document. Please check the proxy server. 
+     */
+    kLocalProxyErrorSocks5FormatError = 2,
+
+    /** 
+     * @brief The connection to Socks5 proxy failed because the proxy replies wrong information which doesn't accord with the Socks5 document. Please check the proxy server. 
+     */
+    kLocalProxyErrorSocks5InvalidValue = 3,
+
+    /** 
+     * @brief The connection to Socks5 proxy failed because the username and password of the local proxy are not provided. Please call `setLocalProxy` and enter your username and password. 
+     */
+    kLocalProxyErrorSocks5UserPassNotGiven = 4,
+
+    /** 
+     * @brief The connection to Socks5 proxy failed because TCP is closed. Please check the proxy server and your network connection status.
+     */
+    kLocalProxyErrorSocks5TcpClosed = 5,
+
+    /** 
+     * @brief Errors in Http tunnel proxy. Please check Http tunnel proxy and your network connection status.
+     */
+    kLocalProxyErrorHttpTunnelFailed = 6,
+};
 
 }  // namespace bytertc

@@ -41,8 +41,8 @@ public:
     /** 
      * @type api
      * @region Multi-room
-     * @brief Set the visibility of the user in the room. The local user is visible to others by default before calling this API.   <br>
-     * @param enable  Visibility of the user in the room: <br>
+     * @brief Sets the visibility of the user in the room. The local user is visible to others by default before calling this API. 
+     * @param [in] enable Visibility of the user in the room: <br>
      *         + true: The user can publish media streams. And the other users in the room get informed of the behaviors of the user, such as Joining room, starting video capture, and Leaving room.<br>
      *         + false: The user cannot publish media streams. And the other users in the room do not get informed of the behaviors of the user, such as joining, starting video capture, or leaving.<br>
      * @notes   <br>
@@ -103,10 +103,12 @@ public:
      *        A Token contains the privilege of joining a room, publishing streams, and subscribing to streams. Each privilege has an expiration time. A callback will be triggered 30s before expiration, informing the user to update the Token. In this case, you need to get a new Token and update the Token with this API to ensure the normal call.
      * @param [in] token  Valid token.
      *        If the Token is invalid, a callback will be triggered with the ErrorCode{@link #ErrorCode} `-1010` indicating that the updated Token is invalid.
-     * @return  <br>
-     *        + 0: Success
-     *        + !0: Failure
-     * @notes Do not call both updateToken{@link #IRTCRoom#updateToken} and joinRoom{@link #IRTCRoom#joinRoom} to update the Token. If you fail to join the room or have been removed from the room due to an expired or invalid Token, call joinRoom{@link #IRTCRoom#joinRoom} with a valid token to rejoin the room.
+     * @return API call result:
+     *        + 0: Success.
+     *        + <0: Failure. See ReturnStatus{@link #ReturnStatus} for specific reasons.
+     * @notes <br>
+     *      + In versions before 3.50, the publish and subscribe privileges contained in the Token are reserved parameters with no actual control permissions. In version 3.50 and later, the publish/subscribe privileges will be effective for whitelisted users. Please contact the technical support team to include you in the whitelist if you need this function.
+     *      + Do not call both updateToken{@link #IRTCRoom#updateToken} and joinRoom{@link #IRTCRoom#joinRoom} to update the Token. If you fail to join the room or have been removed from the room due to an expired or invalid Token, call joinRoom{@link #IRTCRoom#joinRoom} with a valid token to rejoin the room.
      */
     virtual int updateToken(const char* token) = 0;
 
@@ -241,16 +243,16 @@ public:
      *         + If the subscription fails, you will receive onStreamStateChanged{@link #IRTCRoomEventHandler#onStreamStateChanged}. Refer to ErrorCode{@link #ErrorCode} for the specific reason of failure.
      *         + You can update the subscription configuration by calling the API even after calling pauseAllSubscribedStream{@link #IRTCRoom#pauseAllSubscribedStream} to pause streaming. Call resumeAllSubscribedStream{@link #IRTCRoom#resumeAllSubscribedStream} to resume streaming and apply the changes. <br>
      */
-    virtual int subscribeUserStream(const char* user_id, StreamIndex stream_type, SubscribeMediaType media_type, const SubscribeVideoConfig& video_config) = 0;
+    BYTERTC_DEPRECATED virtual int subscribeUserStream(const char* user_id, StreamIndex stream_type, SubscribeMediaType media_type, const SubscribeVideoConfig& video_config) = 0;
     /** 
      * @type api
      * @region Video Management
      * @brief Sets your expected configuration of the remote video stream that you want to subscribe to or have subscribed to.
      * @param [in] user_id ID of the remote video stream publisher you expect to configure subscription parameters for.
      * @param [in] remote_video_config The parameters you expect to configure for the remote video stream, see RemoteVideoConfig{@link #RemoteVideoConfig}.
-     * @return API call result: <br>
-     *        + 0: Success <br>
-     *        + !0: Failure
+     * @return API call result:
+     *        + 0: Success.
+     *        + <0: Failure. See ReturnStatus{@link #ReturnStatus} for specific reasons.
      * @notes <br>
      *        + This API only works after the publisher calls enableSimulcastMode{@link #IRTCVideo#enableSimulcastMode} to enable publishing multiple video streams, in which case the subscriber will receive the stream from the publisher that is closest to the set configuration;  otherwise the subscriber will only receive one video stream with a resolution of 640px × 360px and a frame rate of 15fps.  <br>
      *        + If you don't call this API after the publisher enables the function of publishing multiple streams, you will receive by default the video stream with the largest resolution set by the publisher.  <br>
@@ -265,9 +267,9 @@ public:
      * @brief Subscribes to specific remote media streams captured by camera/microphone.  Or update the subscribe options of the subscribed user.
      * @param [in] user_id The ID of the remote user who published the target audio/video stream.
      * @param [in] type Media stream type, used for specifying whether to subscribe to the audio stream or the video stream. See MediaStreamType{@link #MediaStreamType}.
-     * @return API call result: <br>
-     *        + 0: Success <br>
-     *        + !0: Failure
+     * @return API call result:
+     *        + 0: Success.
+     *        + <0: Failure. See ReturnStatus{@link #ReturnStatus} for specific reasons.
      * @notes  <br>
      *        + Calling this API to update the subscribe configuration when the user has subscribed the remote user either by calling this API or by auto-subscribe.  <br>
      *        + You must first get the remote stream information through onUserPublishStream{@link #IRTCRoomEventHandler#onUserPublishStream}} before calling this API to subscribe to streams accordingly.  <br>
@@ -300,9 +302,9 @@ public:
      *        You can call this API in both automatic subscription mode and manual subscription mode.
      * @param [in] user_id The ID of the remote user who published the target audio/video stream.
      * @param [in] type Media stream type, used for specifying whether to unsubscribe from the audio stream or the video stream. See MediaStreamType{@link #MediaStreamType}.
-     * @return API call result: <br>
-     *        + 0: Success <br>
-     *        + !0: Failure
+     * @return API call result:
+     *        + 0: Success.
+     *        + <0: Failure. See ReturnStatus{@link #ReturnStatus} for specific reasons.
      * @notes  <br>
      *        + After calling this API, you will be informed of the calling result with onStreamSubscribed{@link #IRTCRoomEventHandler#onStreamSubscribed}.  <br>
      *        + Any other exceptions will be included in onStreamStateChanged{@link #IRTCRoomEventHandler#onStreamStateChanged}, see ErrorCode{@link #ErrorCode} for the reasons.
@@ -328,9 +330,9 @@ public:
      * @brief Subscribes to specific screen sharing media stream.   Or update the subscribe options of the subscribed user.
      * @param [in] user_id The ID of the remote user who published the target screen audio/video stream.
      * @param [in] type Media stream type, used for specifying whether to subscribe to the audio stream or the video stream. See MediaStreamType{@link #MediaStreamType}.
-     * @return API call result: <br>
-     *        + 0: Success <br>
-     *        + !0: Failure
+     * @return API call result:
+     *        + 0: Success.
+     *        + <0: Failure. See ReturnStatus{@link #ReturnStatus} for specific reasons.
      * @notes  <br>
      *        + Calling this API to update the subscribe configuration when the user has subscribed the remote user either by calling this API or by auto-subscribe.  <br>
      *        + You must first get the remote stream information through onUserPublishScreen{@link #IRTCRoomEventHandler#onUserPublishScreen}} before calling this API to subscribe to streams accordingly.  <br>
@@ -347,9 +349,9 @@ public:
      *        You can call this API in both automatic subscription mode and manual subscription mode.
      * @param [in] user_id The ID of the remote user who published the target screen audio/video stream.
      * @param [in] type Media stream type, used for specifying whether to unsubscribe from the audio stream or the video stream. See MediaStreamType{@link #MediaStreamType}.
-     * @return API call result: <br>
-     *        + 0: Success <br>
-     *        + !0: Failure
+     * @return API call result:
+     *        + 0: Success.
+     *        + <0: Failure. See ReturnStatus{@link #ReturnStatus} for specific reasons.
      * @notes  <br>
      *        + After calling this API, you will be informed of the calling result with onStreamSubscribed{@link #IRTCRoomEventHandler#onStreamSubscribed}.  <br>
      *        + Any other exceptions will be included in onStreamStateChanged{@link #IRTCRoomEventHandler#onStreamStateChanged}, see ErrorCode{@link #ErrorCode} for the reasons.
@@ -419,7 +421,7 @@ public:
      * @type api
      * @region Multi-room
      * @brief Start relaying media stream across rooms. <br>
-     *        After a user joins a room, you can call this method to publish the media stream to multiple rooms that applies to scenarios such as anOnline talent contest and so on.
+     *        After calling joinRoom{@link #IRTCRoom#joinRoom}, you can call this method to publish the media stream to multiple rooms that applies to scenarios such as anOnline talent contest and so on.
      * @param [in] configuration Information of the rooms where you want to relay the media stream to. Refer to ForwardStreamConfiguration{@link #ForwardStreamConfiguration} for more information.
      * @return  <br>
      *        0: Success
@@ -527,11 +529,70 @@ public:
      *        + IPanoramicVideo: Success. You will get an IPanoramicVideo{@link #IPanoramicVideo} returned from the SDK.  <br>
      *        + null: Failure. The current SDK does not offer range audio function.
      * @notes <br>
-     *        + The API call sequence is createRTCFovVideo{@link #IRTCVideo#createRTCFovVideo} > createRTCRoom{@link #IRTCVideo#createRTCRoom} > this API > joinRoom{@link #RTCRoom#joinRoom}.<br>
+     *        + The API call sequence on the subscriber side is createRTCVideo{@link #IRTCVideo#createRTCVideo} > createRTCRoom{@link #IRTCVideo#createRTCRoom} > this API > joinRoom{@link #RTCRoom#joinRoom}.<br>
      *        + After calling this API, you can call updateQuaternionf{@link #IPanoramicVideo#updateQuaternionf} to update the position of the head represented as a quaternion.<br>
      *        + Refer to setRemoteVideoSink{@link #IRTCVideo#setRemoteVideoSink} for details on how to render the panoramic video with an external renderer.
      */
     virtual IPanoramicVideo* getPanoramicVideo() = 0;
+
+    /** 
+     * @valid since 3.52.
+     * @type api
+     * @region Room Management
+     * @brief Set the priority of the local audio stream to be published.
+     * @param audioSelectionPriority The priority of the local audio stream which defaults to be subscribable only up to the result of the Audio Selection. Refer to AudioSelectionPriority{@link #AudioSelectionPriority}.
+     * @notes 
+     * You must enable Audio Selection in the RTC console before using this API. You can call this API whether the user has joined a room. Refer to [Audio Selection](https://docs.byteplus.com/byteplus-rtc/docs/113547).
+     * The setting is independent in each room that the user joins.
+     */
+    virtual int setAudioSelectionConfig(AudioSelectionPriority audio_selection_priority) = 0;
+
+    /** 
+     * @valid since 3.52.
+     * @type api
+     * @region Room Management
+     * @brief Sets extra information about the room the local user joins.
+     * @param [in] key Key of the extra information, less than 10 bytes in length.<br>
+     *        A maximum of 5 keys can exist in the same room, beyond which the first key will be replaced.
+     * @param [in] value Content of the extra information, less than 128 bytes in length.
+     * @return API call result: <br>
+     *        + 0: Success with a taskId returned.  <br>
+     *        + <0: Failure. See SetRoomExtraInfoResult{@link #SetRoomExtraInfoResult} for the reasons.
+     * @notes  <br>
+     *        + Call joinRoom{@link #IRTCRoom#joinRoom} first before you call this API to set extra information. <br>
+     *        + After calling this API, you will receive onSetRoomExtraInfoResult{@link #IRTCRoomEventHandler#onSetRoomExtraInfoResult} callback informing you the result of the setting. <br>
+     *        + After the extra information is successfully set, other users in the same room will receive the information through onRoomExtraInfoUpdate{@link #IRTCRoomEventHandler#onRoomExtraInfoUpdate} callback.
+     *        + Users who join the room later will be notified of all extra information in the room set prior to entering.
+     */
+    virtual int64_t setRoomExtraInfo(const char*key,const char*value) = 0;
+
+    /** 
+     * @hidden currently not available
+     * @type api
+     * @region Subtitle translation service
+     * @brief Recognizes or translates the speech of all speakers in the room and converts the results into captions. <br>
+     *        After calling this method, you will receive related information about subtitles through the onSubtitleMessageReceived{@link #IRTCAudioRoomEventHandler#onSubtitleMessageReceived} callback.  <br>
+     *        After calling this method, you will receive the onSubtitleStateChanged{@link #IRTCRoomEventHandler#onSubtitleStateChanged} to inform you of whether subtitles are on. 
+     * @param [in] subtitleConfig Subtitle configurations. Refer to SubtitleConfig{@link #SubtitleConfig} for details. 
+     * @return  <br>
+     *        +  0: Success.  <br>
+     *        + !0: Failure.  
+     * @notes <br>
+     *        Call this method after joining the room.  <br>
+     *        You can set your source language to Chinese by calling `joinRoom`  and importing a json formatted string `"source_language": "zh"` through the parameter of extraInfo, to English by importing `"source_language": "en"` , and to Japanese by importing `"source_language": "ja"` . If you don't set the source language, SDK will set the language of your system as the source language. If the language of your system is not Chinese, English or Japanese, SDK will set Chinese as the source language.  
+     */
+    virtual int startSubtitle(const SubtitleConfig& subtitle_config) = 0;
+    /** 
+     * @hidden currently not available
+     * @type api
+     * @region Subtitle translation service
+     * @brief Turns off subtitles. 
+     *        After calling this method, you will receive the onSubtitleStateChanged{@link #IRTCRoomEventHandler#onSubtitleStateChanged} to inform you of whether subtitles are off. 
+     * @return  <br>
+     *        +  0: Success.  <br>
+     *        + !0: Failure.  
+     */
+    virtual int stopSubtitle() = 0;
 };
 
 } // namespace bytertc

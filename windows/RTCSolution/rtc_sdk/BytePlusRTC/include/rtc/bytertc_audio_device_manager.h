@@ -122,7 +122,7 @@ protected:
 /** 
  * @hidden(Android,iOS)
  * @type api
- * @brief Audio Facility Management
+ * @brief Audio device management
  */
 class IAudioDeviceManager {
 public:
@@ -376,7 +376,7 @@ public:
      * @type api
      * @region Audio Facility Management
      * @brief Start the capture and playback test for local audio devices.
-     * @param [in] indication_interval During the test, you'll receive `onLocalAudioPropertiesReport` periodically. Set the period in ms with this parameter. Recommended value is 200 ms; the minimal value is 10 ms.
+     * @param indication_interval During the test, you'll receive `onLocalAudioPropertiesReport` periodically. Set the period in ms with this parameter. Recommended value is 200 ms; the minimal value is 10 ms.
      * @return  result
      *         + 0: success  <br>
      *         + < 0: failure  <br>
@@ -413,12 +413,12 @@ public:
 
     /** 
      * @type api
-     * @hidden(Android,iOS,Linux)
+     * @hidden currently not available
      * @region Audio Facility Management
      * @brief Enables/disables the silent device filter function.
      * @param [in] enable Whether to enable the silent device filter function:
-     *        + 1: true
-     *        + 0: false
+     *        + 1: true.
+     *        + 0: false.
      * @return + 0: Success.
      */
     virtual int enableFilterSilentDevice(bool enable) = 0;

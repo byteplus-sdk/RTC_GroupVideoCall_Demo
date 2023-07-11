@@ -93,11 +93,11 @@ public:
      * @type api
      * @hidden(Linux)
      * @region Mix
-     * @brief Stop playing all audio files.
+     * @brief Stop playing all audio files and mixes.
      * @notes  <br>
-     *       + After calling startAudioMixing{@link #IAudioMixingManager#startAudioMixing} to play audio files, you can call this api to stop playing all the files. <br>
-     *       + After calling this api to stop playing all audio, you will receive `onAudioMixingStateChanged` callback to inform you that the playing has been stopped.  <br>
-     *       + After you call this api to stop playing all audio, the files will be automatically uninstalled.
+     *       + After calling startAudioMixing{@link #IAudioMixingManager#startAudioMixing} to play audio files and mixes, you can call this api to stop playing all the files. <br>
+     *       + After calling this api to stop playing all audio and mixes, you will receive `onAudioMixingStateChanged` callback to inform you that the playing and mixing has been stopped.  <br>
+     *       + After you call this api to stop playing all audio and mixes, the files will be automatically uninstalled.
      */
     virtual void stopAllAudioMixing() = 0;
 
@@ -117,11 +117,11 @@ public:
      * @type api
      * @hidden(Linux)
      * @region Mix
-     * @brief Pause all audio files.
+     * @brief Pause all audio files and mixes.
      * @notes  <br>
-     *       + After calling startAudioMixing{@link #IAudioMixingManager#startAudioMixing}  to play audio files, you can call this api to pause all the files. <br>
-     *       + After calling this api to pause all audio, you can call resumeAllAudioMixing{@link #IAudioMixingManager#resumeAllAudioMixing} to resume the playing.   <br>
-     *       + After calling this api to pause all audio, you will receive `onAudioMixingStateChanged` callback to inform you that the playing has been paused.
+     *       + After calling startAudioMixing{@link #IAudioMixingManager#startAudioMixing}  to play audio files and mixes, you can call this api to pause all the files. <br>
+     *       + After calling this api to pause all audio and mixes, you can call resumeAllAudioMixing{@link #IAudioMixingManager#resumeAllAudioMixing} to resume the playing and mixing.   <br>
+     *       + After calling this api to pause all audio and mixes, you will receive `onAudioMixingStateChanged` callback to inform you that the playing and mixing has been paused.
      */
     virtual void pauseAllAudioMixing() = 0;
 
@@ -141,10 +141,10 @@ public:
      * @type api
      * @hidden(Linux)
      * @region Mix
-     * @brief Resume playing all audio files.
+     * @brief Resume playing all audio files and mixes.
      * @notes  <br>
      *       + After calling pauseAllAudioMixing{@link #IAudioMixingManager#pauseAllAudioMixing} , you can call this api to resume playing all the files. <br>
-     *       + After calling this api to resume all audio files, you will receive `onAudioMixingStateChanged` callback to inform you that the playing has been resumed.
+     *       + After calling this api to resume all audio and mixes, you will receive `onAudioMixingStateChanged` callback to inform you that the playing and mixing has been resumed.
      */
     virtual void resumeAllAudioMixing() = 0;
 
@@ -156,9 +156,8 @@ public:
      *        If this method is repeatedly called with the same ID, the previous file will be unloaded and the new file will be loaded. <br>
      *        If you call startAudioMixing{@link #IAudioMixingManager#startAudioMixing} and then call this method with the same ID, the previous mixing task will be stopped, and then the next file will be loaded. <br>
      *        After calling this method to preload A.mp3, if you need to call startAudioMixing{@link #IAudioMixingManager#startAudioMixing} to play B.mp3 with the same ID, call unloadAudioMixing{@link #IAudioMixingManager#unloadAudioMixing} to unload A.mp3 first.
-     * @param [in] file_path The path of the file to preload.<br>
-     *        You can use the URL of the online file, and the absolute path of the local file. For the URL of the online file, only https protocol is supported. You can only perload the audio file of length less than 20s. <br>
-     *         Audio file formats supported by different platforms: <br>
+     * @param [in] file_path The absolute path of the local file to preload. You can only preload the audio file of length less than 20s.
+     *         Audio file formats supported by different platforms: 
      *        <table>
      *           <tr><th></th><th>mp3</th><th>mp4</th><th>aac</th><th>m4a</th><th>3gp</th><th>wav</th><th>ogg</th><th>ts</th><th>wma</th></tr>
      *           <tr><td>Android</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td></td><td></td></tr>

@@ -36,7 +36,6 @@ namespace bytertc {
  */
 class IRtcEngine {
 public:
-
     /** 
      * @hidden
      * @brief  Destructor
@@ -164,7 +163,7 @@ public:
      *         + The earphone monitor function is only effective when the internal audio capture function provided by the RTC SDK is used and a wired earphone is connected. <br>
      */
     virtual void setEarMonitorVolume(const int volume) = 0;
-    
+
     /** 
     * @hidden(macOS,Windows,Linux,Android)
     * @type api
@@ -173,7 +172,7 @@ public:
     * @notes bluetooth mode can be setted only in media scenario.
     */
     virtual void setBluetoothMode(BluetoothMode mode) = 0;
-    
+
     /** 
      * @hidden
      * @deprecated since 327.1, use setScreenAudioStreamIndex instead
@@ -906,6 +905,8 @@ public:
     *  + If you used the internal module to start video capture before calling this interface, the capture parameters default to Auto.
     */
     virtual int setVideoCaptureConfig(const VideoCaptureConfig& videoCaptureConfig) = 0;
+
+    virtual void setVideoCaptureRotation(VideoRotation rotation) = 0;
 
     /** 
      * @type api
@@ -2059,9 +2060,8 @@ public:
      * @type api
      * @region Engine management
      * @brief Report the user feedback to RTC.
-     * @param [in] type List of preset problems. See ProblemFeedbackOption{@link #ProblemFeedbackOption}
-     * @param [in] count The length of `problemDesc`.
-     * @param [in] problemDesc Specific description of other problems other than the preset problem
+     * @param [in] types List of preset problems. See ProblemFeedbackOption{@link #ProblemFeedbackOption}
+     * @param [in] info Specific description of other problems other than the preset problem, and room's information. See ProblemFeedbackInfo{@link #ProblemFeedbackInfo}
      * @return  <br>
      *          + 0: Report successfully <br>
      *          + -1: Failed to report, not yet joined the room <br>
@@ -2070,7 +2070,7 @@ public:
      * @notes If the user is in the room when reporting, the report leads to the room / rooms where the user is currently located;
      *        If the user is not in the room when reporting, the report leads to the previously exited Room.
      */
-    virtual int feedback(ProblemFeedbackOption *type, int count, const char* problem_desc) = 0;
+    virtual int feedback(uint64_t types, const ProblemFeedbackInfo* info) = 0;
 
     /** 
      * @type api
@@ -2286,7 +2286,7 @@ public:
      * @region Screen sharing
      * @brief Set the audio channel of the screen audio stream
      * @param  [in] index The Audio channel. See AudioChannel{@link #AudioChannel} <br>
-     * @notes You should call this method after joinRoom{@link #IRTCRoom#joinRoom}. 
+     * @notes You should call this method after joinRoom{@link #IRTCRoom#joinRoom}.
      */
     virtual void setScreenAudioChannel(AudioChannel channel) = 0;
 
@@ -2547,7 +2547,7 @@ public:
     virtual void setLocalVoicePitch(int pitch) = 0;
 
     /** 
-     * @hidden    
+     * @hidden
      * @type api
      * @region Media stream management
      * @brief Play/Stop the local audio stream.
@@ -3093,6 +3093,7 @@ public:
 
 
     /** 
+     * @deprecated since 3.52, use startPushMixedStreamToCDN instead.
      * @type api
      * @region Multi-room
      * @brief Create a new task of pushing media streams to CDN and sets the relevant configurations.  <br>
@@ -3107,6 +3108,7 @@ public:
      */
     virtual void startLiveTranscoding(const char* task_id, ITranscoderParam* param, ITranscoderObserver* observer) = 0;
     /** 
+     * @deprecated since 3.52, use stopPushStreamToCDN instead.
      * @type api
      * @region Multi-room
      * @brief Stops pushing media streams to CDN. You will be informed of the change via the onStreamMixingEvent{@link #ITranscoderObserver#onStreamMixingEvent} callback. <br>
@@ -3115,6 +3117,7 @@ public:
      */
     virtual void stopLiveTranscoding(const char* task_id) = 0;
     /** 
+     * @deprecated since 3.52, use updatePushMixedStreamToCDN instead.
      * @type api
      * @region Multi-room
      * @brief Update parameters needed when pushing media streams to CDN. You will be informed of the change via the onStreamMixingEvent{@link #ITranscoderObserver#onStreamMixingEvent} callback. <br>
@@ -3123,6 +3126,14 @@ public:
      * @param [in] param Configurations that you want to update. See ITranscoderParam{@link #ITranscoderParam}.
      */
     virtual void updateLiveTranscoding(const char* task_id, ITranscoderParam* param) = 0;
+    /** 
+     * @type api
+     * @region Multi-room
+     * @brief Stops pushing media streams to CDN. You will be informed of the change via the onStreamMixingEvent{@link #IMixedStreamObserver#onMixingEvent} callback. <br>
+     *        For starting pushing media streams to CDN, see startLiveTranscoding{@link #IRtcEngine#startPushMixedStreamToCDN}}.
+     * @param [in] task_id Task ID. Specifys which pushing task you want to stop.
+     */
+    virtual void stopPushStreamToCDN(const char* task_id) = 0;
     /** 
      * @deprecated  since 336, use setRemoteStreamVideoCanvas instead
      * @hidden
@@ -3273,7 +3284,7 @@ public:
      *        + If Users with different userID call this API with the same stream ID, the public stream will be updated with the parameters passed in the latest call.<br>
      *        + To publish multiple public streams, call this API with different stream ID respectively.<br>
      *        + To stop publishing the public stream, call stopPushPublicStream{@link #IRtcEngine#stopPushPublicStream}.
-     *        + Please contact ts to enable this function before using it.   
+     *        + Please contact ts to enable this function before using it.
      */
     virtual int startPushPublicStream(const char* public_stream_id, IPublicStreamParam* param) = 0;
     /** 
@@ -3354,7 +3365,7 @@ public:
      * @notes To start cloud proxy, call startCloudProxy{@link #IRtcEngine#startCloudProxy}.
      */
     virtual void stopCloudProxy() = 0;
-    
+
     /** 
      * @type api
      * @region cdn
@@ -3373,6 +3384,14 @@ public:
      */
     virtual int invokeExperimentalAPI(const char* param) = 0;
 
+
+    /** 
+     * @brief Change settings of the cellular enhancement with regard to specific media types
+     * @param config cellular enhancement settings of specific media types
+     * notes <br>
+     *       + this api can be invoked to set cellular enhancement with regard to specific media types
+     */
+    virtual void setCellularEnhancement(const MediaTypeEnhancementConfig& config) = 0;
 };
 
 /** 

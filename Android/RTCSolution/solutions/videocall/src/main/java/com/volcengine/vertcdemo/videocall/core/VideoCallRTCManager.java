@@ -742,6 +742,9 @@ public class VideoCallRTCManager {
      */
     public void switchCamera(boolean isFrontCamera) {
         Log.d(TAG, String.format("switchCamera: %b", isFrontCamera));
+        if (!mIsCameraOn) {
+            return;
+        }
         mIsFrontCamera = isFrontCamera;
         if (mRTCVideo != null) {
             // Switch the front/back camera used when capturing the video internally

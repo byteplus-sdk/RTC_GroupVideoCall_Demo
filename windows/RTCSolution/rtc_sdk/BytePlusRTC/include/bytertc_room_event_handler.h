@@ -56,6 +56,7 @@ public:
     virtual void onStreamStateChanged(
             const char* room_id, const char* uid, int state, const char* extra_info) {
         (void)room_id;
+        (void)uid;
         (void)state;
         (void)extra_info;
     }
@@ -82,7 +83,7 @@ public:
      *        SDK, the user is notified via this callback while attempting automatic recovery. This callback event is only used as a notification. <br>
      * @param  [in] warn Code. See WarningCode{@link #WarningCode}. <br>
      */
-    virtual void onRoomWarning(int warn) {
+    BYTERTC_DEPRECATED virtual void onRoomWarning(int warn) {
         (void)warn;
     }
 
@@ -200,10 +201,9 @@ public:
      * @param  [in] stream Stream. See MediaStreamInfo{@link #MediaStreamInfo}.
      * @param  [in] reason The reason for the removal of the remote stream. See StreamRemoveReason{@link #StreamRemoveReason}.
      */
-    virtual void onStreamRemove(const MediaStreamInfo& stream, StreamRemoveReason reason) {
+    BYTERTC_DEPRECATED virtual void onStreamRemove(const MediaStreamInfo& stream, StreamRemoveReason reason) {
         (void)stream;
     }
-
 
     /** 
      * @deprecated since 3.45 and will be deleted in 3.51, use onUserPublishStream{@link #IRTCRoomEventHandler#onUserPublishStream} and onUserPublishScreen{@link #IRTCRoomEventHandler#onUserPublishScreen} instead.
@@ -212,7 +212,7 @@ public:
      * @brief When users in the room post a new audio & video stream, other users in the room will receive this callback. Includes streams that are removed and republished.   <br>
      * @param  [in] stream Stream properties. See MediaStreamInfo{@link #MediaStreamInfo}. <br>
      */
-    virtual void onStreamAdd(const MediaStreamInfo& stream) {
+    BYTERTC_DEPRECATED virtual void onStreamAdd(const MediaStreamInfo& stream) {
         (void)stream;
     }
     /** 
@@ -395,7 +395,6 @@ public:
 
     /**
      * @hidden for internal use only
-     * @deprecated
      */
     virtual void onRoomModeChanged(RtcRoomMode mode) {
         (void)mode;
@@ -499,6 +498,61 @@ public:
      * @notes See [In-call Stats](106866) for more information.
      */
     virtual void onNetworkQuality(const NetworkQualityStats& localQuality, const NetworkQualityStats* remoteQualities, int remoteQualityNum) {
+    }
+
+    /** 
+     * @valid since 3.52.
+     * @type callback
+     * @region Room Management
+     * @brief Callback on the result of calling setRoomExtraInfo{@link #IRTCRoom#setRoomExtraInfo} to set extra information about the room.
+     * @param [in] taskId The task ID of the API call.
+     * @param [in] errCode See SetRoomExtraInfoResult{@link #SetRoomExtraInfoResult} for the setting results and reasons.
+     */
+    virtual void onSetRoomExtraInfoResult(int64_t taskId, SetRoomExtraInfoResult errCode) {
+        (void)taskId;
+        (void)errCode;
+    }
+
+    /** 
+     * @valid since 3.52.
+     * @type callback
+     * @region Room Management
+     * @brief Callback used to receive the extra information set by the other users in the same room with setRoomExtraInfo{@link #IRTCRoom#setRoomExtraInfo}.
+     * @param [in] key Key of the extra information.
+     * @param [in] value Content of the extra information.
+     * @param [in] lastUpdateUserId The ID of the last user who updated this information.
+     * @param [in] lastUpdateTimeMs The Unix time in ms when this information was last updated. 
+     */
+    virtual void onRoomExtraInfoUpdate(const char*key,const char* value,const char* lastUpdateUserId,int64_t lastUpdateTimeMs) {
+        (void)key;
+        (void)value;
+        (void)lastUpdateUserId;
+        (void)lastUpdateTimeMs;
+    }
+
+    /** 
+     * @hidden currently not available 
+     * @type callback
+     * @region Subtitle translation service
+     * @brief  Callback on subtitle states. <br>
+     *         After you call startSubtitle{@link #IRTCRoom#startSubtitle} and stopSubtitle{@link #IRTCRoom#stopSubtitle}, you will receive this callback which informs you of the states and error codes of the subtitling task, as well as detailed information on the third party services' errors. 
+     * @param [in] state The states of subtitles. Refer to SubtitleState{@link #SubtitleState} for details. 
+     * @param [in] errorCode  Error codes of the subtitling task. Refer to SubtitleErrorCode{@link #SubtitleErrorCode}.
+     * @param [in] errorMessage Detailed information on the third party services' errors. 
+     */
+    virtual void onSubtitleStateChanged(SubtitleState state, SubtitleErrorCode error_code, const char* error_message) {
+    }
+
+    /** 
+     * @hidden currently not available 
+     * @type callback
+     * @region Subtitle translation service
+     * @brief  Callback on subtitle messages.  <br>
+     *         After calling startSubtitle{@link #IRTCRoom#startSubtitle}, you will receive this callback which informs you of the related information on subtitles. 
+     * @param [in] subtitles  Subtitle messages. Refer to SubtitleMessage{@link #SubtitleMessage} for details. 
+     * @param [in] cnt  The number of subtitle messages.
+     */
+    virtual void onSubtitleMessageReceived(const SubtitleMessage* subtitles, int cnt) {
     }
 };
 

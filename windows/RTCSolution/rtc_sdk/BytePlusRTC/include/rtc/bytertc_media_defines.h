@@ -147,18 +147,19 @@ enum UserRoleType {
 };
 
 /** 
+ * @hidden currently not available
  * @type keytype
- * @brief SEI data source type.
+ * @brief Message source
  */
-enum SEIMessageSourceType {
+enum DataMessageSourceType {
     /** 
-     * @brief (Default) Customized information.
+     * @brief Customized messages inserted by calling API in the server or SDK.
      */
-    kSEIMessageSourceTypeDefault = 0,
+    kDataMessageSourceTypeDefault = 0,
     /** 
-     * @brief System notification including volume indication.
+     * @brief System notification such as volume indication.
      */
-    kSEIMessageSourceTypeSystem,
+    kDataMessageSourceTypeSystem,
 };
 
 /** 
@@ -226,7 +227,8 @@ struct NetworkQualityStats {
 enum RoomProfileType {
     /** 
      * @brief General mode by default <br>
-     *        It equals to `kRoomProfileTypeMeeting = 16`.
+     *        It equals to `kRoomProfileTypeMeeting = 16`.<br>
+     *        Contact us to alter the default settings.
      */
     kRoomProfileTypeCommunication = 0,
     /** 
@@ -528,8 +530,8 @@ enum MediaDeviceWarning {
      */
     kMediaDeviceWarningDetectClipping = 10,
     /** 
-     * @hidden for internal use only
-     * @brief Leaking echo detected.
+     * @brief Echos betwwen mics and speakers are detected during a call.<br>
+     *        `onAudioDeviceWarning` notifies you with this enum of echo issue. During a call, SDK will detect echo issue only when RoomProfileType{@link #RoomProfileType} is set to `kRoomProfileTypeMeeting` or `kRoomProfileTypeMeetingRoom` and AEC is disabled.
      */
     kMediaDeviceWarningDetectLeakEcho = 11,
     /** 
@@ -596,7 +598,7 @@ enum MediaDeviceWarning {
      */
     kMediaDeviceWarningSetBluetoothModeUnsupport = 26,
     /** 
-     * @hidden(Linux)
+     * @hidden currently not available
      * @brief use silent record device
      */
     kMediaDeviceWarningRecordingUseSilentDevice = 27,
@@ -880,6 +882,18 @@ enum ErrorCode {
      */
     kErrorCodeJoinRoomLicenseNotMatchWithCache = -1024,
     /** 
+     * @brief The room has banned before the user calls `joinRoom`.
+     */
+    kErrorCodeJoinRoomRoomForbidden = -1025,
+    /** 
+     * @brief The user has banned before calling `joinRoom`.
+     */
+    kErrorCodeJoinRoomUserForbidden = -1026,
+    /** 
+     * @brief The license method did not load successfully. Check the corresponding extension.<br>
+     */
+    kErrorCodeJoinRoomLicenseFunctionNotFound = -1027,
+    /** 
      * @brief Subscription to audio & video stream failed, the total number of subscribed audio & video streams exceeded the upper limit.
      *        In the game scenario, in order to ensure the performance and quality of audio & video calls, the server will limit the total number of audio & video streams subscribed by the user. When the total number of audio & video streams subscribed by the user has reached the maximum, continuing to subscribe to more streams will fail, and the user will receive this error notification.
      */
@@ -895,6 +909,7 @@ enum ErrorCode {
      */
     kErrorCodeOverScreenPublishLimit = -1081,
     /** 
+     * @deprecated since 3.52, use kErrorCodeOverStreamPublishLimit（-1080）instead
      * @brief The total number of published video streams exceeds the upper limit.
      *        The RTC system limits the number of video streams posted in a single room. If the maximum number of video streams posted in the room has been reached, local users will fail to post video streams to the room again and will receive this error notification.
      */
@@ -910,6 +925,11 @@ enum ErrorCode {
      *        SDK  is disconnected with the signaling server. It will not reconnect automatically. Please contact technical support.<br>
      */
     kErrorCodeAbnormalServerStatus = -1084,
+    /** 
+     * @hidden for internal use only
+     * @brief In the scenario of one stream publish to multiple rooms, when at least two rooms are publishing the same stream, one of the rooms fails to unpublish. At this time, the business party needs to retry or notify the user to retry unpublish. <br>
+     */
+    kErrorCodeMultiRoomUnpublishFailed = -1085,
     /**
      * @hidden for internal use only
      */
@@ -1552,6 +1572,21 @@ enum VideoSuperResolutionMode {
 
 /** 
  * @type keytype
+ * @brief Video noise reduction mode.
+ */
+enum VideoDenoiseMode {
+    /** 
+     * @brief Video noise reduction is turned off.
+     */
+    kVideoDenoiseModeOff = 0,
+    /** 
+     * @brief Video noise reduction mode is turned on. The algorithm is configured by ByteRTC.
+     */
+    kVideoDenoiseModeAuto = 1,
+};
+
+/** 
+ * @type keytype
  * @brief Local audio stream statistics, reference period 2s. <br>
  *         After the local user publishes the audio stream successfully, the SDK will periodically notify the user through `onLocalStreamStats`
  *         The transmission status of the published audio stream during this reference period. This data structure is the type of parameter that is called back to the user. <br>
@@ -1744,6 +1779,10 @@ struct LocalVideoStats {
      * @brief Video uplink network jitter in ms. <br>
      */
     int jitter;
+    /** 
+     * @brief Video noise reduction mode. Refer to VideoDenoiseMode{@link #VideoDenoiseMode} for more details.
+     */
+    VideoDenoiseMode video_denoise_mode;
 };
 
 /** 
@@ -1895,7 +1934,7 @@ struct RemoteStreamStats {
  * @type keytype
  * @brief  Audio & video quality feedback problem
  */
-enum ProblemFeedbackOption {
+enum ProblemFeedbackOption : uint64_t {
     /** 
      * @brief Every thing is OK.
      */
@@ -1903,51 +1942,128 @@ enum ProblemFeedbackOption {
     /** 
      * @brief Issues not included in the list
      */
-    kProblemFeedbackOptionOtherMessage = (1 << 0),
-    /** 
-     * @brief Unclear voice
-     */
-    kProblemFeedbackOptionAudioNotClear = (1 << 1),
-    /** 
-     * @brief Unclear video
-     */
-    kProblemFeedbackOptionVideoNotClear = (1 << 2),
-    /** 
-     * @brief Audio & video out of sync
-     */
-    kProblemFeedbackOptionNotSync = (1 << 3),
-    /** 
-     * @brief Audio stall
-     */
-    kProblemFeedbackOptionAudioLagging = (1 << 4),
-    /** 
-     * @brief Video stall
-     */
-    kProblemFeedbackOptionVideoLagging = (1 << 5),
+    kProblemFeedbackOptionOtherMessage = (1ULL << 0),
     /** 
      * @brief Connection failed
      */
-    kProblemFeedbackOptionDisconnected = (1 << 6),
-    /** 
-     * @brief No sound
-     */
-    kProblemFeedbackOptionNoAudio = (1 << 7),
-    /** 
-     * @brief No picture
-     */
-    kProblemFeedbackOptionNoVideo = (1 << 8),
-    /** 
-     * @brief Too little sound
-     */
-    kProblemFeedbackOptionAudioStrength = (1 << 9),
-    /** 
-     * @brief Echo noise
-     */
-    kProblemFeedbackOptionEcho = (1 << 10),
+    kProblemFeedbackOptionDisconnected = (1ULL << 1),
     /** 
      * @brief High latency for the ear monitor
      */
-    KFeedbackOptionEarBackDelay = (1 << 11),
+    kProblemFeedbackOptionEarBackDelay = (1ULL << 2),
+
+    /** 
+     * @brief Noise on the local end
+     */
+    kProblemFeedbackOptionLocalNoise = (1ULL << 10),
+    /** 
+     * @brief Audio stall on the local end
+     */
+    kProblemFeedbackOptionLocalAudioLagging = (1ULL << 11),
+    /** 
+     * @brief No sound on the local end
+     */
+    kProblemFeedbackOptionLocalNoAudio = (1ULL << 12),
+    /** 
+     * @brief Too little/loud sound on the local end
+     */
+    kProblemFeedbackOptionLocalAudioStrength = (1ULL << 13),
+    /** 
+     * @brief Echo noise on the local end
+     */
+    kProblemFeedbackOptionLocalEcho = (1ULL << 14),
+    /** 
+     * @brief Unclear video on the local end
+     */
+    kProblemFeedbackOptionLocalVideoFuzzy = (1ULL << 24),
+    /** 
+     * @brief Audio & video out of sync on the local end
+     */
+    kProblemFeedbackOptionLocalNotSync = (1ULL << 25),
+    /** 
+     * @brief Video stall on the local end
+     */
+    kProblemFeedbackOptionLocalVideoLagging = (1ULL << 26),
+    /** 
+     * @brief No picture on the local end
+     */
+    kProblemFeedbackOptionLocalNoVideo = (1ULL << 27),
+
+    /** 
+     * @brief Noise on the remote end
+     */
+    kProblemFeedbackOptionRemoteNoise = (1ULL << 37),
+    /** 
+     * @brief Audio stall on the remote end
+     */
+    kProblemFeedbackOptionRemoteAudioLagging = (1ULL << 38),
+    /** 
+     * @brief No sound on the remote end
+     */
+    kProblemFeedbackOptionRemoteNoAudio = (1ULL << 39),
+    /** 
+     * @brief Too little/loud sound on the remote end
+     */
+    kProblemFeedbackOptionRemoteAudioStrength = (1ULL << 40),
+    /** 
+     * @brief Echo noise on the remote end
+     */
+    kProblemFeedbackOptionRemoteEcho = (1ULL << 41),
+
+    /** 
+     * @brief Unclear video on the remote end
+     */
+    kProblemFeedbackOptionRemoteVideoFuzzy = (1ULL << 51),
+    /** 
+     * @brief Audio & video out of sync on the remote end
+     */
+    kProblemFeedbackOptionRemoteNotSync = (1ULL << 52),
+    /** 
+     * @brief Video stall on the remote end
+     */
+    kProblemFeedbackOptionRemoteVideoLagging = (1ULL << 53),
+    /** 
+     * @brief No picture on the remote end
+     */
+    kProblemFeedbackOptionRemoteNoVideo = (1ULL << 54),
+};
+
+/** 
+ * @type keytype
+ * @brief Room information for audio & video quality feedback
+ */
+struct ProblemFeedbackRoomInfo {
+    /** 
+     * @brief Room ID.
+     */
+    const char* room_id = nullptr;
+
+    /** 
+     * @brief The ID of the  local user.
+     */
+    const char* user_id = nullptr;
+};
+
+/** 
+ * @type keytype
+ * @brief Information for audio & video quality feedback
+ */
+struct ProblemFeedbackInfo {
+    /** 
+     * @brief Specific description of problems other than the preset problem.
+     */
+    const char* problem_desc = nullptr;
+
+    /** 
+     * @type keytype
+     * @brief Room information for audio & video quality feedback. See ProblemFeedbackRoomInfo{@link #ProblemFeedbackRoomInfo}.
+     */
+    ProblemFeedbackRoomInfo* room_info = nullptr;
+    /** 
+     * @type keytype
+     * @brief The length of `FeedbackRoomInfo`.
+     */
+    int room_info_count = 0;
 };
 
 /** 
@@ -2239,7 +2355,7 @@ struct RecordingInfo {
  */
 struct RecordingConfig {
     /** 
-     * @brief The absolute path to save the recording file. You need to specify a legal path with read and write permissions.
+     * @brief The absolute folder path to save the recording file.The filename will be generated by RTC. You need to ensure that you have read and write permissions to this path.
      */
     const char* dir_path;
     /** 
@@ -2273,6 +2389,10 @@ enum UserWorkerType {
      * @brief The user needs to get relevant callbacks for all streams in the room when the room enters multiplayer mode   <br>
      */
     UserWorkerNeedStreamCallBack = (1 << 3),
+    /** 
+     * @brief User sets not support audioselection   <br>
+     */
+    UserWorkerAudioSelectionExemption = (1 << 4),
 };
 
 /** 
@@ -2497,7 +2617,7 @@ struct ByteWatermark {
     /**
      * @hidden currently not available
      */
-    const char* url;
+    const char* url = nullptr;
     /** 
      * @brief The watermark's horizontal offset from the upper left corner of the video stream to the video stream's width in range of [0,1).
      */
@@ -2792,6 +2912,208 @@ struct NetworkTimeInfo {
      */
     explicit NetworkTimeInfo(int64_t ts): timestamp(ts) {
     }
+};
+
+/** 
+ * @type keytype
+ * @brief Result of the detection inited before joining a room
+ */
+enum HardwareEchoDetectionResult{
+    /** 
+     * @brief Detection is stopped by the call of `stopHardwareEchoDetection` before the SDK reports the detection result.
+     */
+    kHardwareEchoDetectionCanceled = 0,
+    /** 
+     * @brief Unknown state<br>
+     *        Contact us if you retry several times but keep failing.
+     */
+    kHardwareEchoDetectionUnknown = 1,
+    /** 
+     * @brief Excellent <br>
+     *        No echo issue is detected.
+     */
+    kHardwareEchoDetectionNormal = 2,
+    /** 
+     * @brief Echo <br>
+     *        Echo issue is detected. Recommend the user join the call with a headset through the interface.
+     */
+    kHardwareEchoDetectionPoor = 3,
+};
+
+/** 
+ * @type keytype
+ * @brief User priority in the audio selection
+ */
+enum AudioSelectionPriority {
+    /** 
+     * @brief Normal whether the stream can be subscribed is determined by the result of audio selection.
+     */
+    kAudioSelectionPriorityNormal = 0,
+    /** 
+     * @brief Hight priority with which the stream can skip the audio selection and always be subscribable.
+     */
+    kAudioSelectionPriorityHigh = 1
+};
+
+/** 
+ * @type keytype
+ * @brief Extra information setting result.
+ */
+enum SetRoomExtraInfoResult {
+    /** 
+     * @brief Success.
+     */
+    kSetRoomExtraInfoSuccess = 0,
+    /** 
+     * @brief Failure. You are not in the room.
+     */
+    kSetRoomExtraInfoErrorNotJoinRoom = -1,
+    /** 
+     * @brief Failure. The key pointer is null.
+     */
+    kSetRoomExtraInfoErrorKeyIsNull = -2,
+    /** 
+     * @brief Failure. The value pointer is null.
+     */
+    kSetRoomExtraInfoErrorValueIsNull = -3,
+    /** 
+     * @brief Failure. Unknown error.
+     */
+    kSetRoomExtraInfoResultUnknow = -99,
+    /** 
+     * @brief Failure. The key length is 0.
+     */
+    kSetRoomExtraInfoErrorKeyIsEmpty = -400,
+    /** 
+     * @brief Failure. Excessively frequent setting. 10 times per second is preferable.
+     */
+    kSetRoomExtraInfoErrorTooOften = -406,
+    /** 
+     * @brief Failure. Invisible users are not allowed to call `setRoomExtraInfo`.
+     */
+    kSetRoomExtraInfoErrorSilentUser = -412,
+    /** 
+     * @brief Failure. Key length exceeds 10 bytes.
+     */
+    kSetRoomExtraInfoErrorKeyTooLong = -413,
+    /** 
+     * @brief Failure. Value length exceeds 128 bytes.
+     */
+    kSetRoomExtraInfoErrorValueTooLong = -414,
+    /** 
+     * @brief Failure. Server error.
+     */
+    kSetRoomExtraInfoErrorServer = -500
+};
+/**  
+ * @type keytype
+ * @brief The states of the subtitling task.
+ */
+enum SubtitleState {
+    /** 
+     * @brief Subtitles are on. 
+     */
+    kSubtitleStateStarted,
+    /** 
+     * @brief Subtitles are off.
+     */
+    kSubtitleStateStoped,
+    /** 
+     * @brief Errors occurred in the subtitling task. 
+     */
+    kSubtitleStateError
+};
+/**  
+ * @type keytype
+ * @brief Subtitle modes.
+ */
+enum SubtitleMode {
+    /** 
+     * @brief The recognition mode. In this mode, the speech of a users in the room will be recognized and converted into captions.
+     */
+    kSubtitleModeRecognition = 0,
+    /** 
+     * @brief The translation mode. In this mode, the speech of a users in the room will be converted into captions and then translated.
+     */
+    kSubtitleModeTranslation
+};
+/**  
+ * @type keytype
+ * @brief Error codes of the subtitling task.
+ */
+enum SubtitleErrorCode {
+    /** 
+     * @brief The client side failed to identity error codes sent by cloud media processing. Please contact the technical support. 
+     */
+    kSubtitleErrorCodeUnknow = -1,
+    /** 
+     * @brief Subtitles are turned on. 
+     */
+    kSubtitleErrorCodeSuccess,
+    /** 
+     * @brief Errors occurred concerning cloud media processing. Please contact the technical support.
+     */
+    kSubtitleErrorCodePostProcessError,
+    /** 
+     * @brief Failed to connect to the thrid-party service. Please contact the technical support.
+     */
+    kSubtitleErrorCodeASRConnectionError,
+    /** 
+     * @brief Errors occurred concerning the third-party service. Please contact the technical support.
+     */
+    kSubtitleErrorCodeASRServiceError,
+    /** 
+     * @brief Failed to call `startSubtitle`. Please join the room first. 
+     */
+    kSubtitleErrorCodeBeforeJoinRoom,
+    /** 
+     * @brief You has already called `startSubtitle`. 
+     */
+    kSubtitleErrorCodeAlreadyOn,
+    /** 
+     * @brief The target language you chose is not Unsupported.
+     */
+    kSubtitleErrorCodeUnsupportedLanguage,
+    /** 
+     * @brief Cloud media processing is timeout. Please contact the technical support.
+     */
+    kSubtitleErrorCodePostProcessTimeout
+};
+/**  
+ * @type keytype
+ * @brief Subtitle configurations.
+ */
+struct SubtitleConfig {
+   /** 
+    * @brief Subtitle mode. You can choose between the recognition and translation modes based on your needs. In the recognition mode, the speech of the speaker in the room will be recognized and converted into captions. In the translation mode, the transcribed text will be translated. Refer to SubtitleMode{@link #SubtitleMode} for more details.
+    */
+    SubtitleMode mode;
+   /** 
+    * @brief Target language. 
+    */
+    const char* target_language = "";
+};
+/**  
+ * @type keytype
+ * @brief Related information about subtitles.
+ */
+struct SubtitleMessage {
+    /** 
+     * @brief The speaker's ID.
+     */
+    const char* user_id;
+    /** 
+     * @brief Transcribed or translated texts of the speaker's speech, encoded in UTF-8 format.
+     */
+    const char* text;
+    /** 
+     * @brief Incremental sequence numbers assigned to transcribed or translated texts of the speaker's speech. Complete and incomplete sentences are numbered individually.
+     */
+    int sequence;
+    /** 
+     * @brief Whether transcribed texts are complete sentences. True means yes and False means no.
+     */
+    bool definite;
 };
 
 }  // namespace bytertc

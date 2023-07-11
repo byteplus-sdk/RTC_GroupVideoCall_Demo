@@ -15,17 +15,17 @@ namespace bytertc {
  */
 enum RenderMode {
     /** 
-     * @brief Fill and Crop.  <br>
+     * @brief (Default) Fill and Crop.
      *        The video frame is scaled with fixed aspect ratio, and completely fills the canvas. The region of the video exceeding the canvas will be cropped. <br>
      */
     kRenderModeHidden = 1,
     /** 
-     * @brief Fit.  <br>
-     *        The video frame is scaled with fixed aspect ratio, and is shown completely in the canvas. The region of the canvas not filled with video frame, is filled with `background`.  <br>
+     * @brief Fit.
+     *        The video frame is scaled with fixed aspect ratio, and is shown completely in the canvas. The region of the canvas not filled with video frame, is filled with `background`.
      */
     kRenderModeFit = 2,
     /** 
-     *  @brief Fill the canvas. <br>
+     *  @brief Fill the canvas.
      *         The video frame is scaled to fill the canvas. During the process, the aspect ratio may change.
      */
     kRenderModeFill = 3,
@@ -434,6 +434,11 @@ struct MediaStreamInfo {
      * @brief The user ID that published this stream.
      */
     const char* user_id;
+    /** 
+     * @hidden for internal use only
+     * @brief The flag of the stream, unique in user scope.
+     */
+    const char* stream_name;
     /** 
      * @brief Whether this stream is a shared screen stream.
      */
@@ -994,6 +999,56 @@ enum VideoSourceType {
 
 /** 
  * @type keytype
+ * @brief Digital Zoom type
+ */
+enum ZoomConfigType {
+    /** 
+     * @brief To set the offset for zooming in and zooming out.
+     */
+    kZoomFocusOffset = 0, 
+    /** 
+     * @brief To set the offset for panning and tiling.
+     */
+    kZoomMoveOffset,
+};
+
+/** 
+ * @type keytype
+ * @brief Action of the digital zoom control
+ */
+enum ZoomDirectionType {
+    /** 
+     * @brief Move to the left.
+     */
+    kCameraMoveLeft = 0,
+    /** 
+     * @brief Move to the right.
+     */
+    kCameraMoveRight,
+    /** 
+     * @brief Move upwards.
+     */
+    kCameraMoveUp,
+    /** 
+     * @brief Move downwards.
+     */
+    kCameraMoveDown,
+    /** 
+     * @brief Zoom out.
+     */
+    kCameraZoomOut,
+    /** 
+     * @brief Zoom in.
+     */
+    kCameraZoomIn,
+    /** 
+     * @brief Reset digital zoom.
+     */
+    kCameraReset,
+};
+
+/** 
+ * @type keytype
  * @brief  Video frame information
  */
 struct VideoFrameInfo {
@@ -1153,6 +1208,7 @@ enum RTCVideoDeviceType {
 };
 
 /** 
+ * @hidden currently not available
  * @type keytype
  * @brief State and errors for publishing or subscribing public streams
  */
@@ -1160,27 +1216,31 @@ enum PublicStreamErrorCode {
     /** 
      * @brief Published or subscribed successfully.
      */
-    kPublicStreamOK = 0,
+    kPublicStreamErrorCodeOK = 0,
     /** 
      * @brief Invalid parameter(s). Please revise the paramter(s) and retry.
      */
-    kPublicStreamPushInvalidParam = 1191,
+    kPublicStreamErrorCodePushInvalidParam = 1191,
     /** 
-     * @brief Error for the task at the server side. The server will retry automatically.
+     * @brief Error for the task at the server side. The server will retry upon the failure.
      */
-    kPublicStreamPushInvalidStatus = 1192,
+    kPublicStreamErrorCodePushInvalidStatus = 1192,
     /** 
      * @brief Unrecoverable error of publishing the public stream. Please start the task again.
      */
-    kPublicStreamPushInternalError = 1193,
+    kPublicStreamErrorCodePushInternalError = 1193,
     /** 
-     * @brief Failed to publish the public stream. The SDK  will retry that you have no need to handle.
+     * @brief Failed to publish. The SDK will retry upon the failure. We recommend to keep listening to the publishing result.
      */
-    kPublicStreamPushFailed = 1195,
+    kPublicStreamErrorCodePushFailed = 1195,
     /** 
-     * @brief Time-out error of publishing the public stream. The SDK will retry in 10 s. The SDK will stop trying again after three times of failures.
+     * @brief Failed to publish the public stream for time-out error. The SDK will retry 10 s after the timeout. The maximum number of retry attempts is 3.
      */
-    kPublicStreamPushTimeout = 1196,
+    kPublicStreamErrorCodePushTimeout = 1196,
+    /** 
+     * @brief Failed to play a public stream because the publisher has not started publishing.
+     */
+    kPublicStreamErrorCodePullNoPushStream = 1300,
 };
 
 /** 
@@ -1446,6 +1506,49 @@ enum VideoSuperResolutionModeChangedReason {
 
 /** 
  * @type keytype
+ * @brief The reasons for the change in the video noise reduction mode.
+ */
+enum VideoDenoiseModeChangedReason {
+    /** 
+     * @brief Video noise reduction mode changed due to unknown reasons.
+     */
+    kVideoDenoiseModeChangedReasonNull = -1,
+    /** 
+     * @brief Successfully turned off the video noise reduction by calling setVideoDenoiser{@link #IRTCVideo#setVideoDenoiser}.
+     */
+    kVideoDenoiseModeChangedReasonApiOff = 0,
+    /** 
+     * @brief Successfully turned on the video noise reduction by calling setVideoDenoiser{@link #IRTCVideo#setVideoDenoiser}.
+     */
+    kVideoDenoiseModeChangedReasonApiOn = 1,
+    /** 
+     * @brief Video noise reduction disabled by configuration.
+     */
+    kVideoDenoiseModeChangedReasonConfigDisabled = 2,
+    /** 
+     * @brief Video noise reduction enabled by configuration.
+     */
+    kVideoDenoiseModeChangedReasonConfigEnabled = 3,
+    /** 
+     * @brief Video noise reduction turned off due to internal exceptions. 
+     */
+    kVideoDenoiseModeChangedReasonInternalException = 4,
+    /** 
+     * @brief Video noise reduction turned off due to hardware performance stress. 
+     */
+    kVideoDenoiseModeChangedReasonDynamicClose = 5,
+    /** 
+     * @brief Device hardware capacity is sufficient, video noise reduction turned on.
+     */
+    kVideoDenoiseModeChangedReasonDynamicOpen = 6,
+    /** 
+     * @brief Video noise reduction mode changed due to video resolution. High resolution leads to high hardware utilization. Reduce the resolution to recover video noise reduction.
+     */
+    kVideoDenoiseModeChangedReasonResolution = 7,
+};
+
+/** 
+ * @type keytype
  * @brief Type of the screen capture object
  */
 enum ScreenCaptureSourceType {
@@ -1703,6 +1806,7 @@ public:
 };
 
 /** 
+ * @hidden
  * @deprecated since 3.50 and will be deleted in 3.55.
  * @type callback
  * @region Video Management
@@ -1801,5 +1905,33 @@ public:
      */
     virtual void onTakeRemoteSnapshotResult(long taskId, RemoteStreamKey streamKey, IVideoFrame* image, int errorCode) = 0;
 };
+/** 
+ * @hidden(macOS, Windows, Linux)
+ * @type keytype
+ * @brief Media type for cellular assisted Enhancement
+ */
+struct MediaTypeEnhancementConfig {
+    /** 
+     * @brief Apply to signaling or not. Not by default.
+     */
+    bool enhance_signaling = false;
+    /** 
+     * @brief Apply to audio stream (Screen-sharing audio not included) or not. Not by default.
+     */
+    bool enhance_audio = false;
+    /** 
+     * @brief Apply to screen sharing audio or not. Not by default.
+     */
+    bool enhance_screen_audio = false;
+    /** 
+     * @brief Apply to video (Screen-sharing video not included) or not. Not by default.
+     */
+    bool enhance_video = false;
+    /** 
+     * @brief Apply to screen sharing video or not. Not by default.
+     */
+    bool enhance_screen_video = false;
+};
+
 
 }  // namespace bytertc

@@ -9,6 +9,20 @@
 #include "bytertc_audio_defines.h"
 
 namespace bytertc {
+/** 
+ * @type keytype
+ * @brief Information on the user's position in the rectangular coordinate system for the spatial audio.
+ */
+struct PositionInfo {
+    /** 
+     * @brief 3D coordinate values of the user's position in the rectangular coordinate system for the spatial audio. You need to build your own rectangular coordinate system. Refer to Position{@link #Position} for details.
+     */
+    Position position;
+    /** 
+     * @brief Information on the three-dimensional orientation of the user in the rectangular coordinate system for the spatial audio. Any two of the 3D coordinate vectors of the user's position need to be perpendicular to each other. Refer to HumanOrientation{@link #HumanOrientation} for details.
+     */
+    HumanOrientation orientation;
+};
 
 /** 
  * @hidden(Linux)
@@ -38,7 +52,7 @@ public:
      *        + !0: Failure
      * @notes Before calling this API, you should call enableSpatialAudio{@link #ISpatialAudio#enableSpatialAudio} first to enable spatial audio function.
      */
-    virtual int updatePosition(const Position& pos) = 0;
+    BYTERTC_DEPRECATED virtual int updatePosition(const Position& pos) = 0;
 
     /** 
      * @type api
@@ -53,7 +67,7 @@ public:
      *        +  Before calling this API, you should call enableSpatialAudio{@link #ISpatialAudio#enableSpatialAudio} first to enable spatial audio function, and then call UpdatePosition{@link #ISpatialAudio#updatePosition} to update the position of the local user.  <br>
      *        +  Call disableRemoteOrientation{@link #ISpatialAudio#disableRemoteOrientation} to disable the orientation effect as the sound source.
      */
-    virtual int updateSelfOrientation(const HumanOrientation& orientation) = 0;
+    BYTERTC_DEPRECATED virtual int updateSelfOrientation(const HumanOrientation& orientation) = 0;
 
     /** 
      * @type api
@@ -78,7 +92,7 @@ public:
      * @notes <br>
      *        + Before calling this API, you should call enableSpatialAudio{@link #ISpatialAudio#enableSpatialAudio} first to enable the spatial audio function. <br>
      */
-    virtual int updateListenerPosition(const Position &pos) = 0;
+    BYTERTC_DEPRECATED virtual int updateListenerPosition(const Position &pos) = 0;
     
     /** 
      * @type api
@@ -91,7 +105,63 @@ public:
      *        + !0: Failure
      * @notes Before calling this API, you should call enableSpatialAudio{@link #ISpatialAudio#enableSpatialAudio} first to enable spatial audio function, and then call updatePosition{@link #ISpatialAudio#updatePosition} to update the position of the local user.  <br>
      */
-    virtual int updateListenerOrientation(const HumanOrientation& orientation) = 0;
+    BYTERTC_DEPRECATED virtual int updateListenerOrientation(const HumanOrientation& orientation) = 0;
+    /** 
+     * @valid since 3.52.
+     * @type api
+     * @hidden(Linux)
+     * @region Audio management
+     * @brief Sets the coordinate and orientation of the local user as a listener in the rectangular coordinate system the local user built to achieve expected spatial audio effects. 
+     * @param positionInfo  Information on the local user's position. Refer to  PositionInfo{@link #PositionInfo} for details. 
+     * @return  <br>
+     *        + 0: Success.  <br>
+     *        + <0: Failure.  <br>
+     *        + -2: Failure. The reason is that any two of the 3D coordinate vectors of your position are not perpendicular to each other. 
+     * @notes <br>
+     *        Call this API after joining the room. Before calling this API, you should call enableSpatialAudio{@link #ISpatialAudio#enableSpatialAudio} first to enable the spatial audio function. <br>
+     *        The settings made locally will not influence other users' spatial audio experience.
+     */
+    virtual int updateSelfPosition(const PositionInfo& position_info) = 0;
+    /** 
+     * @valid since 3.52.
+     * @type api
+     * @hidden(Linux)
+     * @region Audio management
+     * @brief Sets the coordinate and orientation of the remote user as a speaker in the rectangular coordinate system of the local user. In this case, the local user hears from the remote user with the expected spatial audio effects.
+     * @param uid User ID
+     * @param positionInfo Information on the remote user's position. Refer to PositionInfo{@link #PositionInfo} for details. 
+     * @return   <br>
+     *        + 0: Success.  <br>
+     *        + <0: Failure.  <br>
+     *        + -2: Failure. The reason is that any two of the 3D coordinate vectors of the position of the remote user are not perpendicular to each other. 
+     * @notes <br>
+     *        Call this API after creating the room. <br>
+     *        The settings made locally will not influence other users' spatial audio experience.
+     */
+    virtual int updateRemotePosition(const char* uid, const PositionInfo& position_info) = 0;
+    /** 
+     * @valid since 3.52.
+     * @type api
+     * @hidden(Linux)
+     * @region Audio management
+     * @brief Disables all spatial audio effects set by calling updateRemotePosition{@link #ISpatialAudio#updateRemotePosition} for a certain remote user.
+     * @param uid User ID of the remote user.
+     * @return  <br>
+     *        + 0: Success.  <br>
+     *        + <0: Failure.
+     */
+    virtual int removeRemotePosition(const char* uid) = 0;
+    /** 
+     * @valid since 3.52.
+     * @type api
+     * @hidden(Linux)
+     * @region Audio management
+     * @brief Disables all spatial audio effects set by calling updateRemotePosition{@link #ISpatialAudio#updateRemotePosition} for all remote users.
+     * @return <br>
+     *        + 0: Success.  <br>
+     *        + <0: Failure.
+     */
+    virtual int removeAllRemotePosition() = 0;
 
     /** 
      * @hidden constructor/destructor

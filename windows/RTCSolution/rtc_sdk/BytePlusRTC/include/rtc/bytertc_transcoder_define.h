@@ -8,23 +8,6 @@
 #include "bytertc_audio_frame.h"
 #include "bytertc_transcoder_base_interface.h"
 
-#define TRANSCODE_ERR_OK 0
-#define TRANSCODE_ERR_BASE 1090
-#define TRANSCODE_ERR_INVALID_PARAM 1091
-#define TRANSCODE_ERR_INVALID_STATE 1092
-#define TRANSCODE_ERR_INVALID_OPERATOR 1093
-#define TRANSCODE_ERR_TIMEOUT 1094
-#define TRANSCODE_ERR_INVALID_PARAM_BY_SERVER 1095
-#define TRANSCODE_ERR_SUB_TIMEOUT_BY_SERVER 1096
-#define TRANSCODE_ERR_INVALID_STATE_BY_SERVER 1097
-#define TRANSCODE_ERR_AUTHENTICATION_BY_CDN 1098
-#define TRANSCODE_ERR_TIMEOUT_BY_SIGNALING 1099
-#define TRANSCODE_ERR_PUSH_PUBLIC_STREAM_FAIL 1100
-#define TRANSCODE_ERR_MIX_IMAGE_FAIL 1101
-#define TRANSCODE_ERR_UNKNOW_ERROR_BY_SERVER 1102
-#define TRANSCODE_ERR_UPDATE_REGION_CHANGED 1103
-#define TRANSCODE_ERR_MAX 1199
-
 namespace bytertc {
 /** 
  * @type keytype
@@ -204,7 +187,12 @@ enum StreamMixingErrorCode {
      * @hidden internal use only
      * @brief The cache is not synchronized.
      */
-    kStreamMixingErrorCacheSyncWorse = 1102,
+    kStreamMixingErrorStreamSyncWorse = 1102,
+    /** 
+     * @hidden for internal use only
+     * @brief The ‘regions’ field in transcoding message is changed.
+     */
+    kStreamMixingErrorUpdateRegionChanged = 1103,
     /**
      * @hidden for internal use only
      */
@@ -212,6 +200,400 @@ enum StreamMixingErrorCode {
 };
 
 /** 
+ * @type keytype
+ * @brief Stream mixing type
+ */
+enum MixedStreamType {
+    /** 
+     * @brief Server-side stream mixing
+     */
+    kMixedStreamTypeByServer = 0,
+    /** 
+     * @brief Intelligent stream mixing. The SDK will intelligently decide that a stream mixing task would be done on the client or the server.
+     */
+    kMixedStreamTypeByClient = 1,
+};
+
+
+/** 
+ * @type keytype
+ * @brief Advanced Audio Coding (AAC) profile.
+ */
+enum MixedStreamAudioProfile {
+    /** 
+     * @brief (Default) AAC Low-Complexity profile (AAC-LC).
+     */
+    kMixedStreamAudioProfileLC = 0,
+    /** 
+     * @brief HE-AAC v1 profile (AAC LC with SBR).
+     */
+    kMixedStreamAudioProfileHEv1 = 1,
+    /** 
+     * @brief HE-AAC v2 profile (AAC LC with SBR and Parametric Stereo).
+     */
+    kMixedStreamAudioProfileHEv2 = 2,
+};
+
+/** 
+ * @type keytype
+ * @brief The audio codec.
+ */
+enum MixedStreamAudioCodecType {
+    /** 
+     * @brief AAC format.
+     */
+    kMixedStreamAudioCodecTypeAAC = 0,
+};
+
+/** 
+ * @type keytype
+ * @brief The video codec.
+ */
+enum MixedStreamVideoCodecType {
+    /** 
+     * @brief (Default) H.264 format.
+     */
+    kMixedStreamVideoCodecTypeH264 = 0,
+    /** 
+     * @brief ByteVC1 format.
+     */
+    kMixedStreamVideoCodecTypeByteVC1 = 1,
+};
+
+/** 
+ * @type keytype
+ * @brief The render mode.
+ */
+enum MixedStreamRenderMode {
+    /** 
+     * @brief (Default) Fill and Crop.
+     *        The video frame is scaled with fixed aspect ratio, until it completely fills the canvas. The region of the video exceeding the canvas will be cropped.
+     */
+    kMixedStreamRenderModeHidden = 1,
+    /** 
+     * @brief Fit.
+     *        The video frame is scaled with fixed aspect ratio, until it fits just within the canvas. Other part of the canvas is filled with the background color.
+     */
+    kMixedStreamRenderModeFit = 2,
+    /** 
+     * @brief Fill the canvas.
+     *        The video frame is scaled to fill the canvas. During the process, the aspect ratio may change.
+     */
+    kMixedStreamRenderModeAdaptive = 3,
+};
+
+/** 
+ * @type keytype
+ * @brief Types of streams to be mixed
+ */
+enum MixedStreamMediaType {
+    /** 
+     * @brief Audio and video
+     */
+    kMixedStreamMediaTypeAudioAndVideo = 0,
+    /** 
+     * @brief Audio only
+     */
+    kMixedStreamMediaTypeAudioOnly = 1,
+    /** 
+     * @brief Video only
+     */
+    kMixedStreamMediaTypeVideoOnly = 2,
+};
+
+/** 
+ * @type keytype
+ * @brief Stream mixing region type
+ */
+enum MixedStreamLayoutRegionType {
+    /** 
+     * @brief The region type is a video stream.
+     */
+    kMixedStreamLayoutRegionTypeVideoStream = 0,
+    /** 
+     * @brief The region type is an image.
+     */
+    kMixedStreamLayoutRegionTypeImage = 1,
+};
+
+/** 
+ * @type keytype
+ * @brief The video format for client stream mixing callback. If the format you set is not adaptable to the system, the format will be set as the default value.
+ */
+enum MixedStreamClientMixVideoFormat {
+    /** 
+     * @brief YUV I420 format. The default format for Android and Windows. Supported system: Android, Windows.
+     */
+    kMixedStreamClientMixVideoFormatI420 = 0,
+    /** 
+     * @brief OpenGL GL_TEXTURE_2D format. Supported system: Android.
+     */
+    kMixedStreamClientMixVideoFormatTexture2D = 1,
+    /** 
+     * @brief CVPixelBuffer BGRA format. The default format for iOS. support system: iOS.
+     */
+    kMixedStreamClientMixVideoFormatCVPixelBufferBGRA = 2,
+    /**
+     * {en}
+     * @brief YUV NV12 format. The default format for macOS. Supported system: macOS.
+     */
+    kMixedStreamClientMixVideoFormatNV12 = 3,
+};
+/** 
+ * @type keytype
+ * @brief Stream type
+ */
+enum MixedStreamVideoType {
+    /** 
+     * @brief Mainstream, including: <br>
+     *       + Video/audio captured by the the camera/microphone using internal capturing; <br>
+     *       + Video/audio captured by custom method.
+     */
+    kMixedStreamVideoTypeMain = 0,
+    /** 
+     * @brief Screen-sharing stream.
+     */
+    kMixedStreamVideoTypeScreen = 1,
+};
+
+
+/** 
+ *  @type keytype
+ *  @brief Audio mix stream configurations. With invalid or empty input, the configurations will be set as the default values.
+ */
+typedef struct MixedStreamAudioConfig {
+    /** 
+     * @brief The sample rate (Hz). Supported sample rates: 32,00 Hz, 44,100 Hz, 48,000 Hz. Defaults to 48,000 Hz.
+     */
+    int32_t sample_rate = 48000;
+    /** 
+     * @brief The number of channels. Supported channels: 1 (single channel), 2 (dual channel).  Defaults to 2.
+     */
+    int32_t channels = 2;
+    /** 
+     * @brief The bitrate (Kbps) in range of [32, 192]. Defaults to 64 Kbps.
+     */
+    int32_t bitrate = 64;
+    /** 
+     * @brief AAC profile. See MixedStreamAudioCodecProfile{@link #MixedStreamAudioCodecProfile}. Defaults to `0`.
+     */
+    MixedStreamAudioProfile audio_profile = MixedStreamAudioProfile::kMixedStreamAudioProfileLC;
+    /** 
+     * @brief AAC profile. See MixedStreamAudioCodecType{@link #MixedStreamAudioCodecType}. Defaults to `0`.
+     */
+    MixedStreamAudioCodecType audio_codec = MixedStreamAudioCodecType::kMixedStreamAudioCodecTypeAAC;
+} MixedStreamAudioConfig;
+
+/** 
+ * @type keytype
+ * @brief Video mix stream configurations. With invalid or empty input, the configurations will be set as the default values.
+ */
+typedef struct MixedStreamVideoConfig {
+    /** 
+     * @brief The width (pixels) to be set. The range is [2, 1920], and must be an even number. The default value is 360 pixels.
+     *        If an odd number is set, the width will be adjusted to the next larger even number.
+     */
+    int32_t width = 360;
+    /** 
+     * @brief The height (pixels) to be set. The range is [2, 1920], and must be an even number. The default value is 640 pixels.
+     *        If an odd number is set, the height will be adjusted to the next larger even number.
+     */
+    int32_t height = 640;
+    /** 
+     * @brief The frame rate (FPS) in range of [1, 60]. The default value is 15 FPS.
+     */
+    int32_t fps = 15;
+    /** 
+     * @brief The time interval between I-frames (second) in range of [1, 5]. The default value is 2 seconds.
+     *        This parameter cannot be updated while pushing stream to the CDN.
+     */
+    int32_t gop = 2;
+    /** 
+     * @brief The bitrate (Kbps) in range of [1, 10000]. The default value is self-adaptive.
+     */
+    int32_t bitrate = 500;
+    /** 
+     * @brief The video codec. See MixedStreamVideoCodecType{@link #MixedStreamVideoCodecType}. The default value is `0`.
+     *        This parameter cannot be updated while pushing stream to the CDN.
+     */
+    MixedStreamVideoCodecType video_codec = MixedStreamVideoCodecType::kMixedStreamVideoCodecTypeH264;
+    /** 
+      * @brief Whether to push streams with B frame, only support by server mix:   <br>
+      *         + True: Yes <br>
+      *         + False: No
+      */
+    bool enable_Bframe = false;
+} MixedStreamVideoConfig;
+
+/** 
+ * @type keytype
+ * @brief Client mixing parameters.
+ */
+typedef struct MixedStreamClientMixConfig {
+    /** 
+     * @brief Whether to use audio mixing. Default is true.
+     */
+    bool use_audio_mixer = true;
+    /** 
+     * @brief The video format to be set. See MixedStreamClientMixVideoFormat{@link #MixedStreamClientMixVideoFormat}.
+     */
+    MixedStreamClientMixVideoFormat video_format;
+} MixedStreamClientMixConfig;
+
+/** 
+ * @type keytype
+ * @brief mixed stream sync control parameters.
+ */
+typedef struct MixedStreamSyncControlConfig {
+    /** 
+     * @brief Whether to sync the streams. Default is false.
+     */
+    bool enable_sync = false;
+    /** 
+     * @brief User ID of the stream sync base user. Default is null.
+     */
+    const char* base_user_id = nullptr;
+    /** 
+     * @brief The length of the cache queue in milliseconds. Default is 0.
+     */
+    int32_t max_cache_time_ms = 0;
+    /** 
+     * @brief Whether the video is required for mixing in RTC.
+     */
+    bool video_need_sdk_mix = true;
+    /** 
+     * @brief Whether only send cache sync pts not start sync and callback data.
+     */
+    bool is_only_send_pts = false;
+} MixedStreamSyncControlConfig;
+
+/** 
+ * @type keytype
+ * @brief  Image parameters for stream mixing
+ */
+typedef struct MixedStreamLayoutRegionImageWaterMarkConfig {
+    /** 
+     * @brief Width of the original image in px.
+     */
+    int image_width = 0;
+    /** 
+     * @brief Height of the original image in px.
+     */
+    int image_height = 0;
+} MixedStreamLayoutRegionImageWaterMarkConfig;
+
+/** 
+ * @type keytype
+ * @brief Spatial audio config when pushing to CDN.
+ */
+typedef struct MixedStreamSpatialAudioConfig {
+    /** 
+     * @brief Whether to enable the spatial audio effect when pushing to CDN.
+     * @notes when you enable the feature, set the `spatial_position` of each MixedStreamLayoutRegionConfig{@link #MixedStreamLayoutRegionConfig} for spatial audio effect.
+     */
+    bool enable_spatial_render;
+    /** 
+     * @brief The spatial position of the audience. See Position{@link #Position}. <br>
+     *        The audience is the users who receive the audio stream from CDN.
+     */
+    Position audience_spatial_position;
+    /** 
+     * @brief The orientation of the audience. See HumanOrientation{@link #HumanOrientation}. <br>
+     *        The audience is the users who receive the audio stream from CDN.
+     */
+    HumanOrientation audience_spatial_orientation;
+} MixedStreamSpatialAudioConfig;
+
+/** 
+ * @type keytype
+ * @brief Layout information for one of the video streams to be mixed.
+ *        After starting to push streams to CDN and mixing multiple video streams, you can set the layout information for each of them.
+ */
+typedef struct MixedStreamLayoutRegionConfig {
+    /** 
+     * @brief The user ID of the user who publishes the video stream. Required.
+     */
+    const char* region_id = nullptr;
+   /** 
+     * @brief The room ID of the media stream. Required. <br>
+     *        If the media stream is the stream forwarded by startForwardStreamToRooms{@link #IRTCRoom#startForwardStreamToRooms}, you must set the roomID to the room ID of the target room.
+     */
+    const char* room_id = nullptr;
+    /** 
+     * @brief The normalized horizontal coordinate value of the top left end vertex of the user's view, ranging within [0.0, 1.0). The default value is 0.0.
+     */
+    float location_x = 0.0f;
+    /** 
+     * @brief The normalized vertical coordinate value of the top left end vertex of the user's view, ranging within [0.0, 1.0). The default value is 0.0.
+     */
+    float location_y = 0.0f;
+    /** 
+     * @brief The normalized width of the user's view, ranging within [0.0, 1.0]. The default value is 1.0.
+     */
+    float width_proportion = 1.0f;
+    /** 
+     * @brief The normalized height of the user's view, ranging within [0.0, 1.0]. The default value is 1.0.
+     */
+    float height_proportion = 1.0f;
+    /** 
+     * @brief The opacity in range of (0.0, 1.0]. The lower value, the more transparent. The default value is 1.0.
+     */
+    float alpha = 1.0f;
+    /** 
+     * @brief The proportion of the radius to the width of the canvas. `0.0` by default.
+     * @notes After you set the value, `width_px`, `height_px`, and `corner_radius_px` are calculated based on `width`, `height`, `corner_radius`, and the width of the canvas. If `corner_radius_px < min(width_px/2, height_px/2)` is met, the value of `corner_radius` is set valid; if not, `corner_radius_px` is set to `min(width_px/2, height_px/2)`, and `corner_radius` is set to the proportion of `corner_radius_px` to the width of the canvas.
+     */
+    float corner_radius = 0;
+
+    /** 
+     * @brief The layer on which the video is rendered. The range is [0, 100]. 0 for the bottom layer, and 100 for the top layer. The default value is 0.
+     */
+    int32_t z_order = 0;
+    /** 
+     * @brief Whether the source user of the stream is a local user:   <br>
+     *         + True: Yes <br>
+     *         + False: No
+     */
+    bool is_local_user = false;
+    /** 
+     * @brief Whether the stream comes from screen sharing:   <br>
+     */
+    MixedStreamVideoType stream_type = MixedStreamVideoType::kMixedStreamVideoTypeMain;
+    /** 
+     * @brief The stream mixing content type. The default value is `kMediaTypeAudioAndVideo`. See MixedStreamMediaType{@link #MixedStreamMediaType}.
+     */
+    MixedStreamMediaType media_type = MixedStreamMediaType::kMixedStreamMediaTypeAudioAndVideo;
+    /** 
+     * @brief The render mode. See MixedStreamRenderMode{@link #MixedStreamRenderMode}. The default value is 1.
+     */
+    MixedStreamRenderMode render_mode = MixedStreamRenderMode::kMixedStreamRenderModeHidden;
+    /** 
+     * @type keytype
+     * @brief  Stream mixing region type. See MixedStreamLayoutRegionType{@link #MixedStreamLayoutRegionType}.
+     */
+    MixedStreamLayoutRegionType region_content_type = MixedStreamLayoutRegionType::  kMixedStreamLayoutRegionTypeVideoStream;
+    /** 
+     * @type keytype
+     * @brief The RGBA data of the mixing image. Put in null when mixing video streams.
+     */
+    uint8_t* image_water_mark = nullptr;
+    /** 
+     * @type keytype
+     * @brief  Image parameters for stream mixing. See MixedStreamLayoutRegionImageWaterMarkConfig{@link #MixedStreamLayoutRegionImageWaterMarkConfig}. Put in null when mixing video streams.
+     */
+    MixedStreamLayoutRegionImageWaterMarkConfig image_water_mark_param;
+    /** 
+     * @type keytype
+     * @brief spatial position. See Position{@link #Position}.
+     */
+    Position spatial_position;
+    
+    bool apply_spatial_audio = true;
+    
+} MixedStreamLayoutRegionConfig;
+
+/** 
+ * @deprecated since 3.52, use MixedStreamType instead.
  * @type keytype
  * @brief Stream mixing type
  */
@@ -228,6 +610,7 @@ enum StreamMixingType {
 
 
 /** 
+ * @deprecated since 3.52, use MixedStreamAudioProfile instead.
  * @type keytype
  * @brief Advanced Audio Coding (AAC) profile.
  */
@@ -247,6 +630,7 @@ enum TranscoderAudioCodecProfile {
 };
 
 /** 
+ * @deprecated since 3.52, use MixedStreamAudioCodecType instead.
  * @type keytype
  * @brief The audio codec.
  */
@@ -258,6 +642,7 @@ enum TranscoderAudioCodecType {
 };
 
 /** 
+ * @deprecated since 3.52, use MixedStreamVideoCodecType instead.
  * @type keytype
  * @brief The video codec.
  */
@@ -273,6 +658,7 @@ enum TranscoderVideoCodecType {
 };
 
 /** 
+ * @deprecated since 3.52, use MixedStreamRenderMode instead.
  * @type keytype
  * @brief The render mode.
  */
@@ -299,6 +685,7 @@ enum TranscoderRenderMode {
 };
 
 /** 
+ * @deprecated since 3.52, use MixedStreamLayoutRegionType instead.
  * @type keytype
  * @brief Stream mixing region type
  */
@@ -314,6 +701,7 @@ enum TranscoderLayoutRegionType {
 };
 
 /** 
+ * @deprecated since 3.52, use MixedStreamLayoutRegionImageWaterMarkConfig instead.
  * @type keytype
  * @brief  Image parameters for stream mixing
  */
@@ -329,6 +717,7 @@ typedef struct TranscoderLayoutRegionDataParam {
 }TranscoderLayoutRegionDataParam;
 
 /** 
+ * @deprecated since 3.52, use MixedStreamClientMixVideoFormat instead.
  * @type keytype
  * @brief The video format for client stream mixing callback. If the format you set is not adaptable to the system, the format will be set as the default value.
  */
@@ -345,8 +734,7 @@ enum TranscoderClientMixVideoFormat {
      * @brief CVPixelBuffer BGRA format. The default format for iOS. support system: iOS.
      */
     kClientMixVideoFormatCVPixelBufferBGRA = 2,
-    /**
-     * {en}
+    /** 
      * @brief YUV NV12 format. The default format for macOS. Supported system: macOS.
      */
     kClientMixVideoFormatNV12 = 3,
@@ -399,6 +787,7 @@ typedef struct IDataFrame {
 } IDataFrame;
 
 /** 
+ * @deprecated since 3.52, use MixedStreamLayoutRegionConfig instead.
  * @type keytype
  * @brief Layout information for one of the video streams to be mixed.
  *        After starting to push streams to CDN and mixing multiple video streams, you can set the layout information for each of them.
@@ -430,11 +819,11 @@ typedef struct TranscoderLayoutRegion {
      */
     float height = 1.0f;
     /** 
-     * @brief The opacity in range of (0.0, 1.0]. The lower value, the more transparent. The default value is 1.0.
+     * @brief (Only server-side stream mixing can set this parameter.) The opacity in range of (0.0, 1.0]. The lower value, the more transparent. The default value is 1.0.
      */
     float alpha = 1.0f;
     /** 
-     * @brief The proportion of the radius to the width of the canvas. `0.0` by default.
+     * @brief (Only server-side stream mixing can set this parameter.) The proportion of the radius to the width of the canvas. The default value is 0.0.
      * @notes After you set the value, `width_px`, `height_px`, and `corner_radius_px` are calculated based on `width`, `height`, `corner_radius`, and the width of the canvas. If `corner_radius_px < min(width_px/2, height_px/2)` is met, the value of `corner_radius` is set valid; if not, `corner_radius_px` is set to `min(width_px/2, height_px/2)`, and `corner_radius` is set to the proportion of `corner_radius_px` to the width of the canvas.
      */
     float corner_radius = 0;
@@ -450,13 +839,13 @@ typedef struct TranscoderLayoutRegion {
      */
     bool local_user = false;
     /** 
-     * @brief Whether the stream comes from screen sharing:   <br>
+     * @brief (Only server-side stream mixing can set this parameter to true.) Whether the stream comes from screen sharing:   <br>
      *         + true: Yes <br>
      *         + false: No
      */
     bool screen_stream = false;
     /** 
-     * @brief The stream mixing content type. The default value is `kHasAudioAndVideo`. See TranscoderContentControlType{@link #TranscoderContentControlType}.
+     * @brief (Only server-side stream mixing can set this parameter.) The stream mixing content type. The default value is `kHasAudioAndVideo`. See TranscoderContentControlType{@link #TranscoderContentControlType}.
      */
     TranscoderContentControlType content_control = kHasAudioAndVideo;
     /** 
@@ -484,10 +873,12 @@ typedef struct TranscoderLayoutRegion {
      */
     Position spatial_position;
 
+    bool apply_spatial_audio = true;
 
 } TranscoderLayoutRegion;
 
 /** 
+ * @deprecated since 3.52, use MixedStreamAudioConfig instead.
  *  @type keytype
  *  @brief Audio transcoding configurations. With invalid or empty input, the configurations will be set as the default values.
  */
@@ -515,6 +906,7 @@ typedef struct TranscoderAudioParam {
 } TranscoderAudioParam;
 
 /** 
+ * @deprecated since 3.52, use MixedStreamVideoConfig instead.
  * @type keytype
  * @brief Video transcoding configurations. With invalid or empty input, the configurations will be set as the default values.
  */
@@ -555,6 +947,7 @@ typedef struct TranscoderVideoParam {
     bool bFrame = false;
 } TranscoderVideoParam;
 /** 
+ * @deprecated since 3.52, use MixedStreamSyncControlConfig instead.
  * @hidden internal use only
  * @valid since 3.50
  * @type keytype
@@ -589,8 +982,9 @@ typedef struct TranscoderSyncControlParam {
     bool sync_only_send_pts = false;
 } TranscoderSyncControlParam;
 /** 
+ * @deprecated since 3.52, use MixedStreamClientMixConfig instead.
  * @type keytype
- * @brief Configrations for mixing and pushing to CDN at client side.
+ * @brief Configurations for mixing and pushing to CDN at client side.
  */
 typedef struct TranscoderClientMixParam {
     /** 
@@ -608,6 +1002,7 @@ typedef struct TranscoderClientMixParam {
 } TranscoderClientMixParam;
 
 /** 
+ * @deprecated since 3.52, use MixedStreamSpatialAudioConfig instead.
  * @type keytype
  * @brief Spatial audio config when pushing to CDN.
  */
@@ -630,6 +1025,7 @@ typedef struct TranscoderSpatialConfig {
 } TranscoderSpatialConfig;
 
 /** 
+ * @deprecated since 3.52, use IMixedStreamParam instead.
  * @type keytype
  * @brief Configurations to be set when pushing media streams to CDN.
  */
@@ -836,6 +1232,203 @@ public:
      */
     virtual ~ITranscoderParam() = default;
 };
+
+/** 
+ * @type keytype
+ * @brief Configurations to be set when pushing media streams to CDN.
+ */
+class IMixedStreamConfig : public ITranscoderParamBase {
+public:
+
+    /** 
+     * @type api
+     * @region Push to CDN
+     * @brief Gets the stream mixing type.
+     * @return Stream mixing type. See MixedStreamType{@link #MixedStreamType}
+     */
+    virtual MixedStreamType getExpectedMixingType() = 0;
+    /** 
+     * @type api
+     * @brief Gets the user ID for mixed stream.
+     * @return The user ID for live mixed stream.
+     */
+    virtual const char* getUserID() = 0;
+    /** 
+     * @type api
+     * @brief Gets the URL for live mixed stream.
+     * @return The CDN url.
+     */
+    virtual const char* getPushURL() = 0;
+    /** 
+     * @type api
+     * @region Forward to live broadcast
+     * @brief Get user config extra information.
+     * @return extraI Information.
+     */
+    virtual const char* getUserConfigExtraInfo() = 0;
+    /** 
+     * @type api
+     * @region Push to CDN
+     * @brief Gets the audio configurations.
+     * @return Audio configurations. See MixedStreamAudioConfig{@link #MixedStreamAudioConfig}.
+     */
+    virtual MixedStreamAudioConfig getAudioConfig() = 0;
+    /** 
+     * @type api
+     * @region Push to CDN
+     * @brief Gets the video configurations.
+     * @return Video configurations. See MixedStreamVideoConfig{@link #MixedStreamVideoConfig}.
+     */
+    virtual MixedStreamVideoConfig getVideoConfig() = 0;
+    /** 
+     * @hidden(Windows,macOS,Linux)
+     * @type api
+     * @brief Get the spatial audio configurations of pushing to CDN.
+     * @return See MixedStreamSpatialAudioConfig{@link #MixedStreamSpatialAudioConfig}.
+     */
+    virtual MixedStreamSpatialAudioConfig getSpatialAudioConfig() = 0;
+    /** 
+     * @type api
+     * @region Push to CDN
+     * @brief Gets the video layout information of the mixed stream.
+     * @param [in] index The number of the view of which you want to get information.
+     * @return Layout information. See MixedStreamLayoutRegionConfig{@link #MixedStreamLayoutRegionConfig}.
+     */
+    virtual MixedStreamLayoutRegionConfig getLayoutByIndex(int32_t index) = 0;
+    /** 
+     * @hidden for internal use only
+     * @type api
+     * @region Forward to live broadcast
+     * @brief Get dynamically extend customizable parameters
+     * @return dynamically extend customizable parameters
+     */
+    virtual const char* getAdvancedConfig() = 0;
+    /** 
+     * @hidden for internal use only
+     * @type api
+     * @region Forward to live broadcast
+     * @brief Get Business Transparent Authentication Information
+     * @return Business Transparent Authentication Information
+     */
+    virtual const char* getAuthInfo() = 0;
+    /** 
+     * @type api
+     * @brief Get client mixing parameters.
+     * @return Client mixing parameters. See MixedStreamClientMixConfig{@link #MixedStreamClientMixConfig}.
+     */
+    virtual MixedStreamClientMixConfig getClientMixConfig()  = 0;
+    /** 
+     * @hidden for internal use only
+     * @type api
+     * @brief Get transcoding sync control parameters.
+     * @return Transcoding sync control parameters. See MixedStreamSyncControlConfig{@link #MixedStreamSyncControlConfig}.
+     */
+    virtual MixedStreamSyncControlConfig getSyncControlConfig() = 0;
+    /** 
+     * @type api
+     * @region Push to CDN
+     * @brief Sets the expected stream mixing type
+     * @param [in] expected_mix_type Stream mixing type. See MixedStreamType{@link #MixedStreamType}
+     */
+    virtual void setExpectedMixingType(MixedStreamType expected_mix_type) = 0;
+    /** 
+     * @type api
+     * @brief Sets the user ID for live transcoding. The sum length of `room_id` and `user_id` should not exceed 126 bytes.
+     *        This parameter cannot be updated while pushing stream to the CDN.
+     * @param [in] user_id The user ID for live transcoding.
+     */
+    virtual void setUserID(const char* user_id) = 0;
+    /** 
+     * @type api
+     * @brief Sets the URL for live transcoding. Only supports live transcoding via RTMP. The URL should match the regular expression `/^rtmps?:\/\//`.
+     *        This parameter cannot be updated while pushing stream to the CDN.
+     * @param [in] url The URL to be set.
+     */
+    virtual void setPushURL(const char* push_url) = 0;
+    /** 
+     * @type api
+     * @region Push to CDN
+     * @brief Sets audio configurations.
+     *        These parameters cannot be updated while pushing stream to the CDN.
+     * @param [in] MixedStreamAudioConfig Audio configurations. See MixedStreamAudioConfig{@link #MixedStreamAudioConfig}
+     */
+    virtual void setAudioConfig(const MixedStreamAudioConfig&) = 0;
+    /** 
+     * @type api
+     * @region Push to CDN
+     * @brief Sets video configurations.
+     * @param [in] MixedStreamVideoConfig Video configurations. See MixedStreamVideoConfig{@link #MixedStreamVideoConfig}
+     */
+    virtual void setVideoConfig(const MixedStreamVideoConfig&) = 0;
+    /** 
+     * @hidden(Windows,macOS,Linux)
+     * @type api
+     * @brief Sets spatial audio configurations
+     * @param [in] MixedStreamSpatialParam See MixedStreamSpatialAudioConfig{@link #MixedStreamSpatialAudioConfig}.
+     */
+    virtual void setSpatialAudioConfig(const MixedStreamSpatialAudioConfig&) = 0;
+    /** 
+     * @type api
+     * @region Push to CDN
+     * @brief Sets the layout configurations.
+     * @param [in] regions[] User layout information list. It's a list of MixedStreamLayoutRegionConfig{@link #MixedStreamLayoutRegionConfig} that you construct for each stream.
+     *                       With invalid or empty input, the configurations will be set as the default values.
+     * @param [in] regions_size Amount of views.
+     * @param [in] background_color Background-color of the mixed stream in hexadecimal values such as #FFFFFF and #000000. The default value is #000000.
+     *                      With invalid or empty input, the configurations will be set as the default values.
+     * @param [in] user_extra_info Additional data that you want to import.
+     */
+    virtual void setLayoutConfig(MixedStreamLayoutRegionConfig regions[],
+                                int32_t regions_size,
+                                const char* background_color,
+                                const char* user_extra_info) = 0;
+    /** 
+     * @hidden for internal use only
+     * @type api
+     * @region  Forward to live broadcast
+     * @brief  Set dynamically extend customizable parameters
+     * @param [in] advancedConfig  dynamically extend customizable parameters
+     */
+    virtual void setAdvancedConfig(const char* advancedConfig) = 0;
+    /** 
+     * @hidden for internal use only
+     * @type api
+     * @region Forward to live broadcast
+     * @brief Set Business Transparent Authentication Information
+     * @param [in] authInfo  Business Transparent Authentication Information
+     */
+    virtual void setAuthInfo(const char* authInfo) = 0;
+    /** 
+     * @type api
+     * @brief Set client mixing parameters.
+     * @param [in] param Client mixing parameters. See MixedStreamClientMixConfig{@link #MixedStreamClientMixConfig}.
+     */
+    virtual void setClientMixConfig(MixedStreamClientMixConfig&) = 0;
+    /** 
+     * @hidden for internal use only
+     * @type api
+     * @brief Set transcoding sync control parameters.
+     * @param  [in] param mxied stream sync control parameters. See MixedStreamSyncControlConfig{@link #MixedStreamSyncControlConfig}.
+     */
+    virtual void setSyncControlConfig(MixedStreamSyncControlConfig&) = 0;
+
+    /** 
+     * @type api
+     * @region Push to CDN
+     * @brief Get default transcoding config
+     * @return Default IMixedStreamConfig structure
+     */
+    virtual IMixedStreamConfig* defaultMixedStreamConfig() = 0;
+    /**
+     * @hidden convertToTranscoderParam
+     */
+    virtual ITranscoderParam* convertToTranscoderParam() = 0;
+    /**
+     * @hidden constructor/destructor
+     */
+    virtual ~IMixedStreamConfig() = default;
+};
+
 /** 
  * @type keytype
  * @brief Configurations for pushing a single media stream to CDN.

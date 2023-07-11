@@ -285,13 +285,18 @@ public:
      */
     virtual int onProcessRemoteUserAudioFrame(const RemoteStreamKey& stream_info, IAudioFrame& audioFrame) = 0;
     /** 
-     * @hidden(Windows,Linux)
+     * @hidden(macOS, Windows, Linux)
+     * @valid since 3.50
      * @type callback
      * @brief You will receive the address of SDK-level in-ear monitoring audio frames for custom processing.
-     * @param [in] audioFrame The address of the in-ear monitoring audio frames. See IAudioFrame{@link #IAudioFrame}.
+     *        The audio effects set by `setVoiceReverbType` and `setVoiceChangerType` are included.
+     * @param  audioFrame The address of the in-ear monitoring audio frames. See IAudioFrame{@link #IAudioFrame}.
      * @notes <br>
-     *        + You will process only in-ear monitoring audio.  <br>
-     *        + After calling enableAudioProcessor{@link #RTCVideo#enableAudioProcessor} to set the audio input to in-ear monitoring, you will receive this callback.
+     *        + Modifying the data affects only SDK-level in-ear monitoring audio.  <br>
+     *        + To enable this callback, call `enableAudioProcessor`.
+     * @return  <br>
+     *        + 0: Success. <br>
+     *        + <0: Failure.  <br>
      */
     virtual int onProcessEarMonitorAudioFrame(IAudioFrame& audioFrame) = 0;
     /** 
@@ -321,7 +326,7 @@ public:
     /** 
      * @type callback
      * @region Audio data callback
-     * @brief Get audio data for a single stream, this callback is triggered by calling registerRemoteAudioFrameObserver {@link #IRTCVideo#registerRemoteAudioFrameObserver}.
+     * @brief Get audio data for a single stream, this callback is triggered by calling registerAudioFrameObserver {@link #IRTCVideo#registerAudioFrameObserver}.
      * @param  [in] audio_frame Audio data, see: IAudioFrame{@link #IAudioFrame}
      * @param  [in] stream_info The audio stream business information, see: RemoteStreamKey{@link #RemoteStreamKey}
      */

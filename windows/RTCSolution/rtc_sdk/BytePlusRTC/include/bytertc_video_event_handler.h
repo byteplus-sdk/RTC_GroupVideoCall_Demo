@@ -44,6 +44,19 @@ public:
     virtual void onError(int err) {
         (void)err;
     }
+    /**
+    * {en}
+    * @valid since 3.52
+    * @type callback
+    * @brief Failed to access the extension.
+    *        RTC SDK provides some features with extensions. Without implementing the extension, you cannot use the corresponding feature.
+    * @param [in] extensionName The name of extension.
+    * @param [in] msg Error message.
+    */
+    virtual void onExtensionAccessError(const char* extensionName, const char* msg) {
+
+    }
+
 
     /** 
      * @type callback
@@ -78,7 +91,7 @@ public:
      * @param [in] progress The current playback progress (ms) of the mixed audio file
      * @notes After calling setAudioMixingProgressInterval{@link #IAudioMixingManager#setAudioMixingProgressInterval} to set the time interval to a value greater than 0, or calling startAudioMixing{@link #IAudioMixingManager#startAudioMixing} to set the time interval in AudioMixingConfig{@link #AudioMixingConfig} to a value greater than 0, the SDK will trigger the callback according to the set time interval.
      */
-    virtual void onAudioMixingPlayingProgress(int mix_id, int64_t progress){
+    virtual void onAudioMixingPlayingProgress(int mix_id, int64_t progress) {
     }
 
     /** 
@@ -103,7 +116,7 @@ public:
      * @brief Callback triggered when the audio playback device changed on mobile.
      * @param [in] device Changed audio playback device. See AudioPlaybackDevice{@link #AudioPlaybackDevice}. <br>
      */
-    virtual void onAudioPlaybackDeviceChanged(AudioPlaybackDevice device) {
+    BYTERTC_DEPRECATED virtual void onAudioPlaybackDeviceChanged(AudioPlaybackDevice device) {
         (void)device;
     };
 
@@ -179,7 +192,7 @@ public:
      * @param [in] device_state Device state. Refer to MediaDeviceState{@link #MediaDeviceState} for more details.
      * @param [in] device_error Device error. Refer to MediaDeviceError{@link #MediaDeviceError} for more details.
      */
-    virtual void onMediaDeviceStateChanged(const char* device_id,
+    BYTERTC_DEPRECATED virtual void onMediaDeviceStateChanged(const char* device_id,
                                            bytertc::MediaDeviceType device_type,
                                            bytertc::MediaDeviceState device_state,
                                            bytertc::MediaDeviceError device_error) {
@@ -230,8 +243,8 @@ public:
      * @param [in] device_type Device type. See MediaDeviceType{@link #MediaDeviceType}
      * @param [in] device_warning Device error type. See MediaDeviceWarning{@link #MediaDeviceWarning}
      */
-    virtual void onMediaDeviceWarning(const char* device_id, bytertc::MediaDeviceType device_type,
-            bytertc::MediaDeviceWarning device_warning){
+    BYTERTC_DEPRECATED virtual void onMediaDeviceWarning(const char* device_id, bytertc::MediaDeviceType device_type,
+            bytertc::MediaDeviceWarning device_warning) {
         (void)device_id;
         (void)device_type;
         (void)device_warning;
@@ -288,6 +301,7 @@ public:
 
     /** 
      * @type callback
+     * @deprecated since 3.52, will be deleted at 3.57, use onLocalProxyStateChanged{@link #IRTCVideoEventHandler#onLocalProxyStateChanged} instead
      * @region Proxy callback
      * @brief HTTP Receive the callback when the proxy connection state changes.
      * @param  [in] state The current HTTP proxy connection status. See HttpProxyState{@link #HttpProxyState}
@@ -297,6 +311,7 @@ public:
 
     /** 
      * @type callback
+     * @deprecated since 3.52, will be deleted at 3.57, use onLocalProxyStateChanged{@link #IRTCVideoEventHandler#onLocalProxyStateChanged} instead
      * @region Proxy callback
      * @brief HTTPS Receive the callback when the proxy connection state changes.
      * @param   [out] State the current HTTPS proxy connection status. See HttpProxyState{@link #HttpProxyState}
@@ -306,6 +321,7 @@ public:
 
     /** 
      * @type callback
+     * @deprecated since 3.52, will be deleted at 3.57, use onLocalProxyStateChanged{@link #IRTCVideoEventHandler#onLocalProxyStateChanged} instead
      * @region Proxy callback
      * @brief Socks5 Receive the callback when the proxy state changes.
      * @param [out] state SOCKS5 proxy connection status. See Socks5ProxyState{@link #Socks5ProxyState}
@@ -519,7 +535,7 @@ public:
       * @type callback
       * @region Audio Management
       * @brief After calling enableAudioPropertiesReport{@link #IRTCVideo#enableAudioPropertiesReport}, you will periodically receive this callback for the information about local audio. <br>
-      *        Local audio includes the microphone audio and the screen audio captured using RTC SDK internal mechanisms.
+      *        Local audio includes the microphone audio, the screen audio captured using RTC SDK internal mechanisms, and locally mixing audio.
       * @param [in] audio_properties_infos See LocalAudioPropertiesInfo{@link #LocalAudioPropertiesInfo}.
       * @param [in] audio_properties_info_number The length of `audio_properties_infos`
       */
@@ -674,15 +690,38 @@ public:
      *        After calling startPlayPublicStream{@link #IRTCVideo#startPlayPublicStream}, you will receive this callback if the public stream has an SEI message.
      * @param [in] public_stream_id The ID of the public stream.
      * @param [in] message The SEI(supplemental enhancement information) message carried by the public video stream.
+     * The SEI you can get via this callback is inserted by calling sendSEIMessage{@link #RTCVideo#sendSEIMessage} in the SDK.
+     * You receive SEI from all the video streams if the SEI messages do not have conflicts. However, if the SEI messages from different video streams have conflicts, you will receive only one of them.
      * @param [in] message_length The length of the SEI message.
-     * @param [in] source_type SEI source type. See SEIMessageSourceType{@link #SEIMessageSourceType}.
-     * @notes You will receive SEI from all the video streams if the SEI messages do not have conflicts.
-     *        However, if the SEI  messages from different video streams have conflicts, you will receive only one of them.
+     * @param [in] source_type SEI source type. Since V3.52.1, the value is always `0`, for custom messages. See DataMessageSourceType{@link #DataMessageSourceType}.
+     * @notes You also need to listen to onPublicStreamDataMessageReceived{@Link #IRTCVideoEventHandler#onPublicStreamDataMessageReceived} to receive SEI inserted via Open API in the server.
      */
     virtual void onPublicStreamSEIMessageReceived(const char* public_stream_id,
         const uint8_t* message,
         int message_length,
-        SEIMessageSourceType source_type) {
+        DataMessageSourceType source_type) {
+        (void)public_stream_id;
+        (void)message;
+        (void)message_length;
+        (void)source_type;
+    }
+    /** 
+     * @hidden currently not available
+     * @type callback
+     * @brief Callback on receiving the data message carried by the public video stream.
+     *        You will receive message by this callback if the public stream published by calling startPlayPublicStream{@link #IRtcEngine#startPlayPublicStream} carrying message.
+     * @param [in] public_stream_id ID of the public stream
+     * @param [in] message The data messages carried by the public video stream.
+     * + SEI inserted by calling the OpenAPI. You will receive SEI from all the video streams if the SEI messages do not have conflicts. However, if the SEI  messages from different video streams have conflicts, you will receive only one of them.
+     * + Media volume indicator. You must enable the callback via the OpenAPI on the server.
+     * @param [in] message_length Length of the message
+     * @param [in] source_type Message source. See DataMessageSourceType{@link #DataMessageSourceType}.
+     * @notes You also need to listen to onPublicStreamSEIMessageReceived{@Link #IRTCVideoEventHandler#onPublicStreamSEIMessageReceived} to receive SEI inserted via API in the client SDK.
+     */
+    virtual void onPublicStreamDataMessageReceived(const char* public_stream_id,
+        const uint8_t* message,
+        int message_length,
+        DataMessageSourceType source_type) {
         (void)public_stream_id;
         (void)message;
         (void)message_length;
@@ -761,7 +800,7 @@ public:
      * @param [in] user_id The user who changes his/her transmission state of the audio streams
      * @param [in] mute_state Transmission state of the audio streams. Refer to MuteState{@link #MuteState} for more details.
      */
-    virtual void onUserMuteAudio(const char* room_id, const char* user_id, MuteState mute_state) {
+    BYTERTC_DEPRECATED virtual void onUserMuteAudio(const char* room_id, const char* user_id, MuteState mute_state) {
         (void)user_id;
         (void)mute_state;
     }
@@ -783,7 +822,7 @@ public:
      * @param  [in] uid The user who changes his/her transmission state of the video streams
      * @param  [in] mute Transmission state of the video streams. Refer to MuteState{@link #MuteState} for more details.
      */
-    virtual void onUserMuteVideo(const char* room_id, const char* uid, MuteState mute) {
+    BYTERTC_DEPRECATED virtual void onUserMuteVideo(const char* room_id, const char* uid, MuteState mute) {
         (void)uid;
         (void)mute;
     }
@@ -848,6 +887,21 @@ public:
         (void)reason;
     }
 
+    /** 
+     * @type callback
+     * @hidden for internal use only
+     * @region Audio & Video Processing
+     * @brief When the state of the video noise reduction mode changes, this callback will return the real state of the
+     * mode and the reasons for the changes.
+     * @param [in] mode Video noise reduction mode. Refer to VideoDenoiseMode{@link #VideoDenoiseMode} for more details.
+     * @param [in] reason Video noise reduction mode change reason. Refer to VideoDenoiseModeChangedReason{@link
+     * #VideoDenoiseModeChangedReason} for more details.
+     */
+    virtual void onVideoDenoiseModeChanged(VideoDenoiseMode mode, VideoDenoiseModeChangedReason reason) {
+       (void)mode;
+       (void)reason;
+    }
+    
     /** 
      * @type callback
      * @region Room management
@@ -1045,8 +1099,8 @@ public:
     }
     /** 
      * @type callabck
-     * @brief License expiration time reminder
-     * @param [in] days Expiration time in days
+     * @brief License expiration reminder. Receive the callback when the license expires in less than 30 days.
+     * @param [in] days days remaining effective
      */
     virtual void onLicenseWillExpire(int days) {
         (void)days;
@@ -1062,6 +1116,8 @@ public:
         (void)frameUpdateInfo;
     }
     /** 
+     * @hidden internal use
+     * @valid since 3.52
      * @type callabck
      * @brief callback for experimental api
      * @param param result of callback in JSON string
@@ -1069,6 +1125,34 @@ public:
     virtual void onInvokeExperimentalAPI(const char* param) {
         (void)param;
     }
+    /** 
+     * @hidden(Linux)
+     * @type callback
+     * @brief Callback that notifies you the result of the echo detection before a call
+     * @param [in] hardwareEchoDetectionResult Refer to HardwareEchoDetectionResult{@link #HardwareEchoDetectionResult} for more details.
+     * @notes  <br>
+     *        + This callback notifies you the result of the echo detection by calling startHardwareEchoDetection{@link #IRTCVideo#startHardwareEchoDetection. <br>
+     *        + We recommend to call stopHardwareEchoDetection{@link #IRTCVideo#stopHardwareEchoDetection} to stop the detection. <br>
+     *        + Listen to `kMediaDeviceWarningLeakEchoDetected` in the callback of onAudioDeviceWarning{@link #IRTCVideoEventHandler#onAudioDeviceWarning} for the echo issue during a call.
+     */
+    virtual void onHardwareEchoDetectionResult(HardwareEchoDetectionResult hardwareEchoDetectionResult) {
+        (void)hardwareEchoDetectionResult;
+    }
+
+    /** 
+     * @type callback
+     * @region proxy
+     * @brief Callback on local proxy connection. After calling setLocalProxy{@link #IRTCVideo#setLocalProxy} to set local proxies, you will receive this callback that informs you of the states of local proxy connection. 
+     * @param [in] localProxyType The types of local proxies. Refer to LocalProxyType{@link #LocalProxyType} for details.  <br>
+     * @param [in] localProxyState The states of local proxy connection. Refer to LocalProxyState{@link #LocalProxyState} for details.  <br>
+     * @param [in] localProxyError The errors of local proxy connection. Refer to LocalProxyError{@link #LocalProxyError} for details.
+     */
+    virtual void onLocalProxyStateChanged(LocalProxyType local_proxy_type, LocalProxyState local_proxy_state, LocalProxyError local_proxy_error) {
+        (void)local_proxy_type;
+        (void)local_proxy_state;
+        (void)local_proxy_error;
+    }
+
 };
 
 } // namespace bytertc

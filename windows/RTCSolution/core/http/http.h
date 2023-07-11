@@ -47,7 +47,11 @@ private:
     int retry_times_;
 };
 
-/**
+/** {zh}
+ * 网络请求包装类，主要包括get请求和post请求
+ */
+
+/** {en}
 * Network request wrapper class, mainly including get request and post request
 */
 class Http {

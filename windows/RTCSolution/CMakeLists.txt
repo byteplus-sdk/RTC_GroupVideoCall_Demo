@@ -50,6 +50,8 @@ if(WIN32)
   find_package(Qt5 COMPONENTS Widgets Core Network LinguistTools REQUIRED)
   
   file(GLOB TS_FILES resource/translations/*.ts)
+
+  # 遍历所有 .ts 文件，为每个文件生成一个 .qm 文件
   foreach(_ts_file ${TS_FILES})
 	get_filename_component(_ts_file_name ${_ts_file} NAME_WE)
 	add_custom_command(
@@ -89,8 +91,8 @@ if(WIN32)
   target_compile_definitions(${PROJECT_NAME} PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN BOOST_ALL_NO_LIB BOOST_ERROR_CODE_HEADER_ONLY)
   # set compile options
   target_compile_options(${PROJECT_NAME} PRIVATE /MP)
-  target_compile_options(${PROJECT_NAME} PRIVATE "$<$<CONFIG:Debug>:/MTd>")
-  target_compile_options(${PROJECT_NAME} PRIVATE "$<$<CONFIG:Release>:/MT>" "$<$<CONFIG:Release>:/ZI>")
+  target_compile_options(${PROJECT_NAME} PRIVATE "$<$<CONFIG:Debug>:/MDd>")
+  target_compile_options(${PROJECT_NAME} PRIVATE "$<$<CONFIG:Release>:/MD>" "$<$<CONFIG:Release>:/ZI>")
 
   #set properties
   set_target_properties(${PROJECT_NAME} PROPERTIES

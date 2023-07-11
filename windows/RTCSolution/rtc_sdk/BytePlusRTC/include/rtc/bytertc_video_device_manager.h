@@ -101,7 +101,7 @@ public:
      * @type api
      * @region Video Facility Management
      * @brief Get the video capture device information currently used by the SDK
-     * @param  [out] device_id Device ID
+     * @param  [out] device_id Device ID. The parameter is both input parameter and output parameter.
      * @return   <br>
      *         + 0: Success. <br>
      *         +! 0: failure <br>

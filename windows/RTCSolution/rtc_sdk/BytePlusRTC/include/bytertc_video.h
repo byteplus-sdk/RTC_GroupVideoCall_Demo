@@ -20,6 +20,7 @@
 #include "rtc/bytertc_ktv_manager_interface.h"
 
 namespace bytertc {
+
 /** 
  * @type api
  * @brief Engine API
@@ -42,7 +43,7 @@ public:
     virtual void setCaptureVolume(StreamIndex index, int volume) = 0;
     /** 
      * @type api
-     * @region Audio management
+     * @region volume management
      * @brief Adjust the playback volume of the mixed remote audios.  You can call this API before or during the playback.
      * @param [in] volume Ratio(%) of playback volume to original volume, in the range [0, 400], with overflow protection.  <br>
      *                    This changes the volume property of the audio data other than the hardware volume.<br>
@@ -208,14 +209,33 @@ public:
     virtual void setAudioProfile(AudioProfileType audio_profile) = 0;
 
     /** 
-     * @hidden(Android,iOS,Linux)
      * @type api
      * @region audio management
      * @brief Set the Active Noise Cancellation(ANC) mode during audio and video communications.
      * @param [in] ans_mode ANC modes. See AnsMode{@link #AnsMode}.
-     * @notes When you repeatedly call this API, only the last call takes effect.
+     * @notes  You can call this API before or after entering a room. When you repeatedly call it, only the last call takes effect.
+     * @notes  When you repeatedly call this API, only the last call takes effect.
      */
     virtual void setAnsMode(AnsMode ans_mode) = 0;
+    
+    /** 
+     * @type api
+     * @valid since 3.51
+     * @region Audio device Management
+     * @brief  Turns on/ off AGC(Analog Automatic Gain Control). <br>
+     *         After AGC is enabled, SDK can automatically adjust mircrophone pockup volume to keep the output volume at a steady level.
+     * @param [in] enable whether to turn on AGC. <br>
+     *        + true: AGC is turned on.  <br>
+     *        + false: AGC is turned off. 
+     * @return  <br>
+     *         + 0: Success. <br>
+     *         + -1: Failure.
+     * @notes  <br>
+     *         You can call this method before and after joining the room. To turn on AGC before joining the room, you need to contact the technical support to get a private parameter to set RoomProfileType{@link #RoomProfileType}. <br> 
+     *         To enable AGC after joining the room, you must set RoomProfileType{@link #RoomProfileType} to `kRoomProfileTypeMeeting`,`kRoomProfileTypeMeetingRoom` or `kRoomProfileTypeClassroom` .  <br> 
+     *         It is not recommended to call setAudioCaptureDeviceVolume{@link #IAudioDeviceManager#setAudioCaptureDeviceVolume} to adjust mircrophone pockup volume with AGC on. 
+     */
+    virtual int enableAGC(bool enable) = 0;
 
     /** 
      * @type api
@@ -263,9 +283,9 @@ public:
      * @region  custom audio acquisition rendering
      * @brief  Pull remote audio data. You can use the data for audio processing or custom rendering.
      * @param [out] audioFrame The obtained audio data of 10 ms. See IAudioFrame{@link #IAudioFrame}。
-     * @return   Method call result:   <br>
-     *         + 0: Success. <br>
-     *         + !0: failure <br>
+     * @return API call result:
+     *        + 0: Success.
+     *        + <0: Failure. See ReturnStatus{@link #ReturnStatus} for specific reasons.
      * @notes   <br>
      *        + Before pulling the audio data, call setAudioRenderType{@link #IRTCVideo#setAudioRenderType} to enable custom rendering. <br>
      *        + You should pull audio data every 10 milliseconds since the duration of a RTC SDK audio frame is 10 milliseconds. Samples x call frequency = audioFrame's sample rate. Assume that the sampling rate is set to 48000, call this API every 10 ms, so that 480 sampling points should be pulled each time. <br>
@@ -316,6 +336,19 @@ public:
     *  + If you used the internal module to start video capture before calling this interface, the capture parameters default to Auto.
     */
     virtual int setVideoCaptureConfig(const VideoCaptureConfig& videoCaptureConfig) = 0;
+
+    /** 
+     * @hidden(Android,iOS)
+     * @type api
+     * @brief Set the rotation of the local video images.
+     *        Call this API to rotate the videos when the camera is fixed upside down or tilted.
+     * @param rotation It defaults to `VIDEO_ROTATION_0(0)`, which means not to rotate. Refer to VideoRotation{@link #VideoRotation}.
+     * @notes 
+     * + This API affects the external-sourced videos. The final rotation would be the original rotation angles adding up with the rotation set by calling this API.
+     * + This API would not rotate the background added by calling enableVirtualBackground{@link #IRTCVideo#enableVirtualBackground}.
+     * + The rotation would not be applied to the Stream pushed to CDN.
+     */
+    virtual void setVideoCaptureRotation(VideoRotation rotation) = 0;
 
     /** 
      * @type api
@@ -432,7 +465,7 @@ public:
      *        When you call this API, it will take effect immediately, which may cause the camera to restart. <br>
      *        + The screen stream takes the first set of parameters.
      */
-    virtual int setVideoEncoderConfig(StreamIndex index, const VideoSolution* solutions, int solution_num) = 0;
+    BYTERTC_DEPRECATED virtual int setVideoEncoderConfig(StreamIndex index, const VideoSolution* solutions, int solution_num) = 0;
 
     /** 
      * @type api
@@ -531,9 +564,9 @@ public:
      * @region Screen sharing
      * @brief Push screen video frame.
      * @param  [in] frame Set the screen video frame, see: IVideoFrame{@link #IVideoFrame}. <br>
-     * @return   <br>
-     *         + 0: success <br>
-     *         + !0: failure <br>
+     * @return API call result:
+     *        + 0: Success.
+     *        + <0: Failure. See ReturnStatus{@link #ReturnStatus} for specific reasons.
      * @notes   <br>
      *        + Only video frames in YUV420P format are supported for the time being. <br>
      *        + This function runs in the user calling thread. Before destroying the IRTCVideo instance, please stop calling this function to push screen shared data <br>
@@ -583,7 +616,7 @@ public:
      *        + After successfully calling this API, local users will receive onFirstLocalVideoFrameCaptured{@link #IRTCVideoEventHandler#onFirstLocalVideoFrameCaptured}. <br>
      *        + Before calling this API, you can call setScreenVideoEncoderConfig{@link #IRTCVideo#setScreenVideoEncoderConfig} to set the frame rate and encoding resolution of the screen video stream. <br>
      *        + After receiving onFirstLocalVideoFrameCaptured{@link #IRTCVideoEventHandler#onFirstLocalVideoFrameCaptured}, you can set the local screen sharing view by calling setLocalVideoCanvas{@link #IRTCVideo#setLocalVideoCanvas} or setLocalVideoSink {@link #setLocalVideoSink}. <br>
-     *        + You can also register an observer by calling setLocalVideoSink{@link #IRTCVideo#setLocalVideoSink} and receive the captured screen video frame through onLocalScreenFrame{@link #IVideoFrameObserver#onLocalScreenFrame}.<br>
+     *        + You can also register an observer by calling setLocalVideoSink{@link #IRTCVideo#setLocalVideoSink} and receive the captured screen video frame through onFrame{@link #IVideoSink#onFrame}.<br>
      *        + After you start capturing screen video stream for sharing，you can call updateScreenCaptureHighlightConfig{@link #IRTCVideo#updatescreencapturehighlightconfig} to update border highlighting settings, updateScreenCaptureMouseCursor{@link #IRTCVideo#updatescreencapturemousecursor} to update the processing settings for the mouse, and updateScreenCaptureFilterConfig{@link #IRTCVideo#updatescreencapturefilterconfig} to set the window that needs to be filtered.<br>
      */
     virtual int startScreenVideoCapture(const ScreenCaptureSourceInfo& source_info, const ScreenCaptureParameters& capture_params) = 0;
@@ -685,13 +718,12 @@ public:
      * @region  Video Management
      * @brief Pushes external video frames.
      * @param [in] frame Set the video frame. See IVideoFrame{@link #IVideoFrame}.
-     * @return API call result: <br>
-     *        + 0: Success <br>
-     *        + !0: Failure
+     * @return API call result:
+     *        + 0: Success.
+     *        + <0: Failure. See ReturnStatus{@link #ReturnStatus} for specific reasons.
      * @notes  <br>
-     *        + Support for I420, NV12, RGBA, BGRA, and ARGB<br>
-     *        + Only video frames in YUV420P format are supported for the time being. <br>
-     *        + This function runs in the user calling thread <br>
+     *        + Support for I420, NV12, RGBA, BGRA, and ARGB.<br>
+     *        + This function runs in the user calling thread. <br>
      *        + Before pushing external video frames, you must call setVideoSourceType{@link #setVideoSourceType} to turn on external video source capture.
      */
     virtual int pushExternalVideoFrame(IVideoFrame* frame) = 0;
@@ -713,7 +745,7 @@ public:
      *        + If you connect a wired or Bluetooth audio playback device, setting the audio playback device as a speaker or earpiece will successfully call, but it will not immediately switch to the speaker or earpiece. After the wired or Bluetooth audio playback device is removed, it will automatically switch to the earpiece or speaker according to the settings.  <br>
      *        + This method can be called before and during a call. <br>
      */
-    virtual int setAudioPlaybackDevice(AudioPlaybackDevice device) = 0;
+    BYTERTC_DEPRECATED virtual int setAudioPlaybackDevice(AudioPlaybackDevice device) = 0;
 
     /** 
      * @hidden(Windows,Linux,macOS)
@@ -934,6 +966,19 @@ public:
     virtual int setRemoteVideoSuperResolution(RemoteStreamKey stream_key, VideoSuperResolutionMode mode) = 0;
 
     /** 
+     * @type api
+     * @hidden for internal use only
+     * @region Audio & Video Processing
+     * @brief Sets the video noise reduction mode.
+     * @param [in] mode Video noise reduction mode which helps enhance video quality but will increase CPU utilization.
+     * Refer to VideoDenoiseMode{@link #VideoDenoiseMode} for more details.
+     * @return <br>
+     *        + 0: Success. Please refer to onVideoDenoiseModeChanged{@link #IRTCVideoEventHandler#onVideoDenoiseModeChanged} callback for the actual state of video noise reduction mode.
+     *        + < 0：Failure.
+     */
+    virtual int setVideoDenoiser(VideoDenoiseMode mode) = 0;
+
+    /** 
      * @hidden(Windows,Linux,macOS)
      * @type api
      * @region Audio & Video Processing
@@ -1022,7 +1067,7 @@ public:
      * @param  [in] audioFormat Customize the audio parameter format. See AudioFormat{@link #AudioFormat}, the SDK will give the audio frame according to the specified settings.
      * @notes When this interface is repeatedly called, only the last call takes effect. The effects do not stack.
      */
-    virtual void registerLocalAudioProcessor(IAudioProcessor* processor, AudioFormat audioFormat) = 0;
+    BYTERTC_DEPRECATED virtual void registerLocalAudioProcessor(IAudioProcessor* processor, AudioFormat audioFormat) = 0;
     /** 
      * @hidden(Linux)
      * @type api
@@ -1066,7 +1111,7 @@ public:
      * @param [in] observer Video data callback observer, see IVideoFrameObserver{@link #IVideoFrameObserver}. Cancel the registration by setting it to `null`.
      * @notes We recommended you call this API before calling joinRoom{@link #IRTCRoom#joinRoom}.
      */
-    virtual void registerVideoFrameObserver(IVideoFrameObserver* observer) = 0;
+    BYTERTC_DEPRECATED virtual void registerVideoFrameObserver(IVideoFrameObserver* observer) = 0;
 
     /** 
      * @type api
@@ -1090,6 +1135,57 @@ public:
      *        + When this interface is repeatedly called, only the last call takes effect. The effects do not stack.
      */
     virtual int registerLocalVideoProcessor(IVideoProcessor* processor, VideoPreprocessorConfig config) = 0;
+    /** 
+     * @type api
+     * @valid since 3.51
+     * @brief Set the step size for each digital zooming control to the local videos.
+     * @param type Required. Identifying which type the `size` is referring to. Refer to ZoomConfigType{@link #ZoomConfigType}. 
+     * @param size Required. Reserved to three decimal places. It defaults to `0`. 
+     *                  The meaning and range vary from different `type`s. If the scale or moving distance exceeds the range, the limit is taken as the result.
+     *                  + `kZoomFocusOffset`: Increasement or decrease to the scaling factor. Range: [0, 7]. For example, when it is set to 0.5 and setVideoDigitalZoomControl{@link #IRTCVideo#setVideoDigitalZoomControl} is called to zoom in, the scale will increase `0.5`. The scale ranges [1，8] and defaults to `1`, which means an original size.
+     *                  + `kZoomMoveOffset`：Ratio of the distance to the border of video images. It ranges [0, 0.5] and defaults to `0`, which means no offset. When you call setVideoDigitalZoomControl{@link #IRTCVideo#setVideoDigitalZoomControl} and choose `CAMERA_MOVE_LEFT`, the moving distance is size x original width. While for the `CAMERA_MOVE_UP`, the moving distance is size x original height. Suppose that a video spans 1080 px and the `size` is set to `0.5` so that the distance would be 0.5 x 1080 px = 540 px.
+     * @notes
+     *        + Only one size can be set for a single call. You must call this API to pass values respectively if you intend to set multiple `size`s.
+     *        + As the default `size` is `0`, you must call this API before performing any digital zoom control by calling setVideoDigitalZoomControl{@link #IRTCVideo#setVideoDigitalZoomControl} or startVideoDigitalZoomControl{@link #IRTCVideo#startVideoDigitalZoomControl}.
+     */
+    virtual void setVideoDigitalZoomConfig(ZoomConfigType type, float size) = 0;
+
+    /** 
+     * @type api
+     * @valid since 3.51
+     * @brief Digital zoom or move the local video image once. This action affects both the video preview locally and the stream published.
+     * @param direction Action of the digital zoom control. Refer to ZoomDirectionType{@link #ZoomDirectionType}.
+     * @notes
+     *        + As the default offset is `0`, you must call setVideoDigitalZoomConfig{@link #IRTCVideo#setVideoDigitalZoomConfig} before this API.
+     *        + You can only move video images after they are magnified via this API or startVideoDigitalZoomControl{@link #IRTCVideo#startVideoDigitalZoomControl}.
+     *        + When you request an out-of-range scale or movement, SDK will execute it with the limits. For example, when the image has been moved to the border, the image cannot be zoomed out, or has been magnified to 8x.
+     *        + Call startVideoDigitalZoomControl{@link #IRTCVideo#startVideoDigitalZoomControl} to have a continuous and repeatedly digital zoom control.
+     *        + Refer to setCameraZoomRatio{@link #IRTCVideo#setCameraZoomRatio} if you intend to have an optical zoom control to the camera.
+     */
+    virtual void setVideoDigitalZoomControl(ZoomDirectionType direction) = 0;
+
+    /** 
+     * @type api
+     * @valid since 3.51
+     * @brief Continuous and repeatedly digital zoom control. This action effect both the video preview locally and the stream published.
+     * @param direction Action of the digital zoom control. Refer to ZoomDirectionType{@link #ZoomDirectionType}.
+     * @notes 
+     *        + As the default offset is `0`, you must call setVideoDigitalZoomConfig{@link #IRTCVideo#setVideoDigitalZoomConfig} before this API.
+     *        + You can only move video images after they are magnified via this API or setVideoDigitalZoomControl{@link #IRTCVideo#setVideoDigitalZoomControl}.
+     *        + The control process stops when the scale reaches the limit, or the images have been moved to the border. if the next action exceeds the scale or movement range, SDK will execute it with the limits. 
+     *        + Call stopVideoDigitalZoomControl{@link #IRTCVideo#stopVideoDigitalZoomControl} to stop the ongoing zoom control.
+     *        + Call setVideoDigitalZoomControl{@link #IRTCVideo#setVideoDigitalZoomControl} to have a one-time digital zoom control.
+     *        + Refer to setCameraZoomRatio{@link #IRTCVideo#setCameraZoomRatio} if you intend to have an optical zoom control to the camera.
+     */
+    virtual void startVideoDigitalZoomControl(ZoomDirectionType direction) = 0;
+
+    /** 
+     * @type api
+     * @valid since 3.51
+     * @brief Stop the ongoing digital zoom control instantly. 
+     * @notes Refer to startVideoDigitalZoomControl{@link #IRTCVideo#startVideoDigitalZoomControl} for starting digital zooming.
+     */
+    virtual void stopVideoDigitalZoomControl() = 0;
 
     /** 
      * @deprecated since 3.45 and will be deleted in 3.51, use registerAudioFrameObserver{@link #IRTCVideo#registerAudioFrameObserver} instead.
@@ -1099,8 +1195,7 @@ public:
      * @param [in] observer Audio data callback observer. See IRemoteAudioFrameObserver{@link #IRemoteAudioFrameObserver}
      * @notes Register the callback to receive PCM data from a single remote user.
      */
-    virtual void registerRemoteAudioFrameObserver(IRemoteAudioFrameObserver* observer) = 0;
-
+    BYTERTC_DEPRECATED virtual void registerRemoteAudioFrameObserver(IRemoteAudioFrameObserver* observer) = 0;
 
     /** 
      * @deprecated since 3.50 and will be deleted in 3.55, use [sendSEIMessage](#IRTCVideo-sendseimessage-2) instead.
@@ -1121,9 +1216,9 @@ public:
      *         + In a voice call scenario, this API can be called to send SEI data only in internal capture mode and with a frequency of 15/repeat_count FPS.  <br>
      *         + Each video frame carrys only the SEI data received within 2s before and after. In a voice call scenario, if no SEI data is sent within 1min after calling this API, SDK will automatically cancel publishing black frames.  <br>
      *         + After the message is sent successfully, the remote user who subscribed your video stream will receive onSEIMessageReceived{@link #IRTCVideoEventHandler#onSEIMessageReceived}.
-     *         + When you switch from a voice call to a video call, SEI data transmission will stop and you will need to call this API again to resume the transmission.
+     *         + When you switch from a voice call to a video call, SEI data will automatically start to be sent with normally captured video frames instead of black frames.
      */
-    virtual int sendSEIMessage(StreamIndex stream_index, const uint8_t* message, int length, int repeat_count) = 0;
+    BYTERTC_DEPRECATED virtual int sendSEIMessage(StreamIndex stream_index, const uint8_t* message, int length, int repeat_count) = 0;
 
     /** 
      * @type api
@@ -1146,7 +1241,7 @@ public:
      *         + In a video call, the custom captured video frame can also be used for sending SEI data if the original video frame contains no SEI data, otherwise calling this method will not take effect.
      *         + Each video frame carrys only the SEI data received within 2s before and after. In a voice call scenario, if no SEI data is sent within 1min after calling this API, SDK will automatically cancel publishing black frames.
      *         + After the message is sent successfully, the remote user who subscribed your video stream will receive onSEIMessageReceived{@link #IRTCVideoEventHandler#onSEIMessageReceived}.
-     *         + When you switch from a voice call to a video call, SEI data transmission will stop and you will need to call this API again to resume the transmission.
+     *         + When you switch from a voice call to a video call, SEI data will automatically start to be sent with normally captured video frames instead of black frames.
      */
     virtual int sendSEIMessage(StreamIndex stream_index, const uint8_t* message, int length, int repeat_count, SEICountPerFrame mode) = 0;
 
@@ -1196,7 +1291,8 @@ public:
     virtual void stopFileRecording(StreamIndex type) = 0;
     /** 
      * @type api
-     * @brief Start recording audio communication, and generate the local file.
+     * @brief Start recording audio communication, and generate the local file. <br>
+     *        If you call this API before or after joining the room without internal audio capture, then the recording task can still begin but the data will not be recorded in the local files. Only when you call startAudioCapture{@link #IRTCVideo#startAudioCapture} to enable internal audio capture, the data will be recorded in the local files. 
      * @param [in] config See AudioRecordingConfig{@link #AudioRecordingConfig}.
      * @return  <br>
      *        + 0: `kReturnStatusSuccess`: Success <br>
@@ -1204,8 +1300,7 @@ public:
      *        + -3: `kReturnStatusWrongState`: Not valid in this SDK. Please contact the technical support.
      * @notes <br>
      *        + All audio effects are valid in the file. Mixed audio file is not included in the file. <br>
-     *        + Call stopAudioRecording{@link #IRTCVideo#stopAudioRecording} to stop recording. <br>
-     *        + Call this API after joining the room. If you join multiple rooms, audio from all rooms are recorded in one file. After you leave the last room, the recording task ends automatically. <br>
+     *        + You can call this API before and after joining the room. If this API is called before you join the room, you need to call stopAudioRecording{@link #IRTCVideo#stopAudioRecording} to stop recording. If this API is called after you join the room, the recording task ends automatically. If you join multiple rooms, audio from all rooms are recorded in one file.  <br>
      *        + After calling the API, you'll receive onAudioRecordingStateUpdate{@link #IRTCVideoEventHandler#onAudioRecordingStateUpdate}. <br>
      */
     virtual int startAudioRecording(AudioRecordingConfig& config) = 0;
@@ -1259,9 +1354,8 @@ public:
      * @type api
      * @region Engine management
      * @brief Report the user feedback to RTC.
-     * @param [in] type List of preset problems. See ProblemFeedbackOption{@link #ProblemFeedbackOption}
-     * @param [in] count The length of `ProblemFeedbackOption`.
-     * @param [in] problem_desc Specific description of other problems other than the preset problem
+     * @param [in] types List of preset problems. See ProblemFeedbackOption{@link #ProblemFeedbackOption}
+     * @param [in] info Specific description of other problems other than the preset problem, and room's information. See ProblemFeedbackInfo{@link #ProblemFeedbackInfo}
      * @return  <br>
      *          + 0: Report successfully <br>
      *          + -1: Failed to report, not yet joined the room <br>
@@ -1270,7 +1364,7 @@ public:
      * @notes If the user is in the room when reporting, the report leads to the room / rooms where the user is currently located;
      *        If the user is not in the room when reporting, the report leads to the previously exited Room.
      */
-    virtual int feedback(ProblemFeedbackOption *type, int count, const char* problem_desc) = 0;
+    virtual int feedback(uint64_t type, const ProblemFeedbackInfo* info) = 0;
     /** 
      * @type api
      * @region  mixing
@@ -1490,7 +1584,7 @@ public:
     virtual void setScreenAudioChannel(AudioChannel channel) = 0;
 
     /** 
-     * @hidden(Android,iOS,Linux,macOS)
+     * @hidden(Android,iOS,macOS)
      * @type api
      * @region screen sharing
      * @brief When sharing the screen, start using RTC SDK internal collection method to collect screen audio
@@ -1515,7 +1609,7 @@ public:
     virtual void startScreenAudioCapture(const char device_id[MAX_DEVICE_ID_LENGTH]) = 0;
 
     /** 
-     * @hidden(Android,iOS,Linux)
+     * @hidden(Android,iOS)
      * @type api
      * @region Screen sharing
      * @brief Stop RTC SDK's device audio recorder.
@@ -1616,6 +1710,7 @@ public:
     virtual void stopScreenCapture() = 0;
 
     /** 
+     * @deprecated since 3.52, use startPushMixedStreamToCDN instead.
      * @hidden(Linux) not available
      * @type api
      * @region Multi-room
@@ -1631,6 +1726,7 @@ public:
      */
     virtual void startLiveTranscoding(const char* task_id, ITranscoderParam* param, ITranscoderObserver* observer) = 0;
     /** 
+     * @deprecated since 3.52, use stopPushStreamToCDN instead.
      * @hidden(Linux) not available
      * @type api
      * @region Multi-room
@@ -1640,6 +1736,7 @@ public:
      */
     virtual void stopLiveTranscoding(const char* task_id) = 0;
     /** 
+     * @deprecated since 3.52, use updatePushMixedStreamToCDN instead.
      * @hidden(Linux) not available
      * @type api
      * @region Multi-room
@@ -1650,6 +1747,37 @@ public:
      *                   If you left some properties blank, you can expect these properties to be set to their default values.
      */
     virtual void updateLiveTranscoding(const char* task_id, ITranscoderParam* param) = 0;
+    /** 
+     * @hidden(Linux) not available
+     * @type api
+     * @region Multi-room
+     * @brief Create a new task of pushing media streams to CDN and sets the relevant configurations.  <br>
+     *        When pushing more than one live streams in the same task, SDK will first mix those streams into one single stream and then push it to CDN.
+     * @param [in] task_id Task ID. The length should not exceed 126 bytes.
+     *        You may want to push more than one mixed stream to CDN from the same room. When you do that, use different ID for corresponding tasks; if you will start only one task, use an empty string.
+     * @param [in] config Configurations to be set when pushing streams to CDN. See IMixedStreamConfig{@link #IMixedStreamConfig}.
+     * @param [in] observer Register this observer to receive callbacks from the SDK. See IMixedStreamObserver{@link #IMixedStreamObserver}.
+     * @return <br>
+     *        + 0: Success<br>
+     *        + !0: Failure<br>
+     * @notes   <br>
+     *       + After calling this API, you will be informed of the result and errors during the pushing process via the onMixingEvent{@link #IMixedStreamObserver#onMixingEvent} callback.
+     *       + Call stopLiveTranscoding{@link #IRTCVideo#stopPushStreamToCDN} to stop pushing streams to CDN.
+     */
+    virtual int startPushMixedStreamToCDN(const char* task_id, IMixedStreamConfig* config, IMixedStreamObserver* observer) = 0;
+    /** 
+     * @hidden(Linux) not available
+     * @type api
+     * @region Multi-room
+     * @brief Update parameters needed when pushing media streams to CDN.  You will be informed of the change via the onMixingEvent{@link #IMixedStreamObserver#onMixingEvent} callback. <br>
+     *        After calling startLiveTranscoding{@link #IRTCVideo#startPushMixedStreamToCDN} to enable the function of pushing streams to CDN, you can call this API to update the relevant configurations.
+     * @param [in] task_id Task ID. Specifys of which pushing task you want to update the parameters.
+     * @param [in] config Configurations that you want to update. Some of the configurations cannot be updated. See IPushMixedStreamParam{@link #IMixedStreamConfig} for specific indications.
+     * @return <br>
+     *        + 0: Success<br>
+     *        + !0: Failure<br>
+     */
+    virtual int updatePushMixedStreamToCDN(const char* task_id, IMixedStreamConfig* config) = 0;
     /** 
      * @hidden(Linux)
      * @type api
@@ -1735,13 +1863,8 @@ public:
      /** 
       * @type api
       * @region Audio Management
-      * @brief Enable audio information prompts.   <br>
+      * @brief Enable audio information prompts. After that, you will receive onLocalAudioPropertiesReport{@link #IRTCVideoEventHandler#onLocalAudioPropertiesReport}, onRemoteAudioPropertiesReport{@link #IRTCVideoEventHandler#onRemoteAudioPropertiesReport}, and onActiveSpeaker{@link #IRTCVideoEventHandler#onActiveSpeaker}.
       * @param config See AudioPropertiesConfig{@link #AudioPropertiesConfig}
-      * @notes  <br>
-      *         After enable the prompt, you can:   <br>
-      *        + Get the information of the audio stream collected by the local microphone and screen audio stream through onLocalAudioPropertiesReport{@link #IRTCVideoEventHandler#onLocalAudioPropertiesReport}; <br>
-      *        + Get the information of the subscribed remote audio streams through onRemoteAudioPropertiesReport{@link #IRTCVideoEventHandler#onRemoteAudioPropertiesReport}.
-      *        + Get the information of the active speaker through onActiveSpeaker{@link #IRTCVideoEventHandler#onActiveSpeaker}.
       */
     virtual void enableAudioPropertiesReport(const AudioPropertiesConfig& config) = 0;
     /** 
@@ -1756,9 +1879,9 @@ public:
      *               + 0: mute <br>
      *               + 100: original volume. Default value. <br>
      *               + 400: Up to 4 times the original volume (with overflow protection)
-     * @return API call result: <br>
-     *        + 0: Success <br>
-     *        + !0: Failure
+     * @return API call result:
+     *        + 0: Success.
+     *        + <0: Failure. See ReturnStatus{@link #ReturnStatus} for specific reasons.
      * @notes Suppose a remote user A is always within the range of the target user whose playback volume will be adjusted,<br>
      *        + If you use both this method and setRemoteRoomAudioPlaybackVolume{@link #IRTCRoom#setRemoteRoomAudioPlaybackVolume}, the volume that the local user hears from user A is the volume set by the method called later.<br>
      *        + If you use both this method and setPlaybackVolume{@link #IRTCVideo#setPlaybackVolume}, the volume that the local user hears from user A is the overlay of both settings.
@@ -1828,9 +1951,9 @@ public:
      * @param [in] index The attributes of the encoded stream that need to be pushed. See StreamIndex{@link #StreamIndex}
      * @param [in] video_index The corresponding encoded stream subscript, starting from 0, if you call setVideoEncoderConfig{@link #IRTCVideo#setVideoEncoderConfig} to set multiple streams, the number here must be consistent with it
      * @param [in] video_stream Encoded stream video frame information. See IEncodedVideoFrame{@link #IEncodedVideoFrame}.
-     * @return API call result: <br>
-     *        + 0: Success <br>
-     *        + !0: Failure
+     * @return API call result:
+     *        + 0: Success.
+     *        + <0: Failure. See ReturnStatus{@link #ReturnStatus} for specific reasons.
      * @notes  <br>
      *         + Currently, only video frames in H264 and ByteVC1 formats are supported, and the video stream protocol must be in an Annex B format. <br>
      *         + This function runs within the user calling thread <br>
@@ -1874,7 +1997,7 @@ public:
      *         + -2: Message sending failed. The content of the incoming message is empty. <br>
      *         + -3: Message sending failed. This screen stream was not published when the message was synchronized through the screen stream. <br>
      *         + -4: Message sending failed. This audio stream is not yet published when you synchronize messages with an audio stream captured by a microphone or custom device, as described in ErrorCode{@link #ErrorCode}. <br>
-     * @notes 
+     * @notes
      * + Regarding the frequency, we recommend no more than 50 calls per second.
      * + When using `kRoomProfileTypeInteractivePodcast` as room profile, the data will be delivered. For other coom profiles, the data may be lost when the local user is muted.
      */
@@ -1899,7 +2022,7 @@ public:
      * @param  [in] mute_state Playinging status to identify whether to play the local audio stream, see: MuteState {@link #MuteState}
      * @notes This method controls the local audio stream but does not affect the local audio playback device.
      */
-    virtual void muteAudioPlayback(MuteState mute_state) = 0;
+    BYTERTC_DEPRECATED virtual void muteAudioPlayback(MuteState mute_state) = 0;
 
     /** 
      * @hidden currently not available.
@@ -1949,13 +2072,26 @@ public:
      * @param [in] public_stream_id ID of the public stream
      * @param [in] video_sink Custom renderer. Set to be `null` when you want to release the renderer. Refer to IVideoSink{@link #IVideoSink} for more details.
      * @param [in] format Format of the video frames required by the external video renderer. Refer to PixelFormat{@link #PixelFormat} for more details.
-     * @return  <br>
-     *        + 0: Success<br>
-     *        + !0: Failure<br>
+     * @return API call result:
+     *        + 0: Success.
+     *        + <0: Failure. See ReturnStatus{@link #ReturnStatus} for specific reasons.
      */
     virtual int setPublicStreamVideoSink(const char* public_stream_id, IVideoSink* video_sink,
                                           IVideoSink::PixelFormat format) = 0;
-
+    
+    /** 
+     * @type api
+     * @brief Set the audio playback volume of the public stream.
+     * @param [in] public_stream_id ID of the public stream.
+     * @param [in] volume Ratio(%) of the audio playback volume to the original volume, in the range `[0, 400]`, with overflow protection. The default volume is 100. <br>
+     *               To ensure the audio quality, the recommended range is `[0,  100]`.  <br>
+     * @valid since 3.51
+     * @return   <br>
+     *         + 0: Success. <br>
+     *         + -2: Wrong parameter.
+     */
+    virtual int setPublicStreamAudioPlaybackVolume(const char* public_stream_id, int volume) = 0;
+    
     /** 
      * @type api
      * @region Audio & Video Processing
@@ -2020,7 +2156,8 @@ public:
      *        + You can call this API before and after joining an RTC room. In the multi-room mode, the image can be only displayed in the room you publish the stream.  <br>
      *        + You cannot apply effects like filters and mirroring to the image, while you can watermark the image.  <br>
      *        + The image is not effective for a screen-sharing stream.  <br>
-     *        + When you enable the simulcast mode, the image will be added to all video streams, and it will be proportionally scaled down to smaller encoding configurations.
+     *        + When you enable the simulcast mode, the image will be added to all video streams, and it will be proportionally scaled down to smaller encoding configurations.<br>
+     *        + This function does not take effect in scenarios including pushing single or mixed stream to CDN.
      */
     virtual int setDummyCaptureImagePath(const char* file_path) = 0;
 
@@ -2098,6 +2235,8 @@ public:
      */
     virtual NetworkTimeInfo getNetworkTimeInfo() = 0;
     /** 
+     * @hidden internal use
+     * @valid since 3.52
      * @type api
      * @brief invoke experimental API. <br>
      *        You may receive onInvokeExperimentalAPI{@link #IRTCVideoEventHandler#onInvokeExperimentalAPI}.
@@ -2117,6 +2256,7 @@ public:
      */
     virtual int invokeExperimentalAPI(const char* param) = 0;
 
+
     /** 
      * @hidden currently not available
      * @type api
@@ -2124,80 +2264,110 @@ public:
      * @return KTV manager interfaces. See IKTVManager{@link #IKTVManager}.
      */
     virtual IKTVManager* getKTVManager() = 0;
-};
-    /** 
-     * @type api
-     * @region Engine Management
-     * @brief Creates an engine instance.   <br>
-     *        This is the very first API that you must call if you want to use all the RTC capabilities.  <br>
-     *        If there is no engine instance in current process, calling this API will create one. If an engine instance has been created, calling this API again will have the created engine instance returned.
-     * @param [in] app_id A unique identifier for each App, randomly generated by the RTC console. Only instances created with the same app_id are able to communicate with each other.
-     * @param [in] event_handler Handler sent from SDK to App. See IRTCVideoEventHandler{@link #IRTCVideoEventHandler}.
-     * @param [in] parameters Reserved parameters. Please contact technical support fellow if needed.
-     * @return  <br>
-     *        + IRTCVideo: A successfully created engine instance.  <br>
-     *        + Null: Creation failed.
-     */
-    BYTERTC_API bytertc::IRTCVideo* createRTCVideo(const char* app_id,
-        bytertc::IRTCVideoEventHandler *event_handler, const char* parameters);
 
     /** 
+     * @hidden(Linux)
      * @type api
-     * @region Engine Management
-     * @brief Destroy the engine instance created by createRTCVideo{@link #createRTCVideo}, and release all related resources.<br>
-     * @notes  <br>
-     *         + Call this API after all business scenarios related to the engine instance are destroyed. In a multi-thread scenario, you must not call IRTCVideo{@link #IRTCVideo} related APIs after calling this interface, or the SDK may crash. When the API is called, RTC SDK destroys all memory associated with the engine instance and stops any interaction with the media server.  <br>
-     *         + Calling this API will start the SDK exit logic. The engine thread is held until the exit logic is complete. The engine thread is retained until the exit logic is complete. Therefore, do not call this API directly in the callback thread, or wait for the execution of the main thread in the callback and call this API in the main thread at the same time. Otherwise, it will cause a deadlock.
-     */
-    BYTERTC_API void destroyRTCVideo();
+     * @region Audio Management
+    * @brief Start echo detection before joining a room.
+    * @param [in] test_audio_file_path Absolute path of the music file for the detection. It is expected to encode with UTF-8. The following files are supported: mp3, aac, m4a, 3gp, wav. <br>
+    *          We recommend to assign a music file whose duration is between 10 to 20 seconds.<br>
+    *        Do not pass a Silent file.
+    * @return Method call result: <br>
+    *        + 0: Success. <br>
+    *        + -1: Failure due to the onging process of the previous detection. Call stopHardwareEchoDetection{@link #IRTCVideo#stopHardwareEchoDetection} to stop it before calling this API again.
+    *        + -2: Failure due to an invalid file path or file format.
+    * @notes <br>
+    *        + You can use this feature only when RoomProfileType{@link #RoomProfileType} is set to `kRoomProfileTypeMeeting` or `kRoomProfileTypeMeetingRoom`.<br>
+    *        + Before calling this API, ask the user for the permissions to access the local audio devices. <br>
+    *        + Before calling this api, make sure the audio devices are activate and keep the capture volume and the playback volume within a reasonable range.<br>
+    *        + The detection result is passed as the argument of onHardwareEchoDetectionResult. <br>
+    *        + During the detection, the SDK is not able to response to the other testing APIs, such as startEchoTest{@link #IRTCVideo#startEchoTest}、startAudioDeviceRecordTest{@link #IRTCVideo#startAudioDeviceRecordTest} or startAudioPlaybackDeviceTest{@link #IRTCVideo#startAudioPlaybackDeviceTest}. <br>
+    *        + Call stopHardwareEchoDetection{@link #IRTCVideo#stopHardwareEchoDetection} to stop the detection and release the audio devices.
+    */
+    virtual int startHardwareEchoDetection(const char* test_audio_file_path) = 0;
     /** 
+     * @hidden(Linux)
      * @type api
-     * @region  error code
-     * @brief Gets the description text of different error codes and warning codes in the SDK.<br>
-     * @param [in] code Needs to get the description of the error code
-     * @return The description of the error code
-     * @notes This interface is a general function and does not need to rely on the engine object when calling.
-     */
-    BYTERTC_API const char* getErrorDescription(int code);
-    /** 
-     * @type api
-     * @region  engine management
-     * @brief  Get the current SDK version information.
-     * @return Current SDK version information.
-     */
-    BYTERTC_API const char* getSDKVersion();
-
-    /** 
-     * @hidden for internal use only on Windows and Android
-     * @type api
-     * @region Engine Management
-     * @brief Creates an panoramic video instance.   <br>
-     *        you must call this API before the sender and receiver use the panoramic capability.
-     * @param appId A unique identifier for each App, randomly generated by the RTC console. Engine instances created with different AppIds cannot communicate with each other.
-     * @param event_handler Handler sent from SDK to App. Refer to IRTCVideoEventHandler{@link #IRTCVideoEventHandler} for details. <br>
-     * @param parameters Reserved parameter, in JSON string.
-     * @return  <br>
-     *         + RTCVideo: Success. RTCFovVideo inherits all methods in IRTCVideo{@link #IRTCVideo}.  <br>
-     *         + Null: Failed to load the .so file. No instance is returned.
+     * @brief Stop the echo detection before joining a room.
+     * @return   Method call result:   <br>
+     *        + 0: Success. <br>
+     *        + -1: Failure.
      * @notes <br>
-     *        + External video source and renderer are required for the panoramic video. Pass the 4K or 8K panoramic video to RTC SDK on the sender side. And pass the decoded video frames to the renderer on the receiver side.<br>
-     *        + If there is no panoramic video instance in current process, calling this API will create one. If an engine instance has been created, calling this API again will have the created engine instance returned.
+     *        + Refer to startHardwareEchoDetection{@link #IRTCVideo#startHardwareEchoDetection} for information on how to start a echo detection. <br>
+     *        + We recommend calling this API to stop the detection once getting the detection result from onHardwareEchoDetectionResult{@link #IRTCVideoEventHandler#onHardwareEchoDetectionResult}. <br>
+     *        + You must stop the echo detection to release the audio devices before the user joins a room. Otherwise, the detection may interfere with the call.
      */
-    BYTERTC_API bytertc::IRTCVideo* createRTCFovVideo(
-            const char* app_id, bytertc::IRTCVideoEventHandler* event_handler, const char* parameters);
+    virtual int stopHardwareEchoDetection() = 0;
+
 
     /** 
-     * @hidden for internal use only on Windows and Android
+     * @hidden(macOS, Windows, Linux)
      * @type api
-     * @region Video management
-     * @brief Destroy the engine instance created by createRTCFovVideo{@link #IRTCVideo#createRTCFovVideo}, and release all related resources. <br>
-     * @notes  <br>
-     *       + Call this API after all business scenarios related to the engine instance are destroyed.  <br>
-     *       + When the API is called, RTC SDK destroys all memory associated with the engine instance and stops any interaction with the media server.  <br>
-     *       + Calling this API will start the SDK exit logic. The engine thread is held until the exit logic is complete. The engine thread is retained until the exit logic is complete.  <br>
-     *         Therefore, do not call this API directly in the callback thread, or wait for the execution of the main thread in the callback and call this API in the main thread at the same time. Otherwise, it will cause a deadlock.
+     * @brief Enable cellular network assisted communication to improve call quality.
+     * @param [in] config See MediaTypeEnhancementConfig{@link #MediaTypeEnhancementConfig}.
+     * @notes The function is off by default.
      */
-    BYTERTC_API void destroyRTCFovVideo();
+    virtual void setCellularEnhancement(const MediaTypeEnhancementConfig& config) = 0;
+
+    /** 
+     * @type api
+     * @region proxy
+     * @brief Sets local proxy.
+     * @param [in] configurations Local proxy configurations. Refer to LocalProxyConfiguration{@link #LocalProxyConfiguration}. <br>
+     *         You can set both Http tunnel and Socks5 as your local proxies, or only set one of them based on your needs. If you set both Http tunnel and Socks5 as your local proxies, then media traffic and signaling are routed through Socks5 proxy and Http requests through Http tunnel proxy. If you set either Http tunnel or Socks5 as your local proxy, then media traffic, signaling and Http requests are all routed through the proxy you chose. <br>
+     *         If you want to remove the existing local proxy configurations, you can call this API with the parameter set to null. 
+     * @param [in] configuration_num The number of local proxy configurations. 
+     * @notes <br>
+     *       + You must call this API before joining the room.  <br>
+     *       + After calling this API, you will receive onLocalProxyStateChanged{@link #IRTCVideoEventHandler#onLocalProxyStateChanged} callback that informs you of the states of local proxy connection. 
+     */
+    virtual int setLocalProxy(const LocalProxyConfiguration* configurations, int configuration_num) = 0;
+};
+
+/** 
+* @type api
+* @region Engine Management
+* @brief Creates an engine instance.   <br>
+*        This is the very first API that you must call if you want to use all the RTC capabilities.  <br>
+*        If there is no engine instance in current process, calling this API will create one. If an engine instance has been created, calling this API again will have the created engine instance returned.
+* @param [in] app_id A unique identifier for each App, randomly generated by the RTC console. Only instances created with the same app_id are able to communicate with each other.
+* @param [in] event_handler Handler sent from SDK to App. See IRTCVideoEventHandler{@link #IRTCVideoEventHandler}.
+* @param [in] parameters Reserved parameters. Please contact technical support fellow if needed.
+* @return  <br>
+*        + IRTCVideo: A successfully created engine instance.  <br>
+*        + Null: Creation failed.
+*/
+BYTERTC_API bytertc::IRTCVideo* createRTCVideo(const char* app_id,
+     bytertc::IRTCVideoEventHandler *event_handler, const char* parameters);
+
+
+/** 
+ * @type api
+ * @region Engine Management
+ * @brief Destroy the engine instance created by createRTCVideo{@link #createRTCVideo}, and release all related resources.<br>
+ * @notes  <br>
+ *         + Call this API after all business scenarios related to the engine instance are destroyed. In a multi-thread scenario, you must not call IRTCVideo{@link #IRTCVideo} related APIs after calling this interface, or the SDK may crash. When the API is called, RTC SDK destroys all memory associated with the engine instance and stops any interaction with the media server.  <br>
+ *         + Calling this API will start the SDK exit logic. The engine thread is held until the exit logic is complete. The engine thread is retained until the exit logic is complete. Therefore, do not call this API directly in the callback thread, or wait for the execution of the main thread in the callback and call this API in the main thread at the same time. Otherwise, it will cause a deadlock.
+ */
+BYTERTC_API void destroyRTCVideo();
+/** 
+ * @type api
+ * @region  error code
+ * @brief Gets the description text of different error codes and warning codes in the SDK.<br>
+ * @param [in] code Needs to get the description of the error code
+ * @return The description of the error code
+ * @notes This interface is a general function and does not need to rely on the engine object when calling.
+ */
+BYTERTC_API const char* getErrorDescription(int code);
+/** 
+ * @type api
+ * @region  engine management
+ * @brief  Get the current SDK version information.
+ * @return Current SDK version information.
+ */
+BYTERTC_API const char* getSDKVersion();
+
 }  // namespace bytertc
 
 #endif  // BYTE_RTC_LITE_INTERFACE_H__

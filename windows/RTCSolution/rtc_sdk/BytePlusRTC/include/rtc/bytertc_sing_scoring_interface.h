@@ -17,11 +17,11 @@ namespace bytertc {
  */
 class ISingScoringEventHandler {
 public:
-/** 
- * @type callback
- * @brief The callback for real-time scoring data. This callback is triggered after startSingScoring{@link #ISingScoringManager#startSingScoring} is called.
- * @param info Real-time scoring data.
- */
+    /** 
+     * @type callback
+     * @brief The callback for real-time scoring data. This callback is triggered after startSingScoring{@link #ISingScoringManager#startSingScoring} is called.
+     * @param info Real-time scoring data.
+     */
     virtual void onCurrentScoringInfo(
                  const SingScoringRealtimeInfo& info) = 0;
 };

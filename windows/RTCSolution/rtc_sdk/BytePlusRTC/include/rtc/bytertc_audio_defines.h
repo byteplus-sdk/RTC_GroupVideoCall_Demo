@@ -428,7 +428,7 @@ enum VoiceEqualizationBandFrequency {
 };
 /** 
  * @type keytype
- * @brief 
+ * @brief Voice equalization effect.
  */
 struct VoiceEqualizationConfig {
     /** 
@@ -877,15 +877,17 @@ enum AudioReportMode {
 
 /** 
  * @type keytype
- * @brief Configuration of whether including locally mixed audio info in the audio properties report.
+ * @brief The audio info included in onLocalAudioPropertiesReport{@link #IRTCVideoEventHandler#onLocalAudioPropertiesReport}.
  */
 enum AudioPropertiesMode {
     /** 
-     * @brief Only locally captured microphone audio info and locally captured screen audio info are included in the audio properties report.
+     * @brief Only locally captured microphone audio info and locally captured screen audio info are included.
      */
     kAudioPropertiesModeMicrophone,
     /** 
-     * @brief Locally mixing audio info is included in the audio properties report, in addition to locally captured microphone audio info and locally captured screen audio info.
+     * @brief The following information are included:
+     *        + Locally captured microphone audio info and locally captured screen audio info;
+     *        + Locally audio mixing info.
      */
     kAudioPropertiesModeAudioMixing
 };
@@ -925,7 +927,7 @@ struct AudioPropertiesConfig {
     float smooth = 1.0f;   
         
     /** 
-     * @brief Configuration of whether to include locally mixed audio info in `onLocalAudioPropertiesReport`. See AudioPropertiesMode{@link #AudioPropertiesMode}. <br>
+     * @brief The audio info included in onLocalAudioPropertiesReport{@link #IRTCVideoEventHandler#onLocalAudioPropertiesReport}. See AudioPropertiesMode{@link #AudioPropertiesMode}.
      *        Locally captured microphone audio info and locally captured screen audio info are included by default.
      */
     AudioPropertiesMode audio_report_mode = kAudioPropertiesModeMicrophone;
@@ -1046,14 +1048,14 @@ enum AudioProfileType {
 
 /** 
  * @type keytype
- * @brief ANC modes.The ANC algorithm is determined by the room profile you set when entering the room.
+ * @brief ANC modes.The ANC algorithm is determined by the room profile you set when calling joinRoom{@link #IRTCRoom#joinRoom}.
  */
 enum AnsMode {
-   /** 
+    /** 
      * @brief Disable ANC.
      */
     kAnsModeDisable = 0,
-     /** 
+    /** 
      * @brief Cancel subtle background noise.
      */
     kAnsModeLow = 1,
@@ -1479,6 +1481,21 @@ enum AudioRecordingErrorCode {
      * @brief Other error.
      */
     kAudioRecordingErrorCodeOther = -6,
+};
+/** 
+ * @hidden(macOS, Windows, Linux)
+ * @type keytype
+ * @brief Media type for cellular assisted Enhancement
+ */
+struct AudioEnhancementConfig {
+    /** 
+     * @brief Apply to signaling or not. Not by default.
+     */
+    bool enhance_signaling = false;
+    /** 
+     * @brief Apply to audio stream or not. Not by default.
+     */
+    bool enhance_audio = false;
 };
 
 }  // namespace bytertc

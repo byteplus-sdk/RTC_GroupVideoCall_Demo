@@ -43,23 +43,23 @@ enum VideoPictureType {
 
 /** 
  * @type keytype
- * @brief Video frame rotation angle
+ * @brief Video frame rotation
  */
 enum VideoRotation {
     /** 
-     * @brief Video does not rotate
+     * @brief Not to rotate.
     */
     kVideoRotation0 = 0,
     /** 
-     * @brief Video rotate 90 degrees clockwise
+     * @brief Rotate 90 degrees clockwise. 
     */
     kVideoRotation90 = 90,
     /** 
-     * @brief Video rotate 180 degrees clockwise
+     * @brief Rotate 180 degrees clockwise. 
     */
     kVideoRotation180 = 180,
     /** 
-     * @brief Video rotate 270 degrees clockwise
+     * @brief Rotate 270 degrees clockwise. 
     */
     kVideoRotation270 = 270
 };
@@ -162,6 +162,8 @@ enum CameraID {
 #define SEND_KBPS_DISABLE_VIDEO_SEND 0
 
 /** 
+ * @hidden used in streaming only
+ * @deprecated since 3.45 along with setVideoEncoderConfig(StreamIndex index, const VideoSolution* solutions, int solution_num) = 0;
  * @type keytype
  * @brief Video stream parameters
  */
@@ -468,7 +470,7 @@ enum VideoFrameType {
      */
     kVideoFrameTypeRawMemory,
     /** 
-     * @brief CVPixelBufferRef which applys to iOS and macOS
+     * @brief CVPixelBufferRef (for iOS and macOS)
      */
     kVideoFrameTypeCVPixelBuffer,
     /** 
@@ -583,7 +585,9 @@ typedef struct VideoFrameBuilder {
      */
     int height = 0;
     /** 
-     * @brief Video rotation angle, see VideoRotation{@link #VideoRotation}
+     * @brief Video rotation angle, see VideoRotation{@link #VideoRotation}.<br>
+     *        If the video is rendered on the receiver side using internal rendering of the SDK, the engine processes the rotation angle according to the rotation set here before rendering.<br>
+     *        If the video receiver uses custom rendering, the rotation set here does not take effect. The rotation information can be get from IVideoFrame::rotation().
      */
     VideoRotation rotation = kVideoRotation0;
     /** 

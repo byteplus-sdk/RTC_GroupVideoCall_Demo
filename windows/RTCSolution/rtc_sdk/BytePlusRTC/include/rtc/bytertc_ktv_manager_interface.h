@@ -9,70 +9,68 @@ namespace bytertc {
  * @type callback
  * @brief KTV manager event handler.
  */
-class IKTVEventHandler {
+class IKTVManagerEventHandler {
 
 public:
     /**
      * @hidden Constructor/Destructor
      * @brief Destructor
      */
-    virtual ~IKTVEventHandler(){
+    virtual ~IKTVManagerEventHandler() {
     }
 
     /** 
      * @type callback
      * @brief The music list callback.
-     * @param [in] error_code Error code. The value 0 indicates success. For the indications of other values, see KTVErrorCode{@link #KTVErrorCode}.
-     * @param [in] total_musics_size The total size of the music list.
      * @param [in] music_infos Array of the music information. See MusicInfo{@link #MusicInfo}.
      * @param [in] music_count The size of the requested music list.
+     * @param [in] total_musics_size The total size of the music list.
+     * @param [in] error_code Error code. The value 0 indicates success. For the indications of other values, see KTVErrorCode{@link #KTVErrorCode}.
      */
-    virtual void onMusicListResult(KTVErrorCode error_code, int total_musics_size, MusicInfo *music_infos, int music_count) {
-        (void)error_code;
-        (void)total_musics_size;
+    virtual void onMusicListResult(MusicInfo* music_infos, int music_count, int total_musics_size, KTVErrorCode error_code) {
         (void)music_infos;
         (void)music_count;
+        (void)total_musics_size;
+        (void)error_code;
     }
 
     /** 
      * @type callback
      * @brief The search music callback.
-     * @param [in] error_code Error code. The value 0 indicates success. For the indications of other values, see KTVErrorCode{@link #KTVErrorCode}.
-     * @param [in] total_musics_size The total size of the music list.
      * @param [in] music_infos Array of the music information. See MusicInfo{@link #MusicInfo}.
      * @param [in] music_count The size of the requested music list.
+     * @param [in] total_musics_size The total size of the music list.
+     * @param [in] error_code Error code. The value 0 indicates success. For the indications of other values, see KTVErrorCode{@link #KTVErrorCode}.
      */
-    virtual void onSearchMusicResult(
-            KTVErrorCode error_code, int total_musics_size, MusicInfo* music_infos, int music_count) {
-        (void)error_code;
-        (void)total_musics_size;
+    virtual void onSearchMusicResult(MusicInfo* music_infos, int music_count, int total_musics_size, KTVErrorCode error_code) {
         (void)music_infos;
         (void)music_count;
+        (void)total_musics_size;
+        (void)error_code;
     }
 
     /** 
      * @type callback
      * @brief The hot music callback.
-     * @param [in] error_code Error code. The value 0 indicates success. For the indications of other values, see KTVErrorCode{@link #KTVErrorCode}.
      * @param [in] hot_infos Array of the hot music information. See HotMusicInfo{@link #HotMusicInfo}.
      * @param [in] hot_count The size of the requested hot music list.
+     * @param [in] error_code Error code. The value 0 indicates success. For the indications of other values, see KTVErrorCode{@link #KTVErrorCode}.
      */
-    virtual void onHotMusicResult(KTVErrorCode error_code, HotMusicInfo* hot_infos, int hot_count) {
-        (void)error_code;
+    virtual void onHotMusicResult(HotMusicInfo* hot_infos, int hot_count, KTVErrorCode error_code) {
         (void)hot_infos;
         (void)hot_count;
-    
+        (void)error_code;
     }
 
     /** 
      * @type callback
      * @brief The music detail callback.
-     * @param [in] error_code Error code. The value 0 indicates success. For the indications of other values, see KTVErrorCode{@link #KTVErrorCode}.
      * @param [in] music_info Music information. See MusicInfo{@link #MusicInfo}.
+     * @param [in] error_code Error code. The value 0 indicates success. For the indications of other values, see KTVErrorCode{@link #KTVErrorCode}.
      */
-    virtual void onMusicDetailResult(KTVErrorCode error_code, MusicInfo* music_info) {
-        (void)error_code;
+    virtual void onMusicDetailResult(MusicInfo* music_info, KTVErrorCode error_code) {
         (void)music_info;
+        (void)error_code;        
     }
 
     /** 
@@ -83,18 +81,18 @@ public:
      */
     virtual void onDownloadSuccess(int download_id, DownloadResult* download_info) {
         (void)download_id;
-        (void)download_info;
+        (void)download_info; 
     }
 
     /** 
      * @type callback
      * @brief Download failure callback.
-     * @param error_code Error code. See KTVErrorCode{@link #KTVErrorCode}.
      * @param download_id Download task ID.
+     * @param error_code Error code. See KTVErrorCode{@link #KTVErrorCode}.
      */
-    virtual void onDownloadFailed(KTVErrorCode error_code, int download_id) {
-        (void)error_code;
+    virtual void onDownloadFailed(int download_id, KTVErrorCode error_code) {
         (void)download_id;
+        (void)error_code; 
     }
 
     /** 
@@ -121,7 +119,6 @@ public:
      * @brief Destructor
      */
     virtual ~IKTVPlayerEventHandler() {
-        
     }
     
     /** 
@@ -137,10 +134,10 @@ public:
     
     /** 
      * @type callback
-     * @brief Music playing progress callback.
-     * @param [in] error_code Error code. See KTVPlayerErrorCode{@link #KTVPlayerErrorCode}.
+     * @brief Music playing state changed callback.
      * @param [in] music_id Music ID.
      * @param [in] play_state Music playing status. See PlayState{@link #PlayState}.
+     * @param [in] error_code Error code. See KTVPlayerErrorCode{@link #KTVPlayerErrorCode}.
      * @notes <br>
      *       You will receive this callback on following events.
      *       + When you successfully start playing music by calling playMusic{@link #IKTVPlayer#playMusic}, you will receive this callback with `PlayStatePlaying` playState. Otherwise the playState will be `PlayStateFailed`.
@@ -150,7 +147,7 @@ public:
      *       + When you successfully stop the music by calling stopMusic{@link #IKTVPlayer#stopMusic}, you will receive this callback with `PlayStateStoped` playState. Otherwise the playState will be `PlayStateFailed`.
      *       + When the music ends, you will receive this callback with `PlayStateFinished` playState.
      */
-    virtual void onPlayStateChange(bytertc::KTVPlayerErrorCode error_code, const char* music_id, PlayState play_state) {
+    virtual void onPlayStateChanged(const char* music_id, PlayState play_state, bytertc::KTVPlayerErrorCode error_code) {
         (void)music_id;
         (void)play_state;
         (void)error_code;
@@ -168,7 +165,7 @@ public:
      * @hidden Constructor/Destructor
      * @brief Destructor
      */
-    virtual ~IKTVPlayer(){}
+    virtual ~IKTVPlayer() = default;
     
     /** 
      * @type api
@@ -185,10 +182,10 @@ public:
      * @param [in] track_type Audio track type of the KTV player. See AudioTrackType{@link #AudioTrackType}.
      * @param [in] play_type Audio play type. See AudioPlayType{@link #AudioPlayType}.
      * @notes  <br>
-     *       + After calling this API, you will receive the music play state through onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback.
-     *       + If the music ID is invalid, you will receive the onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback, with an error_code of -3023 and a play_state of 4.
-     *       + If you didn't join the room, you will receive the onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback, with an error_code of -3022 and a play_state of 4.
-     *       + If the music file does not exist, you will receive the onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback, with an error_code of -3020 and a play_state of 4.
+     *       + After calling this API, you will receive the music play state through onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback.
+     *       + If the music ID is invalid, you will receive the onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback, with an error_code of -3023 and a play_state of 4.
+     *       + If you didn't join the room, you will receive the onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback, with an error_code of -3022 and a play_state of 4.
+     *       + If the music file does not exist, you will receive the onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback, with an error_code of -3020 and a play_state of 4.
      */
     virtual void playMusic(const char* music_id, AudioTrackType track_type, AudioPlayType play_type) = 0;
 
@@ -197,9 +194,9 @@ public:
      * @brief Pauses the music.
      * @param [in] music_id Music ID.
      * @notes  <br>
-     *       + After calling this API, you will receive the music play state through onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback.
-     *       + If the music ID is invalid, you will receive the onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback, with an error_code of -3023 and a play_state of 4.
-     *       + If you didn't join the room, you will receive the onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback, with an error_code of -3022 and a play_state of 4.
+     *       + After calling this API, you will receive the music play state through onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback.
+     *       + If the music ID is invalid, you will receive the onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback, with an error_code of -3023 and a play_state of 4.
+     *       + If you didn't join the room, you will receive the onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback, with an error_code of -3022 and a play_state of 4.
      */
     virtual void pauseMusic(const char *music_id) = 0;
 
@@ -208,9 +205,9 @@ public:
      * @brief Resumes playing the music.
      * @param [in] music_id Music ID.
      * @notes  <br>
-     *       + After calling this API, you will receive the music play state through onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback.
-     *       + If the music ID is invalid, you will receive the onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback, with an error_code of -3023 and a play_state of 4.
-     *       + If you didn't join the room, you will receive the onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback, with an error_code of -3022 and a play_state of 4.
+     *       + After calling this API, you will receive the music play state through onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback.
+     *       + If the music ID is invalid, you will receive the onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback, with an error_code of -3023 and a play_state of 4.
+     *       + If you didn't join the room, you will receive the onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback, with an error_code of -3022 and a play_state of 4.
      */
     virtual void resumeMusic(const char *music_id) = 0;
 
@@ -219,9 +216,9 @@ public:
      * @brief Stops playing the music.
      * @param [in] music_id Music ID.
      * @notes  <br>
-     *       + After calling this API, you will receive the music play state through onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback.
-     *       + If the music ID is invalid, you will receive the onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback, with an error_code of -3023 and a play_state of 4.
-     *       + If you didn't join the room, you will receive the onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback, with an error_code of -3022 and a play_state of 4.
+     *       + After calling this API, you will receive the music play state through onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback.
+     *       + If the music ID is invalid, you will receive the onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback, with an error_code of -3023 and a play_state of 4.
+     *       + If you didn't join the room, you will receive the onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback, with an error_code of -3022 and a play_state of 4.
      */
     virtual void stopMusic(const char *music_id) = 0;
 
@@ -232,9 +229,9 @@ public:
      * @param [in] position The starting position of the music file in milliseconds. The value must be less than the total length of the music.
      * @notes  <br>
      *       + The music must be playing when you call this API.
-     *       + After calling this API, you will receive the music play state through onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback.
-     *       + If the music ID is invalid, you will receive the onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback, with an error_code of -3023 and a play_state of 4.
-     *       + If you didn't join the room, you will receive the onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback, with an error_code of -3022 and a play_state of 4.
+     *       + After calling this API, you will receive the music play state through onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback.
+     *       + If the music ID is invalid, you will receive the onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback, with an error_code of -3023 and a play_state of 4.
+     *       + If you didn't join the room, you will receive the onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback, with an error_code of -3022 and a play_state of 4.
      */
     virtual void seekMusic(const char *music_id, int position) = 0;
 
@@ -249,8 +246,8 @@ public:
      * @notes  <br>
      *       + The music must be playing when you call this API.
      *       + If the set volume is greater than 400, it will be adjusted by the maximum value of 400; if the set volume is less than 0, it will be adjusted by the minimum value of 0.
-     *       + If the music ID is invalid, you will receive the onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback, with an error_code of -3023 and a play_state of 4.
-     *       + If you didn't join the room, you will receive the onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback, with an error_code of -3022 and a play_state of 4.
+     *       + If the music ID is invalid, you will receive the onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback, with an error_code of -3023 and a play_state of 4.
+     *       + If you didn't join the room, you will receive the onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback, with an error_code of -3022 and a play_state of 4.
      */
     virtual void setMusicVolume(const char *music_id, int volume) = 0;
 
@@ -271,8 +268,8 @@ public:
      * @notes <br>
      *       + The music must be in the playing when you call this API.
      *       + If the set pitch is greater than 12, it will be adjusted by the maximum value of 12; if the set pitch is less than –12, it will be adjusted by the minimum value of –12.
-     *       + If the music ID is invalid, you will receive the onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback, with an error_code of -3023 and a play_state of 4.
-     *       + If you didn't join the room, you will receive the onPlayStateChange{@link #IKTVPlayerEventHandler#onPlayStateChange} callback, with an error_code of -3022 and a play_state of 4.
+     *       + If the music ID is invalid, you will receive the onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback, with an error_code of -3023 and a play_state of 4.
+     *       + If you didn't join the room, you will receive the onPlayStateChanged{@link #IKTVPlayerEventHandler#onPlayStateChanged} callback, with an error_code of -3022 and a play_state of 4.
      */
     virtual void setMusicPitch(const char* music_id, int pitch) = 0;
 
@@ -289,8 +286,7 @@ public:
      * @hidden Constructor/Destructor
      * @brief Destructor
      */
-    virtual ~IKTVManager(){
-    }
+    virtual ~IKTVManager() = default;
     
     /** 
      * @type api
@@ -303,9 +299,9 @@ public:
     /** 
      * @type api
      * @brief Sets the KTV event handler.
-     * @param [in] ktvEventHandler KTV event handler. See IKTVEventHandler{@link #IKTVEventHandler}.
+     * @param [in] ktvManagerEventHandler KTV event handler. See IKTVManagerEventHandler{@link #IKTVManagerEventHandler}.
      */
-    virtual void setKTVEventHandler(IKTVEventHandler *ktvEventHandler) = 0;
+    virtual void setKTVManagerEventHandler(IKTVManagerEventHandler *ktvManagerEventHandler) = 0;
 
     /** 
      * @type api
@@ -313,27 +309,27 @@ public:
      * @param [in] page_num Page number. The default value is 1.
      * @param [in] page_size The number of the music that displays on one page.
      * @param [in] filters The filter type of the music list. See MusicFilterType{@link #MusicFilterType}.
-     * @notes After calling this API, you will receive the music list through onMusicListResult{@link #IKTVEventHandler#onMusicListResult} callback.
+     * @notes After calling this API, you will receive the music list through onMusicListResult{@link #IKTVManagerEventHandler#onMusicListResult} callback.
      */
     virtual void getMusicList(int page_num, int page_size,  int filters) = 0;
 
     /** 
      * @type api
      * @brief Search music by keywords.
-     * @param [in] key_world Keyword. The string should be no more than 20 characters.
+     * @param [in] key_word Keyword. The string should be no more than 20 characters.
      * @param [in] page_num Page number. The default value is 1.
      * @param [in] page_size The number of the music that displays on one page.
      * @param [in] filters The filter type of the music list. See MusicFilterType{@link #MusicFilterType}.
-     * @notes After calling this API, you will receive the music list through onSearchMusicResult{@link #IKTVEventHandler#onSearchMusicResult} callback.
+     * @notes After calling this API, you will receive the music list through onSearchMusicResult{@link #IKTVManagerEventHandler#onSearchMusicResult} callback.
      */
-    virtual void searchMusic(const char* key_world, int page_num, int page_size, int filters) = 0;
+    virtual void searchMusic(const char* key_word, int page_num, int page_size, int filters) = 0;
 
     /** 
      * @type api
      * @brief Gets hot music according to music types.
      * @param [in] hot_types Hot music type. See MusicHotType{@link #MusicHotType}.
      * @param [in] filters The filter type of the music list. See MusicFilterType{@link #MusicFilterType}.
-     * @notes After calling this API, you will receive the music list through onHotMusicResult{@link #IKTVEventHandler#onHotMusicResult} callback.
+     * @notes After calling this API, you will receive the music list through onHotMusicResult{@link #IKTVManagerEventHandler#onHotMusicResult} callback.
      */
     virtual void getHotMusic(int hot_types, int filters) = 0;
 
@@ -342,7 +338,7 @@ public:
      * @type api
      * @brief Gets music detail.
      * @param [in] music_id Music ID.
-     * @notes After calling this API, you will receive the music detial through onMusicDetailResult{@link #IKTVEventHandler#onMusicDetailResult} callback.
+     * @notes After calling this API, you will receive the music detial through onMusicDetailResult{@link #IKTVManagerEventHandler#onMusicDetailResult} callback.
      */
     virtual void getMusicDetail(const char* music_id) = 0;
 
@@ -352,9 +348,9 @@ public:
      * @param [in] music_id Music ID.
      * @return Download task ID.
      * @notes  <br>
-     *       + If the music is successfully downloaded, you will receive onDownloadSuccess{@link #IKTVEventHandler#onDownloadSuccess}.
-     *       + If the music fails to download, you will receive onDownloadFailed{@link #IKTVEventHandler#onDownloadFailed}.
-     *       + When the music download progress is updated, you will receive onDownloadMusicProgress{@link #IKTVEventHandler#onDownloadMusicProgress}.
+     *       + If the music is successfully downloaded, you will receive onDownloadSuccess{@link #IKTVManagerEventHandler#onDownloadSuccess}.
+     *       + If the music fails to download, you will receive onDownloadFailed{@link #IKTVManagerEventHandler#onDownloadFailed}.
+     *       + When the music download progress is updated, you will receive onDownloadMusicProgress{@link #IKTVManagerEventHandler#onDownloadMusicProgress}.
      */
     virtual int downloadMusic(const char* music_id) = 0;
 
@@ -365,8 +361,8 @@ public:
      * @param [in] type The lyrics file's format. See DownloadLyricType{@link #DownloadLyricType}.
      * @return Download task ID.
      * @notes  <br>
-     *       + If the lyrics are successfully downloaded, you will receive onDownloadSuccess{@link #IKTVEventHandler#onDownloadSuccess}.
-     *       + If the lyrics fail to download, you will receive onDownloadFailed{@link #IKTVEventHandler#onDownloadFailed}.
+     *       + If the lyrics are successfully downloaded, you will receive onDownloadSuccess{@link #IKTVManagerEventHandler#onDownloadSuccess}.
+     *       + If the lyrics fail to download, you will receive onDownloadFailed{@link #IKTVManagerEventHandler#onDownloadFailed}.
      */
     virtual int downloadLyric(const char* music_id, DownloadLyricType type) = 0;
 
@@ -376,8 +372,8 @@ public:
      * @param [in] music_id Music ID.
      * @return Download task ID.
      * @notes  <br>
-     *       + If the file is successfully downloaded, you will receive onDownloadSuccess{@link #IKTVEventHandler#onDownloadSuccess}.
-     *       + If the file fails to download, you will receive onDownloadFailed{@link #IKTVEventHandler#onDownloadFailed}.
+     *       + If the file is successfully downloaded, you will receive onDownloadSuccess{@link #IKTVManagerEventHandler#onDownloadSuccess}.
+     *       + If the file fails to download, you will receive onDownloadFailed{@link #IKTVManagerEventHandler#onDownloadFailed}.
      */
     virtual int downloadMidi(const char* music_id) = 0;
 
@@ -400,7 +396,7 @@ public:
      * @brief Gets the KTV player.
      * @return KTV player interfaces. See IKTVPlayer{@link #IKTVPlayer}.
      */
-    virtual IKTVPlayer *getPlayer() = 0;
+    virtual IKTVPlayer *getKTVPlayer() = 0;
 
 };
 
