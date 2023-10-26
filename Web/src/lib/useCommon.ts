@@ -249,7 +249,7 @@ export const useLeave = () => {
     dispatch(localLeaveRoom());
     dispatch(resetConfig());
     if (RtcClient.beautyEnabled) {
-      beautyExtension.disable();
+      beautyExtension.disableBeauty();
     }
 
     RtcClient.stopAudioCapture();

@@ -115,7 +115,7 @@ export class RtcClient {
     this.engine = VERTC.createEngine(this.config.appId);
     try {
       await this.engine.registerExtension(beautyExtension);
-      beautyExtension.disable();
+      beautyExtension.disableBeauty();
       this.beautyEnabled = true;
     } catch (error) {
       console.error((error as any).message);
@@ -144,7 +144,7 @@ export class RtcClient {
       };
 
       this._promiseList[requestId] = { resolve, reject };
-	  console.log("requestId:",requestId)
+
       this.engine
         .sendServerMessage(JSON.stringify(content))
         .then((res) => console.log('sendServerMessage', res))
@@ -200,7 +200,6 @@ export class RtcClient {
 
     this.engine.on(VERTC.events.onUserMessageReceivedOutsideRoom, (e: UserMessageEvent) => {
       const { userId, message } = e;
-	  console.log(" VERTC.events.onUserMessageReceivedOutsideRoom",e)
       if (userId === 'server') {
         const res = JSON.parse(message as string);
         const promiseRes = this._promiseList[res.request_id];
