@@ -5,9 +5,6 @@
 
 #pragma once
 
-#ifndef BYTE_RTC_EVENT_HANDLER_H__
-#define BYTE_RTC_EVENT_HANDLER_H__
-
 #include "bytertc_defines.h"
 
 namespace bytertc {
@@ -389,7 +386,7 @@ public:
      * @brief logout result callback
      * @notes After calling logout{@link #IRtcEngine#logout}, you will receive this callback.
      */
-    virtual void onLogout() {
+    virtual void onLogout(LogoutReason reason) {
     }
     /** 
      * @type callback
@@ -410,7 +407,7 @@ public:
      * @param  [in] peer_user_id User ID
      * @param  [in] status <br>
      *        The user login status of the query <br>
-     *        See USER_ONLINE_STATUS{@link #USER_ONLINE_STATUS}.
+     *        See UserOnlineStatus{@link #UserOnlineStatus}.
      * @notes You must first call getPeerOnlineStatus{@link #IRtcEngine#getPeerOnlineStatus} to receive this callback.
      */
     virtual void onGetPeerOnlineStatus(const char* peer_user_id, int status) {
@@ -1155,7 +1152,6 @@ public:
         (void)mode;
     }
 
-#ifndef ByteRTC_AUDIO_ONLY
     /** 
      * @type callback
      * @region Video Management
@@ -1503,7 +1499,6 @@ public:
         (void)banned;
     }
 
-#endif  // ByteRTC_AUDIO_ONLY
     /** 
      * @type callback
      * @region Audio event callback
@@ -1614,5 +1609,3 @@ public:
 };
 
 } // namespace bytertc
-
-#endif // BYTE_RTC_EVENT_HANDLER_H__

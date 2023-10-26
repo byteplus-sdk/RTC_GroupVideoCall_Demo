@@ -33,6 +33,7 @@ enum TorchState{
  */
 class ICameraControl {
 public:
+    virtual ~ICameraControl() = default;
     /** 
      * @type api
      * @region  video management
@@ -160,6 +161,37 @@ public:
      *        + The setting expires after calling StopVideoCapture{@link #IRTCVideo#StopVideoCapture}.
      */
     virtual int setCameraExposureCompensation(float val) = 0;
+
+    /** 
+     * @type api
+     * @hidden(macOS, Windows, Linux)
+     * @valid since 353
+     * @brief Enable or disable face auto exposure mode during internal video capture. This mode fixes the problem that the face is too dark under strong backlight; but it will also cause the problem of too bright/too dark in the area outside the ROI region.
+     * @param enable. Whether to enable the mode. True by default.
+     * @return  <br>
+     *        + 0: Success. <br>
+     *        + !0: Failure.
+     * @notes <br>
+     *        + For Android, you must call this API before calling startVideoCapture{@link #IRTCVideo#startVideoCapture} to enable internal capture to make the setting valid.
+     *        + For iOS, calling this API takes effect immediately whether before or after internal video capturing.
+     */
+    virtual int enableCameraAutoExposureFaceMode(bool enable) = 0;
+
+    /** 
+     * @hidden(macOS, Windows, Linux)
+     * @type api
+     * @valid since 353
+     * @brief Set the minimum frame rate of of the dynamic framerate mode during internal video capture.
+     * @param framerate The minimum value in fps. The default value is 7.
+     *                  The maximum value of the dynamic framerate mode is set by calling setVideoCaptureConfig{@link #IRTCVideo#setVideoCaptureConfig}. When minimum value exceeds the maximum value, the frame rate is set to a fixed value as the maximum value; otherwise, dynamic framerate mode is enabled.
+     * @return  <br>
+     *        + 0: Success. <br>
+     *        + !0: Failure.
+     * @notes <br>
+     *        + You must call this API before calling startVideoCapture{@link #IRTCVideo#startVideoCapture} to enable internal capture to make the setting valid.
+     *        + If the maximum frame rate changes due to performance degradation, static adaptation, etc., the set minimum frame rate value will be re-compared with the new maximum value. Changes in comparison results may cause switch between fixed and dynamic frame rate modes.
+     */
+    virtual int setCameraAdaptiveMinimumFrameRate(int framerate) = 0;
 };
 
 }  // namespace bytertc

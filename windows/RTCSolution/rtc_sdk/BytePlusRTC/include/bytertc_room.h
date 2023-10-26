@@ -5,9 +5,6 @@
 
 #pragma once
 
-#ifndef BYTE_RTC_ROOM_INTERFACE_H__
-#define BYTE_RTC_ROOM_INTERFACE_H__
-
 #include "rtc/bytertc_video_effect_interface.h"  // NOLINT
 #include "rtc/bytertc_defines.h"
 #include "bytertc_room_event_handler.h"
@@ -40,69 +37,84 @@ public:
 
     /** 
      * @type api
-     * @region Multi-room
-     * @brief Sets the visibility of the user in the room. The local user is visible to others by default before calling this API. 
-     * @param [in] enable Visibility of the user in the room: <br>
-     *         + true: The user can publish media streams. And the other users in the room get informed of the behaviors of the user, such as Joining room, starting video capture, and Leaving room.<br>
-     *         + false: The user cannot publish media streams. And the other users in the room do not get informed of the behaviors of the user, such as joining, starting video capture, or leaving.<br>
+     * @region Room management
+     * @brief Set the visibility of the user in the room. The local user is visible to others by default before calling this API.
+     *        An RTC room can accommodate a maximum of 50 visible users, and 30 media streams can be published simultaneously. For more information, see [Room Capacity](https://docs.byteplus.com/en/byteplus-rtc/docs/257549).
+     * @param [in] enable Visibility of the user in the room. <br>
+     *        + true: The user can publish media streams. The other users in the room get informed of the behaviors of the user, such as joining room, starting video capture, and leaving room.
+     *        + false: The user cannot publish media streams. The other users in the room do not get informed of the behaviors of the user, such as joining room, starting video capture, or leaving room.
+     * @return  <br>
+     *        + 0: Success.
+     *        + < 0 : Failure. See ReturnStatus{@link #ReturnStatus}.
      * @notes   <br>
-     *        + You can call this API whether the user is in a room or not. <br>
-     *        + When you call this API, the other users in the room will be informed via the related callback: <br>
-     *            - Switch from `false` to `true`: onUserJoined{@link #IRTCRoomEventHandler#onUserJoined}<br>
-     *            - Switch from `true` to `false`: onUserLeave{@link #IRTCRoomEventHandler#onUserLeave} <br>
-     *        + The invisible user will receive the warning code, `kWarningCodePublishStreamForbiden`, when trying to publish media streams.
+     *        + You can call this API whether the user is in a room or not.
+     *        + You will receive onUserVisibilityChanged{@link #IRTCRoomEventHandler#onUserVisibilityChanged} after calling this API. (Available since v3.54)
+     *   &#x0020;  • If you call this API before joining room, and the set value is different from the default value, you will receive the callback when you join the room.
+     *   &#x0020;  • If you call this API after joining room, and the current visibility is different from the previous value, you will receive the callback.
+     *   &#x0020;  • When reconnecting after losing internet connection, if the visibility changes, you will receive the callback. 
+     *        + When you call this API while you are in the room, the other users in the room will be informed via the following callback.
+     *   &#x0020;  • When you switch from `false` to `true`, they will receive onUserJoined{@link #IRTCRoomEventHandler#onUserJoined}.
+     *   &#x0020;  • When you switch from `true` to `false`, they will receive onUserLeave{@link #IRTCRoomEventHandler#onUserLeave}.
+     *   &#x0020;  • The invisible user will receive the warning code, `kWarningCodePublishStreamForbiden`, when trying to publish media streams.
      */
-    virtual void setUserVisibility(bool enable) = 0;
-
-
+    virtual int setUserVisibility(bool enable) = 0;
 
     /** 
      * @type api
      * @region multiroom
      * @brief Listens for event callbacks related to the IRTCRoom{@link #IRTCRoom} instance by setting the event handler of this instance.
      * @param  [in] room_event_handler Refer to IRTCRoomEventHandler{@link #IRTCRoomEventHandler}.
+     * @return  <br>
+     *        + 0: Success.
+     *        + < 0 : Fail. See ReturnStatus{@link #ReturnStatus} for more details
      */
-    virtual void setRTCRoomEventHandler(IRTCRoomEventHandler* room_event_handler) = 0;
+    virtual int setRTCRoomEventHandler(IRTCRoomEventHandler* room_event_handler) = 0;
+
     /** 
      * @type api
      * @region Multi-room
-     * @brief Create/join a room: create a room when the room does not exist; when the room exists, users who have not joined the room can join the room.   <br>
-     *        Users in the same room can talk to each other. <br>
+     * @brief Join the room. <br>
+     *        After creating a room by calling createRTCRoom{@link #IRTCVideo#createRTCRoom}, call this API to join the room and make audio & video calls with other users in the room. <br>
      * @param  [in] token Dynamic key for authenticating the logged-in user. <br>
      *         You need to bring Token to enter the room. When testing, you can use the console to generate temporary tokens. The official launch requires the use of the key SDK to generate and issue tokens at your server level. See [Authentication with Token](70121) for token validity and generation method. <br>
      *        + Apps with different App IDs cannot communicate with each other. <br>
-     *        + Make sure that the App ID used to generate the Token is the same as the App ID used to create the engine, otherwise it will cause the join room to fail. The reason for the failure will be communicated via the onRoomStateChanged{@link #IRTCRoomEventHandler#onRoomStateChanged} callback.<br>
+     *        + Make sure that the App ID used to generate the Token is the same as the App ID used to create the engine, otherwise it will cause the join room to fail.
      * @param  [in] user_info User information. See UserInfo{@link #UserInfo}. <br>
      * @param  [in] config Room parameter configuration, set the room mode and whether to automatically publish or subscribe to the flow. See RTCRoomConfig{@link #RTCRoomConfig} for the specific configuration mode. <br>
      * @return   <br>
      *         + 0: Success <br>
      *         + -1: Room_id/user_info.uid contains invalid parameters. <br>
      *         + -2: Already in the room. After the interface call is successful, as long as the return value of 0 is received and leaveRoom:{@link #IRTCRoom#leaveRoom} is not called successfully, this return value is triggered when the room entry interface is called again, regardless of whether the filled room ID and user ID are duplicated. <br>
+     *         The reason for the failure will be communicated via the onRoomStateChanged{@link #IRTCRoomEventHandler#onRoomStateChanged} callback.<br>
      * @notes   <br>
      *        + In the same room with the same App ID, the user ID of each user must be unique. If two users have the same user ID, the user who entered the room later will kick the user who entered the room out of the room, and the user who entered the room will receive the onRoomStateChanged{@link #IRTCRoomEventHandler#onRoomStateChanged} callback notification. For the error type. See kErrorCodeDuplicateLogin in ErrorCode{@link #ErrorCode}. <br>
-     *        + Local users will receive onRoomStateChanged{@link #IRTCRoomEventHandler#onRoomStateChanged} callback notification after calling this method to join the room successfully. If the local user is also a visible user, the remote user will receive an onUserJoined{@link #IRTCRoomEventHandler#onUserJoined} callback notification when joining the room. For visibility settings, see setUserVisibility{@link #IRTCRoom#setUserVisibility}.<br>
+     *        + Local users will receive onRoomStateChanged{@link #IRTCRoomEventHandler#onRoomStateChanged} callback notification after calling this method to join the room successfully. If the local user is also a visible user, the remote user will receive an onUserJoined{@link #IRTCRoomEventHandler#onUserJoined} callback notification when joining the room.<br>
+     *        + By default, the user is visible in an RTC room. Joining fails when the number of users in an RTC room reaches the upper limit. To avoid this, call setUserVisibility{@link #IRTCRoom#setUserVisibility} to change the visibility of the audience users to `false` by considering the capacity for the invisible users is much larger than that for visible users. An RTC room can accommodate a maximum of 50 visible users, and 30 media streams can be published simultaneously. For more information, see [Capability of Users and Streams](https://docs.byteplus.com/en/byteplus-rtc/docs/257549). <br>
      *        + After the user successfully joins the room, the SDK may lose connection to the server in case of poor local network conditions. At this point, onConnectionStateChanged{@link #IRTCVideoEventHandler#onConnectionStateChanged} callback will be triggered and the SDK will automatically retry until it successfully reconnects to the server. After a successful reconnection, you will receive a local onRoomStateChanged{@link #IRTCRoomEventHandler#onRoomStateChanged} callback notification.
      */
     virtual int joinRoom(const char* token, const UserInfo& user_info, const RTCRoomConfig& config) = 0;
 
     /** 
-      * @type api
-      * @region  room management
-      * @brief  Leave RTC room.   <br>
-      *        The user calls this method to leave the RTC room, end the call process, and release all call-related resources. <br>
-      *        It is an asynchronous operation, and the call returns without actually exiting the room. When actually exiting the room, you will receive onLeaveRoom{@link #IRTCRoomEventHandler#onLeaveRoom}.
-      * @notes   <br>
-      *        + When visible users leave the room, others in the room will receive onUserLeave{@link #IRTCRoomEventHandler#onUserLeave}. <br>
-      *        + If the engine is destroyed immediately after this method is called, you will not receive onLeaveRoom{@link #IRTCRoomEventHandler#onLeaveRoom}. <br>
-      */
-    virtual void leaveRoom() = 0;
+     * @type api
+     * @region  room management
+     * @brief  Leave RTC room.   <br>
+     *        The user calls this method to leave the RTC room, end the call process, and release all call-related resources. <br>
+     *        It is an asynchronous operation, and the call returns without actually exiting the room. When actually exiting the room, you will receive onLeaveRoom{@link #IRTCRoomEventHandler#onLeaveRoom}.
+     * @return  <br>
+     *        + 0: Success.
+     *        + < 0 : Fail. See ReturnStatus{@link #ReturnStatus} for more details
+     * @notes   <br>
+     *        + When visible users leave the room, others in the room will receive onUserLeave{@link #IRTCRoomEventHandler#onUserLeave}. <br>
+     *        + If the engine is destroyed immediately after this method is called, you will not receive onLeaveRoom{@link #IRTCRoomEventHandler#onLeaveRoom}. <br>
+     */
+    virtual int leaveRoom() = 0;
 
     /** 
      * @type api
-     * @brief Update Token.
-     *        A Token contains the privilege of joining a room, publishing streams, and subscribing to streams. Each privilege has an expiration time. A callback will be triggered 30s before expiration, informing the user to update the Token. In this case, you need to get a new Token and update the Token with this API to ensure the normal call.
-     * @param [in] token  Valid token.
-     *        If the Token is invalid, a callback will be triggered with the ErrorCode{@link #ErrorCode} `-1010` indicating that the updated Token is invalid.
+     * @brief Update Token. 
+     *        You must call this API to update token to ensure the RTC call to continue when you receive onTokenWillExpire{@link #IRTCRoomEventHandler#onTokenWillExpire}, onPublishPrivilegeTokenWillExpire{@link #IRTCRoomEventHandler#onPublishPrivilegeTokenWillExpire}, or onSubscribePrivilegeTokenWillExpire{@link #IRTCRoomEventHandler#onSubscribePrivilegeTokenWillExpire}.
+     * @param token  Valid token.
+     *        If the Token is invalid, you will receive onRoomStateChanged{@link #IRTCRoomEventHandler#onRoomStateChanged} with the error code of `-1010`.
      * @return API call result:
      *        + 0: Success.
      *        + <0: Failure. See ReturnStatus{@link #ReturnStatus} for specific reasons.
@@ -176,11 +188,15 @@ public:
      *        + Other users in the same room receive an onRoomBinaryMessageReceived{@link #IRTCRoomEventHandler#onRoomBinaryMessageReceived} callback.
      */
     virtual int64_t sendRoomBinaryMessage(int size, const uint8_t* message) = 0;
+
     /** 
      * @type api
      * @region Room Management
      * @brief Publishes media streams captured by camera/microphone in the current room.
      * @param [in] type Media stream type, used for specifying whether to publish audio stream or video stream. See MediaStreamType{@link #MediaStreamType}.
+     * @return  <br>
+     *        + 0: Success.
+     *        + < 0 : Fail. See ReturnStatus{@link #ReturnStatus} for more details
      * @notes  <br>
      *        + You don't need to call this API if you set it to Auto-publish when calling joinRoom{@link #IRTCRoom#joinRoom}.   <br>
      *        + An invisible user cannot publish media streams. Call setUserVisibility{@link #IRTCRoom#setUserVisibility} to change your visibility in the room.  <br>
@@ -189,24 +205,31 @@ public:
      *        + After you call this API, the other users in the room will receive onUserPublishStream{@link #IRTCRoomEventHandler#onUserPublishStream}. Those who successfully received your streams will receive onFirstRemoteAudioFrame{@link #IRTCVideoEventHandler#onFirstRemoteAudioFrame}/onFirstRemoteVideoFrameDecoded{@link #IRTCVideoEventHandler#onFirstRemoteVideoFrameDecoded} at the same time.  <br>
      *        + Call unpublishStream{@link #IRTCRoom#unpublishStream} to stop publishing streams.
      */
-    virtual void publishStream(MediaStreamType type) = 0;
+    virtual int publishStream(MediaStreamType type) = 0;
 
     /** 
      * @type api
      * @region Room Management
      * @brief Stops publishing media streams captured by camera/microphone in the current room.
      * @param [in] type Media stream type, used for specifying whether to stop publishing audio stream or video stream. See MediaStreamType{@link #MediaStreamType}.
+     * @return  <br>
+     *        + 0: Success.
+     *        + < 0 : Fail. See ReturnStatus{@link #ReturnStatus} for more details
      * @notes  <br>
      *         + After calling publishStream{@link #IRTCRoom#publishStream}, call this API to stop publishing streams. <br>
      *         + After calling this API, the other users in the room will receive onUserUnpublishStream{@link #IRTCRoomEventHandler#onUserUnpublishStream}.
      */
-    virtual void unpublishStream(MediaStreamType type) = 0;
+    virtual int unpublishStream(MediaStreamType type) = 0;
+
     /** 
      * @type api
      * @region Screen Sharing
      * @brief Manually publishes local screen-sharing streams in the current room.<br>
      *        If you need to share your screen in multiple rooms, you can use the same uid to join multiple rooms and call this API in each room. Also, you can publish different types of screen-sharing streams in different rooms.
      * @param [in] type Media stream type, used for specifying whether to publish audio stream or video stream. See MediaStreamType{@link #MediaStreamType}.
+     * @return  <br>
+     *        + 0: Success.
+     *        + < 0 : Fail. See ReturnStatus{@link #ReturnStatus} for more details
      * @notes  <br>
      *        + You need to call this API to publish screen even if you set it to Auto-publish when calling joinRoom{@link #IRTCRoom#joinRoom}.   <br>
      *        + An invisible user cannot publish media streams. Call setUserVisibility{@link #IRTCRoom#setUserVisibility} to change your visibility in the room. <br>
@@ -216,17 +239,21 @@ public:
      *        + On Linux, you can only publish video streams.<br>
      *        + Refer to [Sharing Screen in PC](https://docs.byteplus.com/byteplus-rtc/docs/70144) for more information.
      */
-    virtual void publishScreen(MediaStreamType type) = 0;
+    virtual int publishScreen(MediaStreamType type) = 0;
+
     /** 
      * @type api
      * @region Screen Sharing
      * @brief Stops publishing local screen sharing streams in the current room.
      * @param [in] type Media stream type, used for specifying whether to stop publishing audio stream or video stream. See MediaStreamType{@link #MediaStreamType}.
+     * @return  <br>
+     *        + 0: Success.
+     *        + < 0 : Fail. See ReturnStatus{@link #ReturnStatus} for more details
      * @notes  <br>
      *         + After calling publishScreen{@link #IRTCRoom#publishScreen}, call this API to stop publishing streams. <br>
      *         + After calling this API, the other users in the room will receive onUserUnpublishScreen{@link #IRTCRoomEventHandler#onUserUnpublishScreen}.
      */
-    virtual void unpublishScreen(MediaStreamType type) = 0;
+    virtual int unpublishScreen(MediaStreamType type) = 0;
 
     /** 
      * @deprecated since 3.45 and will be deleted in 3.51, use subscribeStream{@link #IRTCRoom#subscribeStream}, unsubscribeStream{@link #IRTCRoom#unsubscribeStream}, subscribeScreen{@link #IRTCRoom#subscribeScreen} and unsubscribeScreen{@link #IRTCRoom#unsubscribeScreen} instead.
@@ -288,7 +315,7 @@ public:
      *        + !0: Failure
      * @notes  <br>
      *        + If the subscription options conflict with the previous ones, they are subject to the configurations in the last call.<br>
-     *        + In the Conference Mode, if the number of media streams exceeds the limit, we recommend you call subscribeStream{@link #IRTCRoom#subscribeStream} to subscribe each target media stream other than calling this API.<br>
+     *        + With the Audio selection enabled, if the number of media streams exceeds the limit, we recommend you call subscribeStream{@link #IRTCRoom#subscribeStream} to subscribe each target media stream other than calling this API.<br>
      *        + After calling this API, you will be informed of the calling result with onStreamSubscribed{@link #IRTCRoomEventHandler#onStreamSubscribed}.  <br>
      *        + Once the local user subscribes to the stream of a remote user, the subscription to the remote user will sustain until the local user leaves the room or unsubscribe from it by calling unsubscribeStream{@link #IRTCRoom#unsubscribeStream}.<br>
      *        + Any other exceptions will be included in onStreamStateChanged{@link #IRTCRoomEventHandler#onStreamStateChanged}, see ErrorCode{@link #ErrorCode} for the reasons.
@@ -361,34 +388,38 @@ public:
     /**
      * @hidden for internal use only.
      */
-    virtual void enableSubscribeLocalStream(bool enable) = 0;
+    virtual int enableSubscribeLocalStream(bool enable) = 0;
 
     /** 
      * @type api
      * @region Multi-room
      * @brief Pause receiving remote media streams.
      * @param  [in] media_type Media stream type subscribed to. Refer to PauseResumeControlMediaType{@link #PauseResumeControlMediaType}.
+     * @return  <br>
+     *        + 0: Success.
+     *        + < 0 : Fail. See ReturnStatus{@link #ReturnStatus} for more details
      * @notes   <br>
      *         + Calling this API does not change the capture state and the transmission state of the remote clients. <br>
      *         + Calling this API does not cancel the subscription or change any subscription configuration. <br>
      *         + To resume, call resumeAllSubscribedStream{@link #IRTCRoom#resumeAllSubscribedStream}. <br>
      *         + In a multi-room scenario, this API only pauses the reception of streams published in the current room.
      */
-    virtual void pauseAllSubscribedStream(PauseResumeControlMediaType media_type) = 0;
+    virtual int pauseAllSubscribedStream(PauseResumeControlMediaType media_type) = 0;
 
     /** 
      * @type api
      * @region  multi-room
      * @brief  Resume receiving remote media streams
      * @param  [in] media_type Media stream type subscribed to. Refer to PauseResumeControlMediaType{@link #PauseResumeControlMediaType}
+     * @return  <br>
+     *        + 0: Success.
+     *        + < 0 : Fail. See ReturnStatus{@link #ReturnStatus} for more details
      * @notes  <br>
      *         + Calling this API does not change the capture state and the transmission state of the remote clients.
      *         + Calling this API does not change any subscription configuration.
      */
-    virtual void resumeAllSubscribedStream(PauseResumeControlMediaType media_type) = 0;
+    virtual int resumeAllSubscribedStream(PauseResumeControlMediaType media_type) = 0;
 
-
-#ifndef ByteRTC_AUDIO_ONLY
 
     /** 
      * @type api
@@ -396,6 +427,9 @@ public:
      * @brief Synchronizes published audio and video.  <br>
      *        When the same user simultaneously uses separate devices to capture and publish audio and video, there is a possibility that the streams are out of sync due to the network disparity. In this case, you can call this API on the video publisher side and the SDK will automatically line the video stream up according to the timestamp of the audio stream, ensuring that the audio the receiver hears corresponds to the video the receiver watches.
      * @param [in] audio_user_id The ID of audio publisher. You can stop the current A/V synchronization by setting this parameter to null.
+     * @return  <br>
+     *        + 0: Success.
+     *        + < 0 : Fail. See ReturnStatus{@link #ReturnStatus} for more details
      * @notes  <br>
      *        + You can call this API anytime before or after entering the room.  <br>
      *        + The source user IDs of the audio and video stream to be synchronized must be in the same RTC room.  <br>
@@ -403,19 +437,18 @@ public:
      *        + More than one pair of audio and video can be synchronized simultaneously in the same RTC room, but you should note that one single audio source cannot be synchronized with multiple video sources at the same time.  <br>
      *        + If you want to change the audio source, call this API again with a new `audio_user_id`. If you want to change the video source, you need to stop the current synchronization first, then call this API on the new video publisher side.
      */
-    virtual void setMultiDeviceAVSync(const char* audio_user_id) = 0;
+    virtual int setMultiDeviceAVSync(const char* audio_user_id) = 0;
 
     /**
      * @hidden for internal use only.
      */
-    virtual void updateCloudRendering(const char* cloudrenderJsonString) = 0;
+    virtual int updateCloudRendering(const char* cloudrender_json_string) = 0;
 
-#endif
 
     /**
      * @hidden for internal use only.
      */
-    virtual void setCustomUserRole(const char* role) = 0;
+    virtual int setCustomUserRole(const char* role) = 0;
 
     /** 
      * @type api
@@ -455,30 +488,39 @@ public:
      * @type api
      * @region Multi-room
      * @brief Call to this method to stop relaying media stream to all rooms after calling startForwardStreamToRooms{@link #IRTCRoom#startForwardStreamToRooms}. <br>
+     * @return  <br>
+     *        + 0: Success.
+     *        + < 0 : Fail. See ReturnStatus{@link #ReturnStatus} for more details
      * @notes <br>
      *        + Call this method will trigger onForwardStreamStateChanged{@link #IRTCRoomEventHandler#onForwardStreamStateChanged}.
      *        + The other users in the room will receive callback of onUserJoined{@link #IRTCRoomEventHandler#onUserJoined} and onUserPublishStream{@link #IRTCRoomEventHandler#onUserPublishStream}/onUserPublishScreen{@link #IRTCRoomEventHandler#onUserPublishScreen} when you stop relaying.
      *        + To stop relaying media stream to specific rooms, call updateForwardStreamToRooms{@link #IRTCRoom#updateForwardStreamToRooms} instead.
      *        + To resume the relaying in a short time, call pauseForwardStreamToAllRooms{@link #IRTCRoom#pauseForwardStreamToAllRooms} instead and then call resumeForwardStreamToAllRooms{@link #IRTCRoom#resumeForwardStreamToAllRooms} to recsume after that.
      */
-    virtual void stopForwardStreamToRooms() = 0;
+    virtual int stopForwardStreamToRooms() = 0;
 
     /** 
      * @type api
      * @region Multi-room
      * @brief Call this method to pause relaying media stream to all rooms after calling startForwardStreamToRooms{@link #IRTCRoom#startForwardStreamToRooms}. <br>
      *        After that, call resumeForwardStreamToAllRooms{@link #IRTCRoom#resumeForwardStreamToAllRooms} to resume.
+     * @return  <br>
+     *        + 0: Success.
+     *        + < 0 : Fail. See ReturnStatus{@link #ReturnStatus} for more details
      * @notes The other users in the room will receive callback of onUserUnpublishStream{@link #IRTCRoomEventHandler#onUserUnpublishStream}/onUserUnpublishScreen{@link #IRTCRoomEventHandler#onUserUnpublishScreen} and onUserLeave{@link #IRTCRoomEventHandler#onUserLeave} when you pause relaying.
      */
-    virtual void pauseForwardStreamToAllRooms() = 0;
+    virtual int pauseForwardStreamToAllRooms() = 0;
 
     /** 
      * @type api
      * @region Multi-room
      * @brief Call this method to resume relaying to all rooms from the pause by calling pauseForwardStreamToAllRooms{@link #IRTCRoom#pauseForwardStreamToAllRooms}.
+     * @return  <br>
+     *        + 0: Success.
+     *        + < 0 : Fail. See ReturnStatus{@link #ReturnStatus} for more details
      * @notes The other users in the room will receive callback of onUserJoined{@link #IRTCRoomEventHandler#onUserJoined} and onUserPublishStream{@link #IRTCRoomEventHandler#onUserPublishStream}/onUserPublishScreen{@link #IRTCRoomEventHandler#onUserPublishScreen} when you resume relaying.
      */
-    virtual void resumeForwardStreamToAllRooms() = 0;
+    virtual int resumeForwardStreamToAllRooms() = 0;
 
     /** 
      * @hidden(Linux)
@@ -516,11 +558,14 @@ public:
      *               + 0: mute <br>
      *               + 100: original volume. Default value. <br>
      *               + 400: Up to 4 times the original volume (with overflow protection) <br>
+     * @return  <br>
+     *        + 0: Success.
+     *        + < 0 : Fail. See ReturnStatus{@link #ReturnStatus} for more details
      * @notes Suppose a remote user A is always within the range of the target user whose playback volume will be adjusted,<br>
      *        + If you use both this method and setRemoteAudioPlaybackVolume{@link #IRTCVideo#setRemoteAudioPlaybackVolume}, the volume that the local user hears from user A is the volume set by the method called later.<br>
      *        + If you use both this method and setPlaybackVolume{@link #IRTCVideo#setPlaybackVolume}, the volume that the local user hears from user A is the overlay of both settings.
      */
-    virtual void setRemoteRoomAudioPlaybackVolume(int volume) = 0;
+    virtual int setRemoteRoomAudioPlaybackVolume(int volume) = 0;
     /** 
      * @hidden for internal use only on Windows and Android
      * @type api
@@ -540,10 +585,10 @@ public:
      * @type api
      * @region Room Management
      * @brief Set the priority of the local audio stream to be published.
-     * @param audioSelectionPriority The priority of the local audio stream which defaults to be subscribable only up to the result of the Audio Selection. Refer to AudioSelectionPriority{@link #AudioSelectionPriority}.
-     * @notes 
-     * You must enable Audio Selection in the RTC console before using this API. You can call this API whether the user has joined a room. Refer to [Audio Selection](https://docs.byteplus.com/byteplus-rtc/docs/113547).
-     * The setting is independent in each room that the user joins.
+     * @param [in] audio_selection_priority The priority of the local audio stream which defaults to be subscribable only up to the result of the Audio Selection. Refer to AudioSelectionPriority{@link #AudioSelectionPriority}.
+     * @notes <br>
+     *       + You must enable Audio Selection in the RTC console before using this API. You can call this API whether the user has joined a room. Refer to [Audio Selection](https://docs.byteplus.com/byteplus-rtc/docs/113547).
+     *       + The setting is independent in each room that the user joins.
      */
     virtual int setAudioSelectionConfig(AudioSelectionPriority audio_selection_priority) = 0;
 
@@ -571,15 +616,15 @@ public:
      * @type api
      * @region Subtitle translation service
      * @brief Recognizes or translates the speech of all speakers in the room and converts the results into captions. <br>
-     *        After calling this method, you will receive related information about subtitles through the onSubtitleMessageReceived{@link #IRTCAudioRoomEventHandler#onSubtitleMessageReceived} callback.  <br>
+     *        After calling this method, you will receive related information about subtitles through the onSubtitleMessageReceived{@link #IRTCRoomEventHandler#onSubtitleMessageReceived} callback.  <br>
      *        After calling this method, you will receive the onSubtitleStateChanged{@link #IRTCRoomEventHandler#onSubtitleStateChanged} to inform you of whether subtitles are on. 
-     * @param [in] subtitleConfig Subtitle configurations. Refer to SubtitleConfig{@link #SubtitleConfig} for details. 
+     * @param [in] subtitle_config Subtitle configurations. Refer to SubtitleConfig{@link #SubtitleConfig} for details. 
      * @return  <br>
      *        +  0: Success.  <br>
      *        + !0: Failure.  
      * @notes <br>
-     *        Call this method after joining the room.  <br>
-     *        You can set your source language to Chinese by calling `joinRoom`  and importing a json formatted string `"source_language": "zh"` through the parameter of extraInfo, to English by importing `"source_language": "en"` , and to Japanese by importing `"source_language": "ja"` . If you don't set the source language, SDK will set the language of your system as the source language. If the language of your system is not Chinese, English or Japanese, SDK will set Chinese as the source language.  
+     *        + Call this method after joining the room.  <br>
+     *        + You can set your source language to Chinese by calling `joinRoom`  and importing a json formatted string `"source_language": "zh"` through the parameter of extraInfo, to English by importing `"source_language": "en"` , and to Japanese by importing `"source_language": "ja"` . If you don't set the source language, SDK will set the language of your system as the source language. If the language of your system is not Chinese, English or Japanese, SDK will set Chinese as the source language. 
      */
     virtual int startSubtitle(const SubtitleConfig& subtitle_config) = 0;
     /** 
@@ -593,8 +638,13 @@ public:
      *        + !0: Failure.  
      */
     virtual int stopSubtitle() = 0;
+    /** 
+     * @valid since 3.53
+     * @type api
+     * @brief Get room ID.
+     * @return Room ID.
+     */
+    virtual const char* getRoomId() = 0;
 };
 
 } // namespace bytertc
-
-#endif // BYTE_RTC_ROOM_INTERFACE_H__

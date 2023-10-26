@@ -137,6 +137,8 @@ public:
      * @region  Audio device management
      * @brief  Get a list of the audio playback device. When the audio playback device changes, you will receive `onAudioMediaDeviceStateChanged` and you need to call this API again to get the new device list.
      * @return  A list of all audio playback devices. See IAudioDeviceCollection{@link #IAudioDeviceCollection}.
+     * If a time-out occurs, it returns an empty list. By default, the time-out duration is set to 10 seconds. We recommend to call this API once you get notification of `kMediaDeviceListUpdated` via onAudioDeviceStateChanged{@link #IRTCVideoEventHandler#onAudioDeviceStateChanged}.
+     * @notes When receiving onAudioDeviceStateChanged{@link #IRTCVideoEventHandler#onAudioDeviceStateChanged} for device change, you can call this API to get the latest list of audio playback devices.
      */
     virtual IAudioDeviceCollection* enumerateAudioPlaybackDevices() = 0;
     /** 
@@ -144,6 +146,8 @@ public:
      * @region  Audio Facility Management
      * @brief  Get a list of audio acquisition devices in the current system. If there are subsequent device changes, you need to call this interface again to get a new device list.
      * @return An object that contains a list of all audio capture devices in the system. See IAudioDeviceCollection{@link #IAudioDeviceCollection}.
+     * If a time-out occurs, it returns an empty list. By default, the time-out duration is set to 10 seconds. We recommend to call this API once you get notification of `kMediaDeviceListUpdated` via onAudioDeviceStateChanged{@link #IRTCVideoEventHandler#onAudioDeviceStateChanged}.
+     * @notes When receiving onAudioDeviceStateChanged{@link #IRTCVideoEventHandler#onAudioDeviceStateChanged} for device change, you can call this API to get the latest list of audio playback devices.
      */
     virtual IAudioDeviceCollection* enumerateAudioCaptureDevices() = 0;
 
@@ -317,7 +321,7 @@ public:
      * @type api
      * @region Audio Facility Management
      * @brief Try to initialize the audio playback device, and you can detect abnormal problems such as the device does not exist, permissions are denied/disabled, etc.
-     * @param [in] deviceId Device index number
+     * @param [in] device_id Device index number
      * @return Device status error code
      *         + 0: device detection result is normal
      *         + -1: The interface status is incorrect, for example, the interface is called for detection after the acquisition is started normally
@@ -328,12 +332,12 @@ public:
      * @notes 1. This interface needs to be called before entering the room; <br>
      *        2. Successful detection does not necessarily mean that the device can be started successfully. It may also fail to start due to the device being monopolized by other application processes, or CPU/memory shortage.
      */
-    virtual int initAudioPlaybackDeviceForTest(const char deviceId[MAX_DEVICE_ID_LENGTH]) = 0;
+    virtual int initAudioPlaybackDeviceForTest(const char device_id[MAX_DEVICE_ID_LENGTH]) = 0;
     /** 
      * @type api
      * @region Audio Facility Management
      * @brief Try to initialize the audio capture device, which can detect abnormal problems such as the device does not exist, permissions are denied/disabled, etc.
-     * @param [in] deviceId Device index
+     * @param [in] device_id Device index
      * @return Device status error code
      *         + 0: device detection result is normal
      *         + -1: The interface status is incorrect, for example, the interface is called for detection after the acquisition is started normally
@@ -344,7 +348,7 @@ public:
      * @notes 1. This interface needs to be called before entering the room; <br>
      *        2. Successful detection does not necessarily mean that the device can be started successfully. It may also fail to start due to the device being monopolized by other application processes, or CPU/memory shortage.
      */
-    virtual int initAudioCaptureDeviceForTest(const char deviceId[MAX_DEVICE_ID_LENGTH]) = 0;
+    virtual int initAudioCaptureDeviceForTest(const char device_id[MAX_DEVICE_ID_LENGTH]) = 0;
 
     /** 
      * @type api
@@ -413,7 +417,6 @@ public:
 
     /** 
      * @type api
-     * @hidden currently not available
      * @region Audio Facility Management
      * @brief Enables/disables the silent device filter function.
      * @param [in] enable Whether to enable the silent device filter function:

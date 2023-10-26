@@ -60,10 +60,9 @@ void SceneSelectWidget::initControls() {
 	this->setContentsMargins(0, 0, 0, 0);
 
 
-    ui.txt_sdk_ver->setText(QObject::tr("app_version_vxxx").arg("3.0.0") + " / " + QObject::tr("sdk_version_vxxx").arg(RtcEngineWrap::getSDKVersion().c_str()));
+    ui.txt_sdk_ver->setText(QObject::tr("app_version_vxxx").arg("3.0.2") + " / " + QObject::tr("sdk_version_vxxx").arg(RtcEngineWrap::getSDKVersion().c_str()));
 
 	QApplication::setEffectEnabled(Qt::UI_AnimateCombo, false);
-
 
 #ifdef VIDEOCALL_SCENE
     vrd::VideoCallModule::addThis();
@@ -115,55 +114,7 @@ void SceneSelectWidget::initConnects() {
         [=] { emit sigLogOut();
         });
 }
-void SceneSelectWidget::setupMeetingSceneButton() {
-    auto meetingBtn = new ImageButton(this);
-    ui.sceneSelectLayout->addWidget(meetingBtn, scene_count_ / 4, 
-		scene_count_ < 4 ? scene_count_ : scene_count_ % 4);
-	scene_count_++;
 
-	meetingBtn->img()->setFixedHeight(128);
-	meetingBtn->setImgQss(
-		"background-image:url(:img/"
-		"meeting);margin-top:10px;background-position:center;background-repeat:"
-		"no-repeat;");
-	meetingBtn->setTextQss(kLightFontQss);
-	meetingBtn->setStyleSheet("border-radius:14px;"
-		"background:#272E3B;");
-    meetingBtn->setFixedSize(QSize(220,220));
-	meetingBtn->text()->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-	meetingBtn->setText(QObject::tr("meeting"));
-	connect(meetingBtn, &ImageButton::sigPressed, this, [=] {
-		hide();
-		VRD_FUNC_GET_COMPONET(vrd::INavigator)->go("meeting");
-		emit enterScene("meeting");
-		});
-}
-
-void SceneSelectWidget::setupEduSceneButton() {
-    auto eduBtn = new ImageButton(this);
-    ui.sceneSelectLayout->addWidget(eduBtn, scene_count_ / 4,
-        scene_count_ < 4 ? scene_count_ : scene_count_ % 4);
-    scene_count_++;
-	eduBtn->img()->setFixedHeight(128);
-	eduBtn->setImgQss(
-		"background-image:url(:img/"
-		"online_class);margin-top:10px;background-position:center;background-"
-		"repeat:"
-		"no-repeat;");
-	eduBtn->setStyleSheet("border-radius:14px;"
-		"background:#272E3B;");
-	eduBtn->setTextQss(kLightFontQss);
-	eduBtn->text()->setAlignment(Qt::AlignHCenter |
-		Qt::AlignVCenter);
-	eduBtn->setText(QObject::tr("online_edu"));
-    eduBtn->setFixedSize(QSize(220,220));
-    connect(eduBtn, &ImageButton::sigPressed, this,
-        [=] {
-            hide();
-            VRD_FUNC_GET_COMPONET(vrd::INavigator)->go("edu");
-            emit enterScene("edu");
-        });
-}
 
 void SceneSelectWidget::setupMoreSceneButton() {
 	auto moreBtn = new ImageButton(this);

@@ -144,9 +144,24 @@ enum LoginErrorCode {
 
 /** 
  * @type keytype
+ * @brief The reason why users log out
+ */
+enum LogoutReason {
+    /** 
+     * @brief Users choose to logout by calling the `logout` to log out or terminating the engine to log out.
+     */
+    kLogoutReasonLogout = 0,
+    /** 
+     * @brief The current user is kicked out as another user logs in with the same UserId.
+     */
+    kLogoutReasonDuplicateLogin = 1,
+};
+
+/** 
+ * @type keytype
  * @brief User online status.
  */
-enum USER_ONLINE_STATUS {
+enum UserOnlineStatus {
     /** 
      * @brief The peer user is offline   <br>
      *         The peer user has called `logout`, or has not called `login` to log in.
@@ -176,7 +191,7 @@ struct ServerACKMsg {
     /** 
      * @brief content of the message
      */
-    char* ACKMsg;
+    char* ack_msg;
 };
 
 /** 
@@ -199,7 +214,7 @@ enum MessageConfig {
 };
 
 /** 
- * @type keytype
+ * @type errorcode
  * @brief Result of sending messages and the reason of failure if it fails.
  */
 enum UserMessageSendResult {
@@ -227,6 +242,16 @@ enum UserMessageSendResult {
      * @brief Failure. Exceeds QPS limit.
      */
     kUserMessageSendResultExceedQPS = 5,
+    /** 
+     * @brief Failure. The app server failed to receive the message sent by the client.<br>
+     *        Triggered by calling `sendServerMessage` or `sendServerBinaryMessage`, and carried by `onServerMessageSendResult` callback.
+     */
+    kUserMessageSendResultE2BSSendFailed = 17,
+    /** 
+     * @brief Failure. The app server received the message sent by the client, but failed to response.<br>
+     *        Triggered by calling `sendServerMessage` or `sendServerBinaryMessage`, and carried by `onServerMessageSendResult` callback.
+     */
+    kUserMessageSendResultE2BSReturnFailed = 18,
     /** 
      * @brief Failure. The sender of the message did not join the room
      */
@@ -526,13 +551,13 @@ enum BusinessCheckCode {
      * @brief The user is already in the room.   <br>
      *        You must set the Business Id before joining room, otherwise it will be invalid. <br>
      */
-    ERROR_ALREADY_IN_ROOM = -6001,
+    kBusinessCheckCodeAlreadyInRoom = -6001,
 
     /** 
      * @brief  The input is invalid.   <br>
      *         For the legal characters, see `setBusinessId`. <br>
      */
-    ERROR_INPUT_INVALIDATE = -6002,
+    kBusinessCheckCodeInputInvalidate = -6002,
 };
 
 /** 
@@ -588,15 +613,15 @@ enum HttpProxyState {
     /** 
      * @brief HTTP/HTTPS  initialization state
      */
-    kHttpInit,
+    kHttpProxyStateInit,
     /** 
      * @brief HTTP/HTTPS  Connection successful
      */
-    kHttpConnected,
+    kHttpProxyStateConnected,
     /** 
      * @brief HTTP/HTTPS  connection failed
      */
-    kHttpError
+    kHttpProxyStateError
 };
 
 /** 
@@ -786,6 +811,59 @@ enum LocalProxyError {
      * @brief Errors in Http tunnel proxy. Please check Http tunnel proxy and your network connection status.
      */
     kLocalProxyErrorHttpTunnelFailed = 6,
+};
+
+/**  
+ * @type keytype
+ * @brief Local log parameters.
+ */
+enum class LocalLogLevel {
+    /** 
+     * @brief Info level.
+     */
+    kInfo     = 0,
+    /** 
+     * @brief (Default) Warning level.
+     */
+    kWarning  = 1,
+    /** 
+     * @brief Error level.
+     */
+    kError    = 2,
+    /** 
+     * @brief Turn off logging.
+     */
+    kNone     = 3
+};
+ 
+/** 
+ * @type keytype
+ * @brief Local log parameters.
+ */
+struct LogConfig {
+    /** 
+     * @brief (Required) Local log directory.
+     */
+    const char* log_path = nullptr;
+    /** 
+     * @brief (Optional) The logging level. See LocalLogLevel{@link #LocalLogLevel}. The default is warning level.
+     */
+    LocalLogLevel log_level = LocalLogLevel::kWarning;
+
+    /** 
+     * @brief (Optional) The limits for total log file size in MB. The range is 1 to 100 MB, and the default value is 10 MB.
+     *        If `log_file_size` < 1, it will be set to 1 MB. If `log_file_size` > 100, it will be set to 100 MB. <br>
+     *        The maximum size for a single log file is 2 MB.
+     *        If 1 ≤ `log_file_size` ≤ 2, one log file will be generated. If `log_file_size` > 2, the first `⌊log_file_size/2⌋` files will be filled with 2 MB each, the `⌊log_file_size/2⌋+1` fill will be filled with `log_file_size mod 2`.
+     *        If the size exceeds the remaining space, the oldest file will be deleted.
+     */
+    uint32_t log_file_size = 10;
+
+    /** 
+     * @brief (Optional) Local log file name prefix. It should follow the regular expression pattern of `[a-zA-Z0-9_@-.]{1,128}`.
+     *        The final file name will be the prefix followed by "_" and the file creation time, and "_rtclog.log" at the end. For example, `logPrefix_2023-05-25_172324_rtclog.log`.
+     */
+    const char* log_filename_prefix = nullptr;
 };
 
 }  // namespace bytertc

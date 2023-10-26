@@ -7,6 +7,7 @@
 
 #include "core/util_tip.h"
 #include "videocall/core/data_mgr.h"
+#include "videocall/core/videocall_manager.h"
 
 /** {zh}
  * 单例对象，便于其他类代码中访问对应的接口
@@ -92,6 +93,11 @@ int VideoCallRtcEngineWrap::init() {
                 if (type == bytertc::kRTCVideoDeviceTypeCaptureDevice) {
                     instance().onVideoStateChanged(device_id, state, error);
                 }
+				if (type == bytertc::kRTCVideoDeviceTypeScreenCaptureDevice) {
+					if (error == bytertc::kMediaDeviceErrorDeviceDisconnected) {
+						videocall::VideoCallManager::stopScreen();
+					}
+				}
         });
 
     QObject::connect(
@@ -243,8 +249,8 @@ int VideoCallRtcEngineWrap::setVideoProfiles(const videocall::VideoConfiger& vc)
     bytertc::VideoEncoderConfig config;
     config.width = vc.resolution.width;
     config.height = vc.resolution.height;
-    config.frameRate = vc.fps;
-    config.maxBitrate = vc.kbps;
+    config.frame_rate = vc.fps;
+    config.max_bitrate = vc.kbps;
     return RtcEngineWrap::instance().setVideoProfiles(config);
 }
 
@@ -256,10 +262,10 @@ int VideoCallRtcEngineWrap::setAudioProfiles(const videocall::AudioQuality& aq) 
 
 int VideoCallRtcEngineWrap::setScreenProfiles(const videocall::VideoConfiger& vc) {
     bytertc::ScreenVideoEncoderConfig config;
-    config.frameRate = vc.fps;
+    config.frame_rate = vc.fps;
     config.height = vc.resolution.height;
     config.width = vc.resolution.width;
-    config.maxBitrate = vc.kbps;
+    config.max_bitrate = vc.kbps;
     return RtcEngineWrap::instance().setScreenProfiles(config);
 }
 
@@ -358,9 +364,9 @@ bool VideoCallRtcEngineWrap::audioRecordDevicesTest() {
 void VideoCallRtcEngineWrap::setBasicBeauty(bool enabled) {
     int res = RtcEngineWrap::instance().enableEffectBeauty(enabled);
     if (res == 0 && enabled) {
-        RtcEngineWrap::instance().setBeautyIntensity(bytertc::kEffectBeautyWhite, 0.2);
-        RtcEngineWrap::instance().setBeautyIntensity(bytertc::kEffectBeautySmooth, 0.3);
-        RtcEngineWrap::instance().setBeautyIntensity(bytertc::kEffectBeautySharpen, 0.4);
+        RtcEngineWrap::instance().setBeautyIntensity(bytertc::kEffectBeautyModeWhite, 0.2);
+        RtcEngineWrap::instance().setBeautyIntensity(bytertc::kEffectBeautyModeSmooth, 0.3);
+        RtcEngineWrap::instance().setBeautyIntensity(bytertc::kEffectBeautyModeSharpen, 0.4);
     }
 }
 

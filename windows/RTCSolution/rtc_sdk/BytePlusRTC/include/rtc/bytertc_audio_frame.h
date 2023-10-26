@@ -21,7 +21,7 @@ enum AudioFrameType {
     /** 
      * @brief PCM 16bit
      */
-    kFrameTypePCM16 = 0
+    kAudioFrameTypePCM16 = 0
 };
 
 /** 
@@ -152,29 +152,31 @@ enum class AudioFrameCallbackMethod{
     /** 
      * @brief The callback of the audio data recorded by local microphone.
      */
-    kAudioFrameCallbackRecord,
+    kRecord,
     /** 
      * @brief The callback of the mixed audio data of all remote users subscribed by the local user.
      */
-    kAudioFrameCallbackPlayback,
+    kPlayback,
     /** 
      * @brief The callback of the mixed audio data including the data recorded by local microphone and that of all remote users subscribed by the local user.
      */
-    kAudioFrameCallbackMixed,
+    kMixed,
     /** 
      * @brief The callback of the audio data before mixing of each remote user subscribed by the local user.
      */
-    kAudioFrameCallbackRemoteUser,
+    kRemoteUser,
     /** 
      * @brief The callback of screen audio data captured locally.
      */
-    kAudioFrameCallbackRecordScreen,
+    kRecordScreen,
 };
 
 /** 
  * @type callback
  * @region Audio Data Callback
  * @brief Audio data callback observer
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
+ * The time interval for all callback functions in this interface is 20 ms.
  */
 class IAudioFrameObserver {
 public:
@@ -233,79 +235,64 @@ public:
     }
 };
 /** 
- * @deprecated since 3.45 and will be deleted in 3.51, use IAudioFrameProcessor{@link #IAudioFrameProcessor} instead.
- * @type callback
- * @region audio processing
- * @brief Custom audio processor
- */
-class IAudioProcessor{
-public:
-    /** 
-     * @type callback
-     * @region Audio processing
-     * @brief Get the audio frames collected by the RTC SDK, and perform custom processing, and finally give the processed audio frames to the RTC SDK for encoding and transmission.
-     * @param  [in] audioFrame The audio frame collected by the RTC SDK can be customized to directly modify the data in the audio data. See IAudioFrame{@link #IAudioFrame}.
-     * @return   <br>
-     *        0: Unprocessed <br>
-     *         > 0: Processing succeeded <br>
-     *         < 0: Processing failed
-     * @notes Before audio custom processing, you need to call `registerLocalAudioProcessor` to set up the audio custom processor.
-     */
-    virtual int processAudioFrame(const IAudioFrame& audioFrame) = 0;
-};
-/** 
- * @hidden(Linux)
  * @type callback
  * @brief The custom audio processor.
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class IAudioFrameProcessor{
 public:
     /** 
      * @type callback
      * @brief Returns the address of the locally captured audio frame for custom processing.
-     * @param [in] audioFrame The address of the audio frame. See IAudioFrame{@link #IAudioFrame}
+     * @param [in] audio_frame The address of the audio frame. See IAudioFrame{@link #IAudioFrame}
      * @notes <br>
      *        + After custom processing, SDK will encode the processed audio frames and transmit to the remote user.  <br>
-     *        + After calling `enableAudioProcessor` with locally captured audio frame specified, you will receive this callback.
+     *        + After calling `enableAudioProcessor` with locally captured audio frame specified, you will receive this callback every 10 ms.
      */
-    virtual int onProcessRecordAudioFrame(IAudioFrame& audioFrame) = 0;
+    virtual int onProcessRecordAudioFrame(IAudioFrame& audio_frame) = 0;
     /** 
      * @type callback
      * @brief Returns the address of the locally captured audio frame for custom processing.
-     * @param [in] audioFrame The address of the audio frame. See IAudioFrame{@link #IAudioFrame}
-     * @notes After calling `enableAudioProcessor` with mixed remote audio, you will receive this callback.
+     * @param [in] audio_frame The address of the audio frame. See IAudioFrame{@link #IAudioFrame}
+     * @notes After calling `enableAudioProcessor` with mixed remote audio, you will receive this callback every 10 ms.
      */
-    virtual int onProcessPlayBackAudioFrame(IAudioFrame& audioFrame) = 0;
+    virtual int onProcessPlayBackAudioFrame(IAudioFrame& audio_frame) = 0;
     /** 
      * @type callback
      * @brief Returns the address of the locally captured audio frame for custom processing.
      * @param [in] stream_info Information of the audio stream. See RemoteStreamKey{@link #RemoteStreamKey}
-     * @param [in] audioFrame The address of the audio frame. See IAudioFrame{@link #IAudioFrame}
-     * @notes After calling `enableAudioProcessor` with audio streams of the remote users, you will receive this callback.
+     * @param [in] audio_frame The address of the audio frame. See IAudioFrame{@link #IAudioFrame}
+     * @notes After calling `enableAudioProcessor` with audio streams of the remote users. You will receive this callback every 10 ms.
      */
-    virtual int onProcessRemoteUserAudioFrame(const RemoteStreamKey& stream_info, IAudioFrame& audioFrame) = 0;
+    virtual int onProcessRemoteUserAudioFrame(const RemoteStreamKey& stream_info, IAudioFrame& audio_frame) = 0;
     /** 
      * @hidden(macOS, Windows, Linux)
      * @valid since 3.50
      * @type callback
      * @brief You will receive the address of SDK-level in-ear monitoring audio frames for custom processing.
      *        The audio effects set by `setVoiceReverbType` and `setVoiceChangerType` are included.
-     * @param  audioFrame The address of the in-ear monitoring audio frames. See IAudioFrame{@link #IAudioFrame}.
+     * @param  audio_frame The address of the in-ear monitoring audio frames. See IAudioFrame{@link #IAudioFrame}.
      * @notes <br>
      *        + Modifying the data affects only SDK-level in-ear monitoring audio.  <br>
-     *        + To enable this callback, call `enableAudioProcessor`.
+     *        + To enable this callback, call `enableAudioProcessor`. You will receive this callback every 10 ms.
      * @return  <br>
      *        + 0: Success. <br>
      *        + <0: Failure.  <br>
      */
-    virtual int onProcessEarMonitorAudioFrame(IAudioFrame& audioFrame) = 0;
+    virtual int onProcessEarMonitorAudioFrame(IAudioFrame& audio_frame) = 0;
     /** 
      * @type callback
      * @brief Returns the address of the shared-screen audio frames for custom processing.
-     * @param [in] audioFrame The address of audio frames. See IAudioFrame{@link #IAudioFrame}.
-     * @notes After calling `enableAudioProcessor` to set the audio input to the shared-screen audio, you will receive this callback.
+     * @param [in] audio_frame The address of audio frames. See IAudioFrame{@link #IAudioFrame}.
+     * @notes After calling `enableAudioProcessor` to set the audio input to the shared-screen audio. You will receive this callback every 10 ms.
      */
-    virtual int onProcessScreenAudioFrame(IAudioFrame& audioFrame) = 0;
+    virtual int onProcessScreenAudioFrame(IAudioFrame& audio_frame) = 0;
+    /** 
+     * @hidden constructor/destructor
+     * @brief Destructor
+     */
+    virtual ~IAudioFrameProcessor() {
+    }
 };
 
 /** 
@@ -313,6 +300,7 @@ public:
  * @type callback
  * @region audio data callback
  * @brief Audio data callback observer
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class IRemoteAudioFrameObserver {
 public:

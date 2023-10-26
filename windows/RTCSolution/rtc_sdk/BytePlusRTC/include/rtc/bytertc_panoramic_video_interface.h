@@ -39,7 +39,6 @@ typedef struct Quaternionf {
  */
 class IPanoramicVideo {
 public:
-
     /** 
      * @type api
      * @brief Update the position of the head for the receiver. The receiver will receive the video tile according to the head position.
@@ -47,6 +46,6 @@ public:
      */
     virtual int updateQuaternionf(const Quaternionf& info) = 0;
 
-    ~IPanoramicVideo() {}
+    virtual ~IPanoramicVideo() = default;
 };
 }

@@ -1,5 +1,4 @@
-﻿#ifndef BYTERTC_KTV_MANAGER_INTERFACE_H
-#define BYTERTC_KTV_MANAGER_INTERFACE_H
+#pragma once
 
 #include "bytertc_ktv_defines.h"
 namespace bytertc {
@@ -8,6 +7,7 @@ namespace bytertc {
  * @hidden currently not available
  * @type callback
  * @brief KTV manager event handler.
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class IKTVManagerEventHandler {
 
@@ -105,12 +105,21 @@ public:
         (void)download_id;
         (void)download_percentage;
     }
+    /** 
+     * @type callback
+     * @brief Clear Cache result callback.
+     * @param error_code Error code. See KTVErrorCode{@link #KTVErrorCode}.
+     */
+    virtual void onClearCacheResult(KTVErrorCode error_code) {
+        (void)error_code;
+    }
 };
 
 /** 
  * @hidden currently not available
  * @type callback
  * @brief KTV player event handler.
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class IKTVPlayerEventHandler {
 public:
@@ -291,17 +300,17 @@ public:
     /** 
      * @type api
      * @brief Sets the maximum cache for storing music files.
-     * @param [in] max_cache_size_MB The maximum cache to be set in MB.
+     * @param [in] max_cache_size_mb The maximum cache to be set in MB.
      *        If the setting value is less than or equal to 0, it will be adjusted to 1,024 MB.
      */
-    virtual void setMaxCacheSize(int max_cache_size_MB) = 0;
+    virtual void setMaxCacheSize(int max_cache_size_mb) = 0;
 
     /** 
      * @type api
      * @brief Sets the KTV event handler.
-     * @param [in] ktvManagerEventHandler KTV event handler. See IKTVManagerEventHandler{@link #IKTVManagerEventHandler}.
+     * @param [in] ktv_manager_event_handler KTV event handler. See IKTVManagerEventHandler{@link #IKTVManagerEventHandler}.
      */
-    virtual void setKTVManagerEventHandler(IKTVManagerEventHandler *ktvManagerEventHandler) = 0;
+    virtual void setKTVManagerEventHandler(IKTVManagerEventHandler *ktv_manager_event_handler) = 0;
 
     /** 
      * @type api
@@ -338,7 +347,7 @@ public:
      * @type api
      * @brief Gets music detail.
      * @param [in] music_id Music ID.
-     * @notes After calling this API, you will receive the music detial through onMusicDetailResult{@link #IKTVManagerEventHandler#onMusicDetailResult} callback.
+     * @notes After calling this API, you will receive the music detail through onMusicDetailResult{@link #IKTVManagerEventHandler#onMusicDetailResult} callback.
      */
     virtual void getMusicDetail(const char* music_id) = 0;
 
@@ -401,4 +410,3 @@ public:
 };
 
 } // namespace bytertc
-#endif // BYTERTC_KTV_MANAGER_INTERFACE_H

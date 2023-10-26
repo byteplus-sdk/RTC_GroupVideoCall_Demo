@@ -57,6 +57,18 @@ enum ReturnStatus {
      */
     kReturnStatusScreenNotSupport = -9,
     /** 
+     * @brief Failure. Not supported.
+     */
+    kReturnStatusNotSupport = -10,
+    /** 
+     * @brief Failure. resource overflow.
+     */
+    kReturnStatusResourceOverflow = -11,
+    /** 
+     * @brief Failure. Not supported.
+     */
+    kReturnStatusVideoNotSupport = -12,
+    /** 
      * @brief Failure. No audio frame.
      */
     kReturnStatusAudioNoFrame = -101,
@@ -92,6 +104,14 @@ enum ReturnStatus {
      * @brief Device start-up failed due to a system error.
      */
     kReturnStatusAudioDeviceStartFailed = -109,
+    /** 
+     * @brief Failure. invalid object.
+     */
+    kReturnStatusNativeInvalid = -201,
+    /** 
+     * @brief Warning. When pushing a video frame to the RTC SDK, the timing difference of subsequent video frames should be the same as the interval of the frame push operation. If not, you will receive this warning.
+     */
+    kReturnStatusVideoTimeStampWarning = -202,
 };
 
 /** 
@@ -147,6 +167,25 @@ enum UserRoleType {
 };
 
 /** 
+ * @type keytype
+ * @brief User visibility state change error.
+ */
+enum UserVisibilityChangeError {
+    /** 
+     * @brief Success.
+     */
+    kUserVisibilityChangeErrorOk = 0,
+    /** 
+     * @brief Unknown error.
+     */
+    kUserVisibilityChangeErrorUnknown = 1,
+    /** 
+     * @brief Visible users in the room have reached the upper limit.
+     */
+    kUserVisibilityChangeErrorTooManyVisibleUser = 2,
+};
+
+/** 
  * @hidden currently not available
  * @type keytype
  * @brief Message source
@@ -170,11 +209,11 @@ enum SEICountPerFrame {
     /** 
      * @brief Single-SEI mode. When you send multiple SEI messages in 1 frame, they will be sent frame by frame in a queue.
      */
-    kSingleSEIPerFrame = 0,
+    kSEICountPerFrameSingle = 0,
     /** 
      * @brief Multi-SEI mode. When you send multiple SEI messages in 1 frame, they will be sent together in the next frame.
      */
-    kMultiSEIPerFrame,
+    kSEICountPerFrameMulti,
 };
 
 /** 
@@ -199,7 +238,7 @@ struct NetworkQualityStats {
     /** 
      * @brief Average transmission rate of the media RTP packages in 2s. unit: bps
      *        For a local user, it is the packet-transmitting speed.
-     *        For a more user, it is the speed of receiving all the subsribed media.
+     *        For a more user, it is the speed of receiving all the subscribed media.
      */
     int total_bandwidth;
     /** 
@@ -224,7 +263,7 @@ struct NetworkQualityStats {
  *        Choose an appropriate room-profile option to meet the requirement of the scenario for media encoding algorithm, video profiles, and network configurations.
  *        Call `setAudioProfile` to apply another audio quality option.
  */
-enum RoomProfileType {
+enum RoomProfileType : int {
     /** 
      * @brief General mode by default <br>
      *        It equals to `kRoomProfileTypeMeeting = 16`.<br>
@@ -294,6 +333,7 @@ enum RoomProfileType {
      */
     kRoomProfileTypeChorus = 12,
     /** 
+     * @valid since 3.45
      * @brief For VR chat with support for 192 KHz audio sample rate and feature of 360 Reality AudioAudio
      */
     kRoomProfileTypeVRChat = 13,
@@ -408,28 +448,36 @@ enum MediaDeviceState {
     kMediaDeviceStateResumed = 5,
     /** 
      * @brief Added
+     * Call enumerate-device api to update the device list when you get this notification.
      */
     kMediaDeviceStateAdded = 10,
     /** 
      * @brief Removed
+     * Call enumerate-device api to update the device list when you get this notification.
      */
     kMediaDeviceStateRemoved = 11,
     /** 
      * @brief Closing the laptop interrupted the RTC call. RTC call will resume once the laptop is opened.
      */
-    kMediaDeviceInterruptionBegan = 12,
+    kMediaDeviceStateInterruptionBegan = 12,
     /** 
      * @brief RTC call resumed from the interruption caused by Closing the laptop.
      */
-    kMediaDeviceInterruptionEnded = 13,
+    kMediaDeviceStateInterruptionEnded = 13,
     /** 
      * @brief The device just became the default device.
      */
-    kMediaDeviceBecomeSystemDefault = 14,
+    kMediaDeviceStateBecomeSystemDefault = 14,
     /** 
      * @brief The device is no longer the default device.
      */
-    kMediaDeviceResignSystemDefault = 15
+    kMediaDeviceStateResignSystemDefault = 15,
+
+    /** 
+     * @brief Notification of receiving the device list after time-out. 
+     * Call enumerate-device api to update the device list when you get this notification.
+     */
+    kMediaDeviceStateListUpdated = 16,
 };
 
 /** 
@@ -526,12 +574,15 @@ enum MediaDeviceWarning {
     // The following warning codes are only valid for meeting scenarios.
     /** 
      * @hidden for internal use only
-     * @brief The volume is too loud and exceeds the acquisition range of the device. Lower the microphone volume or lower the volume of the audio source.
+     * @brief The volume is too loud and exceeds the acquisition range of the device. Lower the microphone volume or
+     * lower the volume of the audio source.
      */
     kMediaDeviceWarningDetectClipping = 10,
     /** 
-     * @brief Echos betwwen mics and speakers are detected during a call.<br>
-     *        `onAudioDeviceWarning` notifies you with this enum of echo issue. During a call, SDK will detect echo issue only when RoomProfileType{@link #RoomProfileType} is set to `kRoomProfileTypeMeeting` or `kRoomProfileTypeMeetingRoom` and AEC is disabled.
+     * @brief Echos between mics and speakers are detected during a call.<br>
+     *        `onAudioDeviceWarning` notifies you with this enum of echo issue. During a call, SDK will detect echo
+     * issue only when RoomProfileType{@link #RoomProfileType} is set to `kRoomProfileTypeMeeting` or
+     * `kRoomProfileTypeMeetingRoom` and AEC is disabled.
      */
     kMediaDeviceWarningDetectLeakEcho = 11,
     /** 
@@ -556,12 +607,23 @@ enum MediaDeviceWarning {
     kMediaDeviceWarningCaptureDetectSilenceDisappear = 15,
     /** 
      * @hidden(Linux)
-     * @brief Howling detected.
-     *        You will receive this callback in the following scenarios: 1) Howling is detected under the room profiles that do not support howling suppression; 2) Detect howling that is not suppressed under the room profiles that support howling suppression.
-     *        You can only enable howling suppression by calling joinRoom{@link #IRTCRoom#joinRoom}to set your room profile as kRoomProfileTypeCommunication, kRoomProfileTypeMeeting, and kRoomProfileTypeMeetingRoom.
-     *        We recommend that you remind your users to adjust the physical distance between two devices or disable all unused devices except the connecting one.
+     * @brief Howling detected.<br>
+     *        You will receive this callback in the following scenarios: 1) Howling is detected under the room profiles that do not support howling suppression; 2) Detect howling that is not suppressed under the room profiles that support howling suppression. You can only enable howling suppression by calling joinRoom{@link #IRTCRoom#joinRoom}to set your room profile as kRoomProfileTypeCommunication, kRoomProfileTypeMeeting, and kRoomProfileTypeMeetingRoom. We recommend that you remind your users to adjust the physical distance between two devices or disable all unused devices except the connecting one.
      */
     kMediaDeviceWarningCaptureDetectHowling = 16,
+
+    /**
+     * @hidden for internal use only
+     * @brief sudden impluse noise detected
+     */
+    kMediaDeviceWarningSuddenImpluseDetected = 17,
+
+    /**
+     * @hidden for internal use only
+     * @brief sudden impluse noise detected
+     */
+    kMediaDeviceWarningSquareWavSoundDetected = 18,
+
     /** 
      * @hidden(Windows,macOS,Linux)
      * @brief result of api setAudioRoute callback, not support called to setAudioRoute in this scenario
@@ -579,7 +641,8 @@ enum MediaDeviceWarning {
     kMediaDeviceWarningSetAudioRouteFailedByPriority = 22,
     /** 
      * @hidden(Windows,macOS,Linux)
-     * @brief Setting audio route failed because the audio route can only be changed in kAudioScenarioTypeCommunication mode.
+     * @brief Setting audio route failed because the audio route can only be changed in kAudioScenarioTypeCommunication
+     * mode.
      */
     kMediaDeviceWarningSetAudioRouteNotVoipMode = 23,
     /** 
@@ -589,7 +652,8 @@ enum MediaDeviceWarning {
     kMediaDeviceWarningSetAudioRouteDeviceNotStart = 24,
     /** 
      * @hidden(macOS,Windows,Linux,Android)
-     * @brief Result of calling `setBluetoothMode`. The setting will not take effect immediately in the current scenario.
+     * @brief Result of calling `setBluetoothMode`. The setting will not take effect immediately in the current
+     * scenario.
      */
     kMediaDeviceWarningSetBluetoothModeScenarioUnsupport = 25,
     /** 
@@ -793,7 +857,7 @@ enum PerformanceAlarmMode {
 enum ErrorCode {
     /** 
      * @brief Token  is invalid.
-     *        The Token used when joining the room is invalid or expired. The user is required to retrieve the token and call the `updateToken` to update the token.
+     *        The Token used when calling joinRoom{@link #IRTCRoom#joinRoom} is invalid or expired. The user is required to retrieve the token and call the updateToken{@link #IRTCRoom#updateToken} to update the token.
      */
     kErrorCodeInvalidToken = -1000,
     /** 
@@ -824,7 +888,8 @@ enum ErrorCode {
      */
     kRoomErrorCodeRoomIdIllegal = -1007,
     /** 
-     * @brief Token expired. Call `joinRoom` to rejoin with a valid Token.
+     * @brief Token expired. This error code is returned when the user's token expires in the room.
+     *        Call joinRoom{@link #IRTCRoom#joinRoom} to rejoin the room with a new required Token.
      */
     kRoomErrorTokenExpired = -1009,
     /** 
@@ -904,6 +969,7 @@ enum ErrorCode {
      */
     kErrorCodeOverStreamPublishLimit = -1080,
     /** 
+     * @deprecated since 3.52, use kErrorCodeOverStreamPublishLimit（-1080）instead
      * @brief Publishing the screen stream failed, and the total number of publishing streams exceeded the upper limit. The
      *        RTC system limits the total number of streams published in a single room, including video streams, audio streams, and screen streams. Local users will fail to publish streams to the room when the maximum number of published streams in the room has been reached, and will receive this error notification.
      */
@@ -930,6 +996,11 @@ enum ErrorCode {
      * @brief In the scenario of one stream publish to multiple rooms, when at least two rooms are publishing the same stream, one of the rooms fails to unpublish. At this time, the business party needs to retry or notify the user to retry unpublish. <br>
      */
     kErrorCodeMultiRoomUnpublishFailed = -1085,
+    /** 
+     * @hidden for internal use only
+     * @brief The area codes are wrong when specifying service area. <br>
+     */
+    kErrorCodeWrongAreaCode = -1086,
     /**
      * @hidden for internal use only
      */
@@ -1014,39 +1085,39 @@ enum WarningCode {
      */
     kWarningCodeNoCameraPermission = -5001,
     /** 
-     * @brief The microphone permission is abnormal, and the current application does not obtain microphone permission.
-     * @deprecated since 3.45 and will be deleted in 3.51, use MediaDeviceWarning{@link #MediaDeviceWarning} instead.
+     * @brief Deprecated since 3.45. Please use MediaDeviceError{@link #MediaDeviceError}.kMediaDeviceErrorDeviceNoPermission instead.<br>
+     *        The microphone permission is abnormal, and the current application does not obtain microphone permission.
      */
     kWarningCodeNoMicrophonePermission = -5002,
     /** 
-     * @brief The audio capture device failed to start, and the current device may be occupied by other applications.
-     * @deprecated since 3.45 and will be deleted in 3.51, use MediaDeviceWarning{@link #MediaDeviceWarning} instead.
+     * @brief Deprecated since 3.45. Please use MediaDeviceError{@link #MediaDeviceError}.kMediaDeviceErrorDeviceFailure instead.
+     *        The audio capture device failed to start, and the current device may be occupied by other applications.
      */
     kWarningCodeRecodingDeviceStartFailed = -5003,
     /** 
-     * @brief The audio playback device failed to start warning, which may be due to insufficient system resources or wrong parameters.
-     * @deprecated since 3.45 and will be deleted in 3.51, use MediaDeviceWarning{@link #MediaDeviceWarning} instead.
+     * @brief Deprecated since 3.45. Please use MediaDeviceError{@link #MediaDeviceError}.kMediaDeviceErrorDeviceFailure instead.<br>
+     *        The audio playback device failed to start warning, which may be due to insufficient system resources or wrong parameters.
      */
     kWarningCodePlayoutDeviceStartFailed = -5004,
     /** 
-     * @brief No audio acquisition device is available, please insert the available audio acquisition device.
-     * @deprecated since 3.45 and will be deleted in 3.51, use MediaDeviceWarning{@link #MediaDeviceWarning} instead.
+     * @brief Deprecated since 3.45. Please use MediaDeviceError{@link #MediaDeviceError}.kMediaDeviceErrorDeviceNotFound instead.<br>
+     *        No audio acquisition device is available, please insert the available audio acquisition device.
      */
     kWarningCodeNoRecordingDevice = -5005,
     /** 
-     * @brief No audio playback device is available, please insert an available audio playback device.
-     * @deprecated since 3.45 and will be deleted in 3.51, use MediaDeviceWarning{@link #MediaDeviceWarning} instead.
+     * @brief Deprecated since 3.45. Please use MediaDeviceError{@link #MediaDeviceError}.kMediaDeviceErrorDeviceNotFound instead.
+     *        No audio playback device is available, please insert an available audio playback device.
      */
     kWarningCodeNoPlayoutDevice = -5006,
     /** 
-     * @brief The current audio equipment has not collected valid sound data, please check and replace the audio acquisition equipment.
-     * @deprecated since 3.45 and will be deleted in 3.51, use MediaDeviceWarning{@link #MediaDeviceWarning} instead.
+     * @brief Deprecated since 3.45. Please use MediaDeviceWarning{@link #MediaDeviceWarning}.kMediaDeviceWarningCaptureSilence instead.<br>
+     *        The current audio equipment has not collected valid sound data, please check and replace the audio acquisition equipment.
      */
     kWarningCodeRecordingSilence = -5007,
     /** 
-     * @brief Media device misoperation warning.   <br>
+     * @brief Deprecated since 3.45. Please use MediaDeviceWarning{@link #MediaDeviceWarning}.kMediaDeviceWarningOperationDenied instead.<br>
+     *        Media device misoperation warning.   <br>
      *        When using custom acquisition, the internal acquisition switch cannot be called, and this warning will be triggered when called.
-     * @deprecated since 3.45 and will be deleted in 3.51, use MediaDeviceWarning{@link #MediaDeviceWarning} instead.
      */
     kWarningCodeMediaDeviceOperationDenied = -5008,
 
@@ -1087,23 +1158,23 @@ enum WarningCode {
      */
     kWarningLicenseFileExpired = -7001,
 
-    /**
-     * @hidden for internal use only
+    /** 
+     * @brief Authorization failure for [BytePlus Audio SDK](https://go.byteplus.com/audio-sdk). Contact the technical supporters.
      */
     kWarningInvaildSamiAppkeyORToken = -7002,
 
-    /**
-     * @hidden for internal use only
+    /** 
+     * @brief Failure to get the resource for [BytePlus Audio SDK](https://go.byteplus.com/audio-sdk). Input the right DAT path or contact the technical supporters.
      */
     kWarningInvaildSamiResourcePath = -7003,
 
-    /**
-     * @hidden for internal use only
+    /** 
+     * @brief Failure to load the library for [BytePlus Audio SDK](https://go.byteplus.com/audio-sdk). Use right library or contact the technical supporters.
      */
     kWarningLoadSamiLibraryFailed = -7004,
 
-    /**
-     * @hidden for internal use only
+    /** 
+     * @brief The audio effect is not supported by [BytePlus Audio SDK](https://go.byteplus.com/audio-sdk). Contact the technical supporters.
      */
     kWarningInvaildSamiEffectType = -7005,
 };
@@ -1143,13 +1214,13 @@ enum LocalAudioStreamState {
      * @brief Callback the state after the local audio is successfully muted.
      *         Callback after successful setAudioCaptureDeviceMute{@link #IAudioDeviceManager#setAudioCaptureDeviceMute} call, corresponding to kLocalAudioStreamErrorOk in the error code LocalAudioStreamError{@link #LocalAudioStreamError}. <br>
      */
-    kLocalAudioStreamMute,
+    kLocalAudioStreamStateMute,
 
     /** 
      * @brief Callback the state after the local audio is successfully unmuted.
      *         Callback after successful setAudioCaptureDeviceMute{@link #IAudioDeviceManager#setAudioCaptureDeviceMute} call, corresponding to kLocalAudioStreamErrorOk in the error code LocalAudioStreamError{@link #LocalAudioStreamError}. <br>
      */
-    kLocalAudioStreamUnmute
+    kLocalAudioStreamStateUnmute
 };
 
 /** 
@@ -1397,7 +1468,7 @@ enum SEIStreamEventType {
     kSEIStreamEventTypeStreamAdd = 0,
     /** 
      * @brief The black frame video stream is removed. The timing this callback will be triggered is as following:  <br>
-     *        + The remote user turns on their camera, switching from a voice call to a video call.  <br>
+     *        + The black frame video stream stops when the remote user turns on their camera, switching from a voice call to a video call.  <br>
      *        + No SEI data is sent within 1min after the remote user calls sendSEIMessage{@link #IRTCVideo#sendSEIMessage}.  <br>
      *        + The remote user calls setVideoSourceType{@link #IRTCVideo#setVideoSourceType} to switch to custom video capture.
      */
@@ -1450,11 +1521,11 @@ struct RtcRoomStats {
     /** 
      * @brief Current Tx packet loss rate. The range is [0,1].
      */
-    float txLostrate;
+    float tx_lostrate;
     /** 
      * @brief Current Rx packet loss rate. The range is [0,1].
      */
-    float rxLostrate;
+    float rx_lostrate;
     /** 
      * @brief Round-trip time (in ms) from client side to server side
      */
@@ -1517,10 +1588,12 @@ struct RtcRoomStats {
      */
     double cpu_total_usage;
     /** 
+     * @hidden currently not available
      * @brief Tx jitter(ms)
      */
     int tx_jitter;
     /** 
+     * @hidden currently not available
      * @brief Rx jitter(ms)
      */
     int rx_jitter;
@@ -1555,8 +1628,8 @@ enum VideoCodecType {
 
 
 /** 
+ * @hidden not available
  * @type keytype
- * @hidden for internal use only
  * @brief Super-resolution mode.
  */
 enum VideoSuperResolutionMode {
@@ -1571,6 +1644,7 @@ enum VideoSuperResolutionMode {
 };
 
 /** 
+ * @hidden not available
  * @type keytype
  * @brief Video noise reduction mode.
  */
@@ -1780,9 +1854,15 @@ struct LocalVideoStats {
      */
     int jitter;
     /** 
+     * @hidden(Windows, Linux, macOS)
      * @brief Video noise reduction mode. Refer to VideoDenoiseMode{@link #VideoDenoiseMode} for more details.
      */
     VideoDenoiseMode video_denoise_mode;
+    /** 
+     * @brief Average time spent on video encoding in ms.
+     */
+    int codec_elapse_per_frame;
+
 };
 
 /** 
@@ -1858,10 +1938,14 @@ struct RemoteVideoStats {
      */
     int jitter;
     /** 
-     * @hidden for internal use only
+     * @hidden(Windows, Linux, macOS)
      * @brief Super-resolution mode. See VideoSuperResolutionMode{@link #VideoSuperResolutionMode}.
      */
     VideoSuperResolutionMode super_resolution_mode;
+    /** 
+     * @brief Average time spent on video decoding in ms.
+     */
+    int codec_elapse_per_frame;
 };
 
 /** 
@@ -2096,6 +2180,7 @@ enum EncryptType {
 /** 
  * @type callback
  * @brief  Encryption/decryption handler
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class IEncryptHandler {
 public:
@@ -2232,6 +2317,27 @@ enum StreamIndex {
      * @brief Screen-sharing stream. Video/Audio streams for screen sharing.
      */
     kStreamIndexScreen = 1,
+};
+
+/** 
+ *  @valid since 3.56
+ *  @type keytype
+ *  @brief stream aggregation strategy
+ */
+enum AggregationOption {
+    /** 
+   * @brief Stream aggregation with the lowest resolution.(Default Strategy)
+   */
+    kAggregationOptionMin = 0,
+    /** 
+   * @brief Stream aggregation with the highest resolution.
+   */
+    kAggregationOptionMax = 1,
+    /** 
+   * @brief Stream aggregation according to the proportions, and when the proportions are the same, it takes the lowest resolution.
+   */
+    kAggregationOptionMajority = 2,
+
 };
 
 /** 
@@ -2372,27 +2478,27 @@ enum UserWorkerType {
     /** 
      * @brief Normal user, no special attributes   <br>
      */
-    UserWorkerNormal = 0,
+    kUserWorkerTypeNormal = 0,
     /** 
      * @brief User supports SIP flow, signaling only sends SIP flow   <br>
      */
-    UserWorkerSupportSip = (1 << 0),
+    kUserWorkerTypeSupportSip = (1 << 0),
     /** 
      * @brief User supports bytevc1 to H264 transcoding of screen streams   <br>
      */
-    UserWorkerByteVc1Transcoder = (1 << 1),
+    kUserWorkerTypeByteVc1Transcoder = (1 << 1),
     /** 
      * @brief The user needs the signaling server to send a full number of user lists and callback functions   <br>
      */
-    UserWorkerNeedUserListAndCb = (1 << 2),
+    kUserWorkerTypeNeedUserListAndCb = (1 << 2),
     /** 
      * @brief The user needs to get relevant callbacks for all streams in the room when the room enters multiplayer mode   <br>
      */
-    UserWorkerNeedStreamCallBack = (1 << 3),
+    kUserWorkerTypeNeedStreamCallBack = (1 << 3),
     /** 
      * @brief User sets not support audioselection   <br>
      */
-    UserWorkerAudioSelectionExemption = (1 << 4),
+    kUserWorkerTypeAudioSelectionExemption = (1 << 4),
 };
 
 /** 
@@ -2645,17 +2751,17 @@ struct RTCWatermarkConfig {
      * @type keytype
      * @brief Whether the watermark is visible in preview. Its default value is `true`.
      */
-    bool visibleInPreview = true;
+    bool visible_in_preview = true;
     /** 
      * @type keytype
      * @brief Watermark's coordinates and size in landscape mode. See ByteWatermark{@link #ByteWatermark}.
      */
-    ByteWatermark positionInLandscapeMode;
+    ByteWatermark position_in_landscape_mode;
     /** 
      * @type keytype
      * @brief Watermark's coordinates and size in portrait mode. See ByteWatermark{@link #ByteWatermark}.
      */
-    ByteWatermark positionInPortraitMode;
+    ByteWatermark position_in_portrait_mode;
 };
 
 /** 
@@ -2764,7 +2870,7 @@ struct EchoTestConfig {
      *            - If you choose custom capture, you also need to call pushExternalAudioFrame{@link #IRTCVideo#pushExternalAudioFrame} to push the captured audio to the SDK.  <br>
      *        + false: No  <br>
      */
-    bool enableAudio;
+    bool enable_audio;
     /** 
      * @brief Whether to test video. If you are using a desktop PC, the device to be tested is by default the first video device in the list.  <br>
      *        + true: Yes  <br>
@@ -2773,14 +2879,14 @@ struct EchoTestConfig {
      *        + false: No  <br>
      * @notes The video is published with fixed parameters: resolution 640px × 360px, frame rate 15fps.
      */
-    bool enableVideo;
+    bool enable_video;
     /** 
      * @brief Volume prompt interval in ms, the default value is 100. <br>
      *        + `<= 0`: Turn off prompt <br>
      *        + `(0,100]` Invalid interval value, and will be automatically reset to 100ms. <br>
      *        + `> 100`: the actual value of interval
      */
-    int audioPropertiesReportInterval;
+    int audio_properties_report_interval;
     /** 
      * @brief User ID for testing
      */
@@ -2788,7 +2894,7 @@ struct EchoTestConfig {
     /** 
      * @brief ID of the room that the tested user will join.  <br>
      */
-    const char* roomId;
+    const char* room_id;
     /** 
      * @brief Token used for authenticating users when they enter the room.
      */
@@ -2803,27 +2909,27 @@ enum AudioDumpStatus {
     /** 
       * @brief audio dump start failure
       */
-    kAudioDumpStartFailure = 0,
+    kAudioDumpStatusStartFailure = 0,
     /** 
      * @brief audio dump start success
      */
-    kAudioDumpStartSuccess = 1,
+    kAudioDumpStatusStartSuccess = 1,
     /** 
      * @brief audio dump stop failure
      */
-    kAudioDumpStopFailure = 2,
+    kAudioDumpStatusStopFailure = 2,
     /** 
      * @brief audio dump stop success
      */
-    kAudioDumpStopSuccess = 3,
+    kAudioDumpStatusStopSuccess = 3,
     /** 
      * @brief audio dump running failure
      */
-    kAudioDumpRunningFailure = 4,
+    kAudioDumpStatusRunningFailure = 4,
     /** 
      * @brief audio dump ruinning success
      */
-    kAudioDumpRunningSuccess = 5,
+    kAudioDumpStatusRunningSuccess = 5,
 };
 
 /** 
@@ -2922,22 +3028,22 @@ enum HardwareEchoDetectionResult{
     /** 
      * @brief Detection is stopped by the call of `stopHardwareEchoDetection` before the SDK reports the detection result.
      */
-    kHardwareEchoDetectionCanceled = 0,
+    kHardwareEchoDetectionResultCanceled = 0,
     /** 
      * @brief Unknown state<br>
      *        Contact us if you retry several times but keep failing.
      */
-    kHardwareEchoDetectionUnknown = 1,
+    kHardwareEchoDetectionResultUnknown = 1,
     /** 
      * @brief Excellent <br>
      *        No echo issue is detected.
      */
-    kHardwareEchoDetectionNormal = 2,
+    kHardwareEchoDetectionResultNormal = 2,
     /** 
      * @brief Echo <br>
      *        Echo issue is detected. Recommend the user join the call with a headset through the interface.
      */
-    kHardwareEchoDetectionPoor = 3,
+    kHardwareEchoDetectionResultPoor = 3,
 };
 
 /** 
@@ -2963,49 +3069,50 @@ enum SetRoomExtraInfoResult {
     /** 
      * @brief Success.
      */
-    kSetRoomExtraInfoSuccess = 0,
+    kSetRoomExtraInfoResultSuccess = 0,
     /** 
      * @brief Failure. You are not in the room.
      */
-    kSetRoomExtraInfoErrorNotJoinRoom = -1,
+    kSetRoomExtraInfoResultErrorNotJoinRoom = -1,
     /** 
      * @brief Failure. The key pointer is null.
      */
-    kSetRoomExtraInfoErrorKeyIsNull = -2,
+    kSetRoomExtraInfoResultErrorKeyIsNull = -2,
     /** 
      * @brief Failure. The value pointer is null.
      */
-    kSetRoomExtraInfoErrorValueIsNull = -3,
+    kSetRoomExtraInfoResultErrorValueIsNull = -3,
     /** 
      * @brief Failure. Unknown error.
      */
-    kSetRoomExtraInfoResultUnknow = -99,
+    kSetRoomExtraInfoResultResultUnknow = -99,
     /** 
      * @brief Failure. The key length is 0.
      */
-    kSetRoomExtraInfoErrorKeyIsEmpty = -400,
+    kSetRoomExtraInfoResultErrorKeyIsEmpty = -400,
     /** 
      * @brief Failure. Excessively frequent setting. 10 times per second is preferable.
      */
-    kSetRoomExtraInfoErrorTooOften = -406,
+    kSetRoomExtraInfoResultErrorTooOften = -406,
     /** 
      * @brief Failure. Invisible users are not allowed to call `setRoomExtraInfo`.
      */
-    kSetRoomExtraInfoErrorSilentUser = -412,
+    kSetRoomExtraInfoResultErrorSilentUser = -412,
     /** 
      * @brief Failure. Key length exceeds 10 bytes.
      */
-    kSetRoomExtraInfoErrorKeyTooLong = -413,
+    kSetRoomExtraInfoResultErrorKeyTooLong = -413,
     /** 
      * @brief Failure. Value length exceeds 128 bytes.
      */
-    kSetRoomExtraInfoErrorValueTooLong = -414,
+    kSetRoomExtraInfoResultErrorValueTooLong = -414,
     /** 
      * @brief Failure. Server error.
      */
-    kSetRoomExtraInfoErrorServer = -500
+    kSetRoomExtraInfoResultErrorServer = -500
 };
-/**  
+/** 
+ * @hidden currently not available 
  * @type keytype
  * @brief The states of the subtitling task.
  */
@@ -3023,7 +3130,8 @@ enum SubtitleState {
      */
     kSubtitleStateError
 };
-/**  
+/** 
+ * @hidden currently not available
  * @type keytype
  * @brief Subtitle modes.
  */
@@ -3037,8 +3145,9 @@ enum SubtitleMode {
      */
     kSubtitleModeTranslation
 };
-/**  
- * @type keytype
+/** 
+ * @hidden currently not available 
+ * @type errorcode
  * @brief Error codes of the subtitling task.
  */
 enum SubtitleErrorCode {
@@ -3055,7 +3164,7 @@ enum SubtitleErrorCode {
      */
     kSubtitleErrorCodePostProcessError,
     /** 
-     * @brief Failed to connect to the thrid-party service. Please contact the technical support.
+     * @brief Failed to connect to the third-party service. Please contact the technical support.
      */
     kSubtitleErrorCodeASRConnectionError,
     /** 
@@ -3079,21 +3188,23 @@ enum SubtitleErrorCode {
      */
     kSubtitleErrorCodePostProcessTimeout
 };
-/**  
+/** 
+ * @hidden currently not available 
  * @type keytype
  * @brief Subtitle configurations.
  */
 struct SubtitleConfig {
-   /** 
-    * @brief Subtitle mode. You can choose between the recognition and translation modes based on your needs. In the recognition mode, the speech of the speaker in the room will be recognized and converted into captions. In the translation mode, the transcribed text will be translated. Refer to SubtitleMode{@link #SubtitleMode} for more details.
-    */
-    SubtitleMode mode;
-   /** 
-    * @brief Target language. 
-    */
+    /** 
+     * @brief Subtitle mode. You can choose between the recognition and translation modes based on your needs. In the recognition mode, the speech of the speaker in the room will be recognized and converted into captions. In the translation mode, the transcribed text will be translated. Refer to SubtitleMode{@link #SubtitleMode} for more details.
+     */
+    SubtitleMode mode = kSubtitleModeRecognition;
+    /** 
+     * @brief Target language. 
+     */
     const char* target_language = "";
 };
-/**  
+/** 
+ * @hidden currently not available
  * @type keytype
  * @brief Related information about subtitles.
  */

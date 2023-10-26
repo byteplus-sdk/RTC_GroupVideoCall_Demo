@@ -24,11 +24,11 @@ enum StreamLayoutMode {
     /** 
      * @brief auto mode
      */
-    kLayoutAutoMode = 0,
+    kStreamLayoutModeAuto = 0,
     /** 
      * @brief Customer mode
      */ 
-    kLayoutCustomerMode = 2
+    kStreamLayoutModeCustom = 2
 };
 
 /** 
@@ -39,19 +39,19 @@ typedef struct SourceCrop {
     /** 
      * @brief The normalized horizontal coordinate value of the top left vertex of the cropped image to width of the original image, ranging within [0.0, 1.0).
      */     
-    float LocationX = 0.0;
+    float location_x = 0.0;
     /** 
      * @brief The normalized vertical coordinate value of the top left vertex of the cropped image to height of the original image, ranging within [0.0, 1.0).
      */
-    float LocationY = 0.0;
+    float location_y = 0.0;
     /** 
      * @brief The normalized ratio of the width of the cropped image to that of the original image, ranging within [0.0, 1.0).
      */
-    float WidthProportion = 0.0;
+    float width_proportion = 0.0;
     /** 
      * @brief The normalized ratio of the height of the cropped image to that of the original image, ranging within [0.0, 1.0).
      */
-    float HeightProportion = 0.0;
+    float height_proportion = 0.0;
 } SourceCrop;
 /** 
  * @type keytype
@@ -172,13 +172,13 @@ struct PublicStreamLayout {
      *        + `0`: Auto layout. The default value. <br>
      *        + `2`: Custom mode.
      */
-    int layoutMode;
+    int layout_mode;
     /** 
      * @brief Interpolation mode<br>
      *         + `0`: Insert with the last frame<br>
      *         + `1`: Insert with the background image. RTC will insert frames of black if no background image has been set.
      */
-    int interMode;
+    int interpolation_mode;
     /** 
      * @brief Background image
      */
@@ -286,15 +286,15 @@ public:
      * @hidden currently not available
      * @type api
      * @brief Set audio encoding properties of the public stream
-     * @param [in] PublicStreamAudioParam Audio properties of the public stream. Refer to PublicStreamAudioParam{@link #PublicStreamAudioParam} for more details.
+     * @param [in] audio_param Audio properties of the public stream. Refer to PublicStreamAudioParam{@link #PublicStreamAudioParam} for more details.
      */
-    virtual void setAudioParam(const PublicStreamAudioParam&) = 0;
+    virtual void setAudioParam(const PublicStreamAudioParam& audio_param) = 0;
     /** 
      * @type api
      * @brief Set video encoding properties of the public stream
-     * @param [in] PublicStreamVideoParam Video encoding properties of the public stream. Refer to PublicStreamVideoParam{@link #PublicStreamVideoParam} for more details.
+     * @param [in] video_param Video encoding properties of the public stream. Refer to PublicStreamVideoParam{@link #PublicStreamVideoParam} for more details.
      */
-    virtual void setVideoParam(const PublicStreamVideoParam&) = 0;
+    virtual void setVideoParam(const PublicStreamVideoParam& video_param) = 0;
     /** 
      * @type api
      * @brief Set the layout of the public stream

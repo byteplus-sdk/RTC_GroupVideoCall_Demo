@@ -9,6 +9,7 @@ namespace bytertc {
  * @hidden(Windows,Linux,macOS)
  * @type callback
  * @brief Speech recognition service usage status callback
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class IRTCASREngineEventHandler {
 public:

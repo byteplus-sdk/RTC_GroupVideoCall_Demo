@@ -5,15 +5,13 @@
 
 #pragma once
 
-#ifndef BYTE_SING_SCORING_INTERFACE_H__
-#define BYTE_SING_SCORING_INTERFACE_H__
-
 #include "bytertc_audio_defines.h"
 
 namespace bytertc {
 /** 
  * @type callback
  * @brief Karaoke scoring event handler.
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class ISingScoringEventHandler {
 public:
@@ -158,5 +156,3 @@ public:
 };
 
 }  // namespace bytertc
-
-#endif // BYTE_SING_SCORING_INTERFACE_H__

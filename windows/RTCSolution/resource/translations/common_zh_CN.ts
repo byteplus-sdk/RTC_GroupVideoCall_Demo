@@ -48,7 +48,7 @@
 	</message>
 	<message>
 		<source>audio_video_calls</source>
-		<translation>音视频通话</translation>
+		<translation>多人音视频</translation>
 	</message>
 	<message>
 		<source>available_update</source>

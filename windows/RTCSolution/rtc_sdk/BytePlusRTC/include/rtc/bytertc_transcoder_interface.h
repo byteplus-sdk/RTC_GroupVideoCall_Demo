@@ -14,6 +14,7 @@ namespace bytertc {
  * @type callback
  * @region Push to CDN
  * @brief Register this observer to receive stream mixing related callbacks from the SDK.
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class IMixedStreamObserver {
 public:
@@ -93,10 +94,12 @@ public:
 };
 
 /** 
- * @deprecated since 3.52, use IMixedStreamObserver instead.
+ * @deprecated since 3.52, use IMixedStreamObserver{@link #IMixedStreamObserver} instead.
  * @type callback
  * @region Push to CDN
  * @brief Register this observer to receive stream mixing related callbacks from the SDK.
+ * @brief  Custom coded frame callback class.
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class ITranscoderObserver {
 public:
@@ -118,7 +121,7 @@ public:
      * @brief Used for reporting events during pushing streams to CDN
      * @param [in] event Type Stream mixing status, see StreamMixingEvent{@link #StreamMixingEvent}
      * @param [in] task_id Task ID
-     * @param [in] error Errors occuring during the pushing process. See TransCodingError{@link #TransCodingError}
+     * @param [in] error Errors occuring during the pushing process. See StreamMixingErrorCode{@link #StreamMixingErrorCode}
      * @param [in] mix_type Stream mixing and pushing type. See StreamMixingType{@link #StreamMixingType}
      */
     virtual void onStreamMixingEvent(
@@ -172,9 +175,11 @@ public:
     virtual ~ITranscoderObserver() = default;
 };
 /** 
+ * @hidden(Linux)
  * @type callback
  * @region Push to CDN
  * @brief Register this observer to receive the callbacks about pushing a single stream to CDN.
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class IPushSingleStreamToCDNObserver {
 public:
@@ -184,7 +189,7 @@ public:
      * @brief Used for reporting events during pushing a single stream to CDN.
      * @param event Stream mixing and pushing status, see SingleStreamPushEvent{@link #SingleStreamPushEvent}.
      * @param task_id Task ID
-     * @param error Errors occurring during the pushing process. See TransCodingError{@link #TransCodingError}
+     * @param error Errors occurring during the pushing process. See StreamMixingErrorCode{@link #StreamMixingErrorCode}
      */
     virtual void onStreamPushEvent(SingleStreamPushEvent event, const char *task_id, int error) = 0;
     /**
@@ -192,6 +197,45 @@ public:
      */
     virtual ~IPushSingleStreamToCDNObserver() = default;
 };
+
+/** 
+ * @type callback
+ * @brief Observer
+ */
+class IChorusCacheSyncObserver {
+public:
+    /**
+     * @hidden constructor/destructor
+    */
+    virtual ~IChorusCacheSyncObserver() {
+    }
+    /** 
+     * @type callback
+     * @brief The user who calls startChorusCacheSync{@link #IRTCVideo#startChorusCacheSync} as `consumer` receives the callback with synced video frames. The interval of receiving the callback is set by `fps`.
+     * @param count length of `uids`
+     * @param uids[] The list of participants as `producer` and `retransmitter`. The participants not sending media data are excluded.
+     * @param video_frames[] Video data frame corresponding to `uids`. See IVideoFrame{@link #IVideoFrame}.
+     */    
+    virtual void onSyncedVideoFrames(int count, const char* uids[], bytertc::IVideoFrame* video_frames[]) = 0;
+    /** 
+     * @type callback
+     * @brief Receives the callback when the `producer` or `retransmitter` changes.
+     * @param count Current length of `uids`
+     * @param uids Current list of the participants
+     * @notes You may receive the callback is the following cases:
+     *        + The user calls startChorusCacheSync{@link #IRTCVideo#startChorusCacheSync} or stopChorusCacheSync{@link #IRTCVideo#stopChorusCacheSync};
+     *        + The cache syncing participant quits abnormally. 
+     */
+    virtual void onSyncedUsersChanged(int count, const char* uids[]) = 0;
+    /** 
+     * @type callback
+     * @brief Chorus cache sync event callback
+     * @param event See ChorusCacheSyncEvent{@link #ChorusCacheSyncEvent}.
+     * @param error See ChorusCacheSyncError{@link #ChorusCacheSyncError}.
+     */
+    virtual void onSyncEvent(ChorusCacheSyncEvent event, ChorusCacheSyncError error) = 0;
+};
+
 /** 
  * @type api
  * @brief Create an instance with stream mixing configurations

@@ -30,10 +30,11 @@ enum TranscoderRoomStatus {
 };
 
 /** 
+ * @deprecated since 3.52, use MixedStreamMediaType{@link #MixedStreamMediaType} instead.
  * @type keytype
  * @brief Types of streams to be mixed
  */
-enum TranscoderContentControlType {
+enum class TranscoderContentControlType {
     /** 
      * @brief Audio and video
      */
@@ -114,17 +115,17 @@ public:
      * @type api
      * @region Forward push live broadcast
      * @brief Turn the confluence parameter into json string
-     * @param  [in] contentType Content attribute to indicate the confluence signaling
+     * @param  [in] content_type Content attribute to indicate the confluence signaling
      * @param  [in] action Confluence status. The optional values are as follows: <br>
      *                + Started: open the confluence <br>
      *                + LayoutChanged: update the confluence layout <br>
      *                + Stopped: Stop Confluence
      * @return Converted json string
      */
-    virtual const char* flatten(const char* contentType, const char* action) = 0;
+    virtual const char* flatten(const char* content_type, const char* action) = 0;
     /**
      * @hidden constructor/destructor
      */
-    ~ITranscoderParamBase() = default;
+    virtual ~ITranscoderParamBase() = default;
 };
 }/*namespace bytertc*/

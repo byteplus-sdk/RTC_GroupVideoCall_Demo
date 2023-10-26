@@ -1,12 +1,9 @@
-﻿/*
+/*
  * Copyright (c) 2020 The BytePlusRTC project authors. All Rights Reserved.
  * @brief BytePlusRTC Advance API
 */
 
 #pragma once
-
-#ifndef BYTE_RTC_ADVANCE_H__
-#define BYTE_RTC_ADVANCE_H__
 
 #include "bytertc_engine_interface.h"
 
@@ -49,6 +46,7 @@ struct RTCAudioSampleConfigure {
     bool external_audio_in_enable = false;
     bool pitchfilter_out_enable = false;
     bool decoder_out_enable = false;
+    bool front_aec_near_ref_enable = false;
     void reset() {
         aec_near_in_enable = false;
         aec_far_in_enable = false;
@@ -65,13 +63,14 @@ struct RTCAudioSampleConfigure {
         external_audio_in_enable = false;
         pitchfilter_out_enable = false;
         decoder_out_enable = false;
+        front_aec_near_ref_enable = false;
     }
-    void NormalMode() {
+    void normalMode() {
         aec_near_in_enable = true;
         aec_far_in_ref_enable = true;
         mix_out_enable = true;
     }
-    void AllMode() {
+    void allMode() {
         aec_near_in_enable = true;
         aec_far_in_enable = true;
         aec_far_in_ref_enable = true;
@@ -87,6 +86,7 @@ struct RTCAudioSampleConfigure {
         external_audio_in_enable = true;
         pitchfilter_out_enable = true;
         decoder_out_enable = true;
+        front_aec_near_ref_enable = true;
     }
 };
 
@@ -140,9 +140,9 @@ BYTERTC_API BYTERTC_DEPRECATED void setDeviceId(const char* device_id);
  * @brief  Set the state of the application
  * @param  [in] engine
  *        Engine to notify
- * @param  [in] appState Application state string
+ * @param  [in] app_state Application state string
  */
-BYTERTC_API void setAppState(void* engine, const char* appState);
+BYTERTC_API void setAppState(void* engine, const char* app_state);
 
 attribute_deprecated
 /** 
@@ -209,7 +209,7 @@ BYTERTC_API void setApplicationContext(jobject j_application_context);
 
 /** 
  * @type api
- * @region  video management
+ * @region video management
  * @type keytype
  * @brief  Hardware acceleration device type
  */
@@ -294,6 +294,7 @@ enum HWDeviceContextKey {
  */
 class IHWDeviceContext {
 public:
+    virtual ~IHWDeviceContext() = default;
     /** 
      * @brief Get the hardware acceleration device context type
      * @return  Hardware acceleration device type. See HWDeviceType{@link #HWDeviceType}
@@ -323,7 +324,7 @@ public:
     virtual bool ownContext() const = 0;
     /** 
      * @brief Sets whether context is owned by the instance object
-     * @param   [in] ownContext <br>
+     * @param   [in] own_context <br>
      *        + True: context is owned by the instance object <br>
      *        + False: context is not owned by the instance object <br>
      */
@@ -638,4 +639,3 @@ BYTERTC_API IAudioDeviceManagerEx* createAudioDeviceManager(IAudioDeviceEventHan
 
 }  // namespace bytertc
 
-#endif  // BYTE_RTC_ADVANCE_H__

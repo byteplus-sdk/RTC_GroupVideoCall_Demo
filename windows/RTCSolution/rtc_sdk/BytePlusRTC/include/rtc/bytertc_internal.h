@@ -5,9 +5,6 @@
 
 #pragma once
 
-#ifndef BYTE_RTC_INTERNAL_H__
-#define BYTE_RTC_INTERNAL_H__
-
 #include "bytertc_engine_interface.h"
 #include <stdint.h>
 #include <stdarg.h>
@@ -105,4 +102,3 @@ BYTERTC_API void setEngineInternalEventHandler(
       
 }  // namespace bytertc
 
-#endif // BYTE_RTC_INTERNAL_H__ 

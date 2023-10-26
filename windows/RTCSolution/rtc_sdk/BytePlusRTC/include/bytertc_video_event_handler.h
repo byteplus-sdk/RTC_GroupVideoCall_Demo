@@ -5,15 +5,13 @@
 
 #pragma once
 
-#ifndef BYTE_RTC_LITE_EVENT_HANDLER_H__
-#define BYTE_RTC_LITE_EVENT_HANDLER_H__
-
 #include "rtc/bytertc_defines.h"
 
 namespace bytertc {
 /** 
  * @type callback
  * @brief Audio & video engine event callback interface
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class IRTCVideoEventHandler {
 public:
@@ -50,15 +48,16 @@ public:
     * @type callback
     * @brief Failed to access the extension.
     *        RTC SDK provides some features with extensions. Without implementing the extension, you cannot use the corresponding feature.
-    * @param [in] extensionName The name of extension.
+    * @param [in] extension_name The name of extension.
     * @param [in] msg Error message.
     */
-    virtual void onExtensionAccessError(const char* extensionName, const char* msg) {
+    virtual void onExtensionAccessError(const char* extension_name, const char* msg) {
 
     }
 
 
     /** 
+     * @deprecated since 353. Use IMediaPlayerEventHandler{@link #IMediaPlayerEventHandler} and IAudioEffectPlayerEventHandler{@link #IAudioEffectPlayerEventHandler} instead.
      * @type callback
      * @region  Mix
      * @brief   Callback when audio mix file playback state changes
@@ -300,8 +299,8 @@ public:
     }
 
     /** 
-     * @type callback
      * @deprecated since 3.52, will be deleted at 3.57, use onLocalProxyStateChanged{@link #IRTCVideoEventHandler#onLocalProxyStateChanged} instead
+     * @type callback
      * @region Proxy callback
      * @brief HTTP Receive the callback when the proxy connection state changes.
      * @param  [in] state The current HTTP proxy connection status. See HttpProxyState{@link #HttpProxyState}
@@ -310,8 +309,8 @@ public:
     }
 
     /** 
-     * @type callback
      * @deprecated since 3.52, will be deleted at 3.57, use onLocalProxyStateChanged{@link #IRTCVideoEventHandler#onLocalProxyStateChanged} instead
+     * @type callback
      * @region Proxy callback
      * @brief HTTPS Receive the callback when the proxy connection state changes.
      * @param   [out] State the current HTTPS proxy connection status. See HttpProxyState{@link #HttpProxyState}
@@ -320,8 +319,8 @@ public:
     }
 
     /** 
-     * @type callback
      * @deprecated since 3.52, will be deleted at 3.57, use onLocalProxyStateChanged{@link #IRTCVideoEventHandler#onLocalProxyStateChanged} instead
+     * @type callback
      * @region Proxy callback
      * @brief Socks5 Receive the callback when the proxy state changes.
      * @param [out] state SOCKS5 proxy connection status. See Socks5ProxyState{@link #Socks5ProxyState}
@@ -393,10 +392,11 @@ public:
     /** 
      * @type callback
      * @region Real-time messaging
-     * @brief logout result callback
-     * @notes After calling logout{@link #IRTCVideo#logout}, you will receive this callback.
+     * @brief Callback of logout result
+     * @param reason It describes the reason why users log out. See LogoutReason{@link #LogoutReason}
+     * @notes You will receive this callback when calling logout{@link #IRTCVideo#logout} or when the local user is kicked out because another user logs in with the same UserId.
      */
-    virtual void onLogout() {
+    virtual void onLogout(LogoutReason reason) {
     }
     /** 
      * @type callback
@@ -417,7 +417,7 @@ public:
      * @param  [in] peer_user_id User ID
      * @param  [in] status <br>
      *        The user login status of the query <br>
-     *        See USER_ONLINE_STATUS{@link #USER_ONLINE_STATUS}.
+     *        See UserOnlineStatus{@link #UserOnlineStatus}.
      * @notes You must first call getPeerOnlineStatus{@link #IRTCVideo#getPeerOnlineStatus} to receive this callback.
      */
     virtual void onGetPeerOnlineStatus(const char* peer_user_id, int status) {
@@ -677,11 +677,11 @@ public:
      * @brief Callback of the result of subscribing to the public stream<br>
      *        You will be informed of the result of subscribing to the public stream by this callback after calling startPlayPublicStream{@link #IRTCVideo#startPlayPublicStream}.
      * @param [in] public_stream_id
-     * @param [in] errorCode Code for the result of playing the public stream. Refer to PublicStreamErrorCode{@link #PublicStreamErrorCode} for details.
+     * @param [in] error_code Code for the result of playing the public stream. Refer to PublicStreamErrorCode{@link #PublicStreamErrorCode} for details.
      */
-    virtual void onPlayPublicStreamResult(const char* public_stream_id, PublicStreamErrorCode errorCode) {
+    virtual void onPlayPublicStreamResult(const char* public_stream_id, PublicStreamErrorCode error_code) {
         (void)public_stream_id;
-        (void)errorCode;
+        (void)error_code;
     }
     /** 
      * @hidden currently not available
@@ -690,11 +690,11 @@ public:
      *        After calling startPlayPublicStream{@link #IRTCVideo#startPlayPublicStream}, you will receive this callback if the public stream has an SEI message.
      * @param [in] public_stream_id The ID of the public stream.
      * @param [in] message The SEI(supplemental enhancement information) message carried by the public video stream.
-     * The SEI you can get via this callback is inserted by calling sendSEIMessage{@link #RTCVideo#sendSEIMessage} in the SDK.
+     * The SEI you can get via this callback is inserted by calling `sendSEIMessage` in the SDK.
      * You receive SEI from all the video streams if the SEI messages do not have conflicts. However, if the SEI messages from different video streams have conflicts, you will receive only one of them.
-     * @param [in] message_length The length of the SEI message.
-     * @param [in] source_type SEI source type. Since V3.52.1, the value is always `0`, for custom messages. See DataMessageSourceType{@link #DataMessageSourceType}.
-     * @notes You also need to listen to onPublicStreamDataMessageReceived{@Link #IRTCVideoEventHandler#onPublicStreamDataMessageReceived} to receive SEI inserted via Open API in the server.
+     * @param [in] sourceType SEI source type. Since V3.52.1, the value is always `0`, for custom messages. See DataMessageSourceType{@link #DataMessageSourceType}. 
+     * @notes <br>
+     * You also need to listen to onPublicStreamDataMessageReceived{@link #IRTCVideoEventHandler#onPublicStreamDataMessageReceived} to receive data messages inserted via Open API in the server.
      */
     virtual void onPublicStreamSEIMessageReceived(const char* public_stream_id,
         const uint8_t* message,
@@ -705,18 +705,49 @@ public:
         (void)message_length;
         (void)source_type;
     }
+
+    /** 
+     * @valid since 3.56
+     * @hidden currently not available
+     * @type callback
+     * @brief Callback on receiving the SEI message carried by the public video stream.
+     *        After calling startPlayPublicStream{@link #IRTCVideo#startPlayPublicStream}, you will receive this callback if the public stream has an SEI message.
+     * @param public_stream_id The ID of the public stream.
+     * @param channel_id SEI message channel ID. The value range is [0 - 255]. With this parameter, you can set different ChannelIDs for different recipients. In this way, different recipients can choose the SEI information  based on the ChannelID received in the callback.
+     * @param message The SEI(supplemental enhancement information) message carried by the public video stream.
+     * The SEI you can get via this callback is inserted by calling `sendPublicStreamSEIMessage` in the SDK.
+     * @param message_length SEI message length.
+     */
+    virtual void onPublicStreamSEIMessageReceivedWithChannel(const char* public_stream_id, int channel_id,
+                                                  const uint8_t* message, int message_length) {
+        (void)public_stream_id;
+        (void)channel_id;
+        (void)message;
+        (void)message_length;
+    }
     /** 
      * @hidden currently not available
      * @type callback
      * @brief Callback on receiving the data message carried by the public video stream.
-     *        You will receive message by this callback if the public stream published by calling startPlayPublicStream{@link #IRtcEngine#startPlayPublicStream} carrying message.
+     *        After calling startPlayPublicStream{@link #IRTCVideo#startPlayPublicStream}, you can listen to this callback and retrieve SEI messages inserted by Open API calls or audio volume.
      * @param [in] public_stream_id ID of the public stream
      * @param [in] message The data messages carried by the public video stream.
-     * + SEI inserted by calling the OpenAPI. You will receive SEI from all the video streams if the SEI messages do not have conflicts. However, if the SEI  messages from different video streams have conflicts, you will receive only one of them.
-     * + Media volume indicator. You must enable the callback via the OpenAPI on the server.
+     * + Data inserted by calling the OpenAPI.
+     * + Media volume in JSON, before you can receive which you need to enable it via calling the OpenAPI. Refer to the definition below to parse the JSON string.
+     * {
+     * &nbsp;&nbsp;&nbsp;&nbsp;"Type"&nbsp;:&nbsp;"VolumeIndication",
+     * &nbsp;&nbsp;&nbsp;&nbsp;"VolumeInfos":[
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"RoomId":"1000001",
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"UserId":"1000001",
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"StreamType":0,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//  `0` for main stream and `1` for the screen sharing stream
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"LinearVolume":1
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+     * &nbsp;&nbsp;&nbsp;&nbsp;]
+     * }
      * @param [in] message_length Length of the message
      * @param [in] source_type Message source. See DataMessageSourceType{@link #DataMessageSourceType}.
-     * @notes You also need to listen to onPublicStreamSEIMessageReceived{@Link #IRTCVideoEventHandler#onPublicStreamSEIMessageReceived} to receive SEI inserted via API in the client SDK.
+     * @notes You also need to listen to onPublicStreamSEIMessageReceived{@link #IRTCVideoEventHandler#onPublicStreamSEIMessageReceived} to receive SEI inserted via API in the client SDK.
      */
     virtual void onPublicStreamDataMessageReceived(const char* public_stream_id,
         const uint8_t* message,
@@ -731,7 +762,7 @@ public:
      * @hidden currently not available
      * @type callback
      * @brief Callback of successfully decoding of the first video frame of the public stream<br>
-     *        Refer to startPlayPublicStream{@link #IRTCVideo#startPlayPublicStream} for details about subsribing to a public stream.
+     *        Refer to startPlayPublicStream{@link #IRTCVideo#startPlayPublicStream} for details about subscribing to a public stream.
      * @param [in] public_stream_id ID of the public stream
      * @param [in] info Information of the video stream. Refer to VideoFrameInfo{@link #VideoFrameInfo} for more details.
      */
@@ -751,7 +782,8 @@ public:
     /** 
      * @type callback
      * @region Video event callback
-     * @brief The remote clients in the room will be informed of the state change via  this callback after the visible user stops video capture by calling stopVideoCapture{@link #IRTCVideo#stopVideoCapture}.
+     * @brief The remote clients in the room will be informed of the state change via  this callback after the visible user stops video capture by calling stopVideoCapture{@link #IRTCVideo#stopVideoCapture}.<br>
+     *        If you don't start video capture before you publish video data, all visible user will receive this callback.
      * @param [in] room_id ID of the room
      * @param [in] user_id The user who stops the internal video capture
      */
@@ -827,7 +859,6 @@ public:
         (void)mute;
     }
     /** 
-     * @hidden not available
      * @type callback
      * @region Audio event callback
      * @brief When the state of the audio stream from the remote user subscribes to changes, this callback will be received to understand the current state of the remote audio stream.
@@ -856,7 +887,6 @@ public:
         (void)error;
     }
     /** 
-     * @hidden not available
      * @type callback
      * @region Video Management
      * @brief When the state of a remote video stream changes, users in the room who subscribe to this stream receive the event.
@@ -872,8 +902,8 @@ public:
     }
 
     /** 
+     * @hidden not available
      * @type callback
-     * @hidden for internal use only on Android, iOS, macOS, and Windows
      * @region Audio & Video Processing
      * @brief When the super resolution mode of a remote video stream changes, users in the room who subscribe to this stream will receive this callback.
      * @param [in] stream_key Remote stream information that includes the room ID, user ID, and stream type. See RemoteStreamKey{@link #RemoteStreamKey}.
@@ -888,8 +918,8 @@ public:
     }
 
     /** 
+     * @hidden not available
      * @type callback
-     * @hidden for internal use only
      * @region Audio & Video Processing
      * @brief When the state of the video noise reduction mode changes, this callback will return the real state of the
      * mode and the reasons for the changes.
@@ -957,6 +987,9 @@ public:
      * @brief Receive this callback after the first frame of remote video stream is received and decoded by SDK.
      * @param [in] key Remote stream information. See RemoteStreamKey {@link #RemoteStreamKey}.
      * @param [in] info Video frame information. See VideoFrameInfo {@link #VideoFrameInfo}.
+     * @notes <br>
+     *       + For main stream, after joining the room, the subscriber will receive this callback only when the publisher publishes video stream for the first time.
+     *       + For screen-sharing stream, the subscriber will receive this callback every time the publisher publishes or republishes the screen video stream.
      */
     virtual void onFirstRemoteVideoFrameDecoded(const RemoteStreamKey key, const VideoFrameInfo& info) {
         (void)key;
@@ -1039,19 +1072,19 @@ public:
      *        You will be informed of the result of publishing the public stream by this callback after calling startPushPublicStream{@link #IRTCVideo#startPushPublicStream}.
      * @param [in] room_id Room ID from which the public stream is published
      * @param [in] public_streamid ID of the public stream
-     * @param [in] errorCode Code for the result of publishing the public stream. Refer to PublicStreamErrorCode{@link #PublicStreamErrorCode} for details.
+     * @param [in] error_code Code for the result of publishing the public stream. Refer to PublicStreamErrorCode{@link #PublicStreamErrorCode} for details.
      */
-    virtual void onPushPublicStreamResult(const char* room_id, const char* public_streamid, PublicStreamErrorCode errorCode) {
+    virtual void onPushPublicStreamResult(const char* room_id, const char* public_streamid, PublicStreamErrorCode error_code) {
         (void)room_id;
         (void)public_streamid;
-        (void)errorCode;
+        (void)error_code;
     }
 
     /** 
      * @hidden currently not available
      * @type callback
      * @brief Callback of successfully decoding of the first audio frame of the public stream<br>
-     *        Refer to startPlayPublicStream{@link #IRTCVideo#startPlayPublicStream} for details about subsribing to a public stream.
+     *        Refer to startPlayPublicStream{@link #IRTCVideo#startPlayPublicStream} for details about subscribing to a public stream.
      * @param [in] public_stream_id ID of the public stream
      */
     virtual void onFirstPublicStreamAudioFrame(const char* public_stream_id) {
@@ -1072,7 +1105,7 @@ public:
      * @brief Callback about the call test result.
      * @param [in] result Test result, see EchoTestResult{@link #EchoTestResult}.
      * @notes The timing when this callback will be triggered is as follows:  <br>
-     *        + A device-related error occured during the test；  <br>
+     *        + A device-related error occurred during the test；  <br>
      *        + After a successful test；  <br>
      *        + After stopping the test, provided that the audio/video playback was not received during the test due to non-device reasons.
      */
@@ -1110,10 +1143,10 @@ public:
      * @hidden(Linux,Android,iOS)
      * @type callback
      * @brief After calling setOriginalScreenVideoInfo{@link #IRTCVideo#setOriginalScreenVideoInfo} to set the original width and height of the external shared-screen stream and setting the encoding mode to the automatic mode, you will receive this callback to re-capture the stream based on the recommended pixel and framerate by RTC.
-     * @param [in] frameUpdateInfo The recommended pixel and framerate by RTC. See ByteRTCFrameUpdateInfo{@link #ByteRTCFrameUpdateInfo}.
+     * @param [in] frame_update_info The recommended pixel and framerate by RTC. See FrameUpdateInfo{@link #FrameUpdateInfo}.
      */
-    virtual void onExternalScreenFrameUpdate(FrameUpdateInfo frameUpdateInfo) {
-        (void)frameUpdateInfo;
+    virtual void onExternalScreenFrameUpdate(FrameUpdateInfo frame_update_info) {
+        (void)frame_update_info;
     }
     /** 
      * @hidden internal use
@@ -1129,23 +1162,23 @@ public:
      * @hidden(Linux)
      * @type callback
      * @brief Callback that notifies you the result of the echo detection before a call
-     * @param [in] hardwareEchoDetectionResult Refer to HardwareEchoDetectionResult{@link #HardwareEchoDetectionResult} for more details.
+     * @param [in] hardware_echo_detection_result Refer to HardwareEchoDetectionResult{@link #HardwareEchoDetectionResult} for more details.
      * @notes  <br>
-     *        + This callback notifies you the result of the echo detection by calling startHardwareEchoDetection{@link #IRTCVideo#startHardwareEchoDetection. <br>
+     *        + This callback notifies you the result of the echo detection by calling startHardwareEchoDetection{@link #IRTCVideo#startHardwareEchoDetection}. <br>
      *        + We recommend to call stopHardwareEchoDetection{@link #IRTCVideo#stopHardwareEchoDetection} to stop the detection. <br>
-     *        + Listen to `kMediaDeviceWarningLeakEchoDetected` in the callback of onAudioDeviceWarning{@link #IRTCVideoEventHandler#onAudioDeviceWarning} for the echo issue during a call.
+     *        + Listen to `kMediaDeviceWarningDetectLeakEcho` in the callback of onAudioDeviceWarning{@link #IRTCVideoEventHandler#onAudioDeviceWarning} for the echo issue during a call.
      */
-    virtual void onHardwareEchoDetectionResult(HardwareEchoDetectionResult hardwareEchoDetectionResult) {
-        (void)hardwareEchoDetectionResult;
+    virtual void onHardwareEchoDetectionResult(HardwareEchoDetectionResult hardware_echo_detection_result) {
+        (void)hardware_echo_detection_result;
     }
 
     /** 
      * @type callback
      * @region proxy
      * @brief Callback on local proxy connection. After calling setLocalProxy{@link #IRTCVideo#setLocalProxy} to set local proxies, you will receive this callback that informs you of the states of local proxy connection. 
-     * @param [in] localProxyType The types of local proxies. Refer to LocalProxyType{@link #LocalProxyType} for details.  <br>
-     * @param [in] localProxyState The states of local proxy connection. Refer to LocalProxyState{@link #LocalProxyState} for details.  <br>
-     * @param [in] localProxyError The errors of local proxy connection. Refer to LocalProxyError{@link #LocalProxyError} for details.
+     * @param [in] local_proxy_type The types of local proxies. Refer to LocalProxyType{@link #LocalProxyType} for details.
+     * @param [in] local_proxy_state The states of local proxy connection. Refer to LocalProxyState{@link #LocalProxyState} for details.
+     * @param [in] local_proxy_error The errors of local proxy connection. Refer to LocalProxyError{@link #LocalProxyError} for details.
      */
     virtual void onLocalProxyStateChanged(LocalProxyType local_proxy_type, LocalProxyState local_proxy_state, LocalProxyError local_proxy_error) {
         (void)local_proxy_type;
@@ -1156,5 +1189,3 @@ public:
 };
 
 } // namespace bytertc
-
-#endif // BYTE_RTC_LITE_EVENT_HANDLER_H__

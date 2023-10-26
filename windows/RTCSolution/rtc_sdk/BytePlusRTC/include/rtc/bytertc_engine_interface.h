@@ -5,9 +5,6 @@
 
 #pragma once
 
-#ifndef BYTE_RTC_INTERFACE_H__
-#define BYTE_RTC_INTERFACE_H__
-
 #include <stddef.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -22,6 +19,8 @@
 #include "bytertc_audio_frame.h"
 #include "byte_rtc_asr_engine_event_handler.h"
 #include "bytertc_audio_mixing_manager.h"
+#include "bytertc_audio_effect_player.h"
+#include "bytertc_media_player.h"
 #include "bytertc_video_processor_interface.h"
 #include "bytertc_transcoder_interface.h"
 #include "bytertc_publicstream_interface.h"
@@ -144,7 +143,7 @@ public:
 
 
     /** 
-     * @hidden (Windows)
+     * @hidden (Linux)
      * @type api
      * @region Audio management
      * @brief Turn on/off the earphone monitor function
@@ -153,7 +152,7 @@ public:
     virtual void setEarMonitorMode(EarMonitorMode mode) = 0;
 
     /** 
-     * @hidden (Windows)
+     * @hidden (Linux)
      * @type api
      * @region Audio Management
      * @brief Set the volume of the earphone monitor
@@ -858,7 +857,6 @@ public:
      */
     virtual bool pushAudioMixingStreamData(int8_t* audio_frame, int frame_num) = 0;
 
-#ifndef ByteRTC_AUDIO_ONLY
 
     /** 
      * @hidden (Linux)
@@ -1484,7 +1482,6 @@ public:
      * @hidden
      */
     virtual void setupDynamicLayoutRender(IVideoSink* render) = 0;
-#endif
 
     /** 
      * @hidden (macOS, Windows,Linux)
@@ -1808,19 +1805,6 @@ public:
      *        disableAudioFrameCallback{@link #IRtcEngineLite#disableAudioFrameCallback},
      */
     virtual void registerAudioFrameObserver(IAudioFrameObserver* observer) = 0;
-    /** 
-     * @type api
-     * @hidden
-     * @deprecated since 342, use registerAudioProcessor instead.
-     * @region  Audio Processing
-     * @brief  Set up a custom audio processor.   <br>
-     *        Using this processor, you can call processAudioFrame{@link #IAudioProcessor#processAudioFrame} to customize the audio frames captured by the RTC SDK and use the processed audio frames for RTC audio & video communication. <br>
-     *        SDK only holds weak references to the processor, you should guarantee its Life Time.
-     * @param  [in] processor Custom audio processor. See IAudioProcessor{@link #IAudioProcessor}. If null is passed in, the audio frames captured by the RTC SDK are not customized.
-     * @param  [in] audioFormat Customize the audio parameter format. See AudioFormat{@link #AudioFormat}, the SDK will give the audio frame according to the specified settings.
-     * @notes When this interface is repeatedly called, only the last call takes effect. The effects do not stack.
-     */
-    virtual void registerLocalAudioProcessor(IAudioProcessor* processor, AudioFormat audioFormat) = 0;
    /** 
     * @type api
     * @brief  Register a custom audio preprocessor. <br>
@@ -2242,7 +2226,7 @@ public:
      *        + After calling this interface, you will receive onNetworkDetectionResult{@link #IRtcEngineEventHandler#onNetworkDetectionResult} within 3s and every 2s thereafter notifying the probe result; <br>
      *        + If the probe stops, you will receive onNetworkDetectionStopped{@link #IRtcEngineEventHandler#onNetworkDetectionStopped} notify that probing has stopped.
      */
-    virtual NetworkDetectionStartReturn startNetworkDetection(bool is_test_uplink, int expected_uplink_bitrate,
+    virtual int startNetworkDetection(bool is_test_uplink, int expected_uplink_bitrate,
                                    bool is_test_downlink, int expected_downlink_biterate) = 0;
 
     /** 
@@ -3069,7 +3053,6 @@ public:
      * @notes  This method only affects whether the remote audio stream is received locally, and does not affect the collection and transmission function of the remote audio device.
      */
     virtual void muteRemoteAudio(const char* uid, MuteState mute_state) = 0;
-#ifndef ByteRTC_AUDIO_ONLY
     /**
      * @hidden
     */
@@ -3103,6 +3086,7 @@ public:
      * @param [in] param Configurations to be set when pushing streams to CDN. See ITranscoderParam{@link #ITranscoderParam}.
      * @param [in] observer Register this observer to receive callbacks from the SDK. See ITranscoderObserver{@link #ITranscoderObserver}.
      * @notes   <br>
+     *       + Before calling this API，you need to enable Push to CDN on the [console](https://console.byteplus.com/rtc/workplaceRTC).       
      *       + After calling this API, you will be informed of the result and errors during the pushing process via the onStreamMixingEvent{@link #ITranscoderObserver#onStreamMixingEvent} callback.
      *       + Call stopLiveTranscoding{@link #IRtcEngine#stopLiveTranscoding} to stop pushing streams to CDN.
      */
@@ -3194,7 +3178,6 @@ public:
      * @notes  This method does not affect the remote video capture and transmission status
      */
     virtual void muteRemoteVideo(const char* userid, MuteState muteState) = 0;
-#endif
     /**
      * @hidden
      */
@@ -3388,10 +3371,14 @@ public:
     /** 
      * @brief Change settings of the cellular enhancement with regard to specific media types
      * @param config cellular enhancement settings of specific media types
-     * notes <br>
+     * @return Method call result:   <br>
+     *        + 0: Success. <br>
+     *        + -1: Failure, internal error. <br>
+     *        + -2: Failure, invalid parameters. <br>
+     * @notes <br>
      *       + this api can be invoked to set cellular enhancement with regard to specific media types
      */
-    virtual void setCellularEnhancement(const MediaTypeEnhancementConfig& config) = 0;
+    virtual int setCellularEnhancement(const MediaTypeEnhancementConfig& config) = 0;
 };
 
 /** 
@@ -3439,7 +3426,7 @@ BYTERTC_API bytertc::IRtcEngine* createRtcEngineWithPtr(
  * @param [in] engine The engine instance created by createRtcEngine{@link #createRtcEngine}
  * @notes  <br>
  *         + Call this API after all business scenarios related to the engine instance are destroyed. In a multi-thread scenario, you must not call IRtcEngine{@link #IRtcEngine} related APIs after calling this interface, or the SDK may crash. When the API is called, RTC SDK destroys all memory associated with the engine instance and stops any interaction with the media server.  <br>
- *         + Calling this API will start the SDK exit logic. The engine thread is held until the exit logic is complete. The engine thread is retained until the exit logic is complete. Therefore, do not call this API directly in the callback thread, or wait for the execution of the main thread in the callback and call this API in the main thread at the same time. Otherwise, it will cause a deadlock.
+ *         + Calling this API will start the SDK exit logic. The engine thread is held until the exit logic is complete. The engine thread is retained until the exit logic is complete. Therefore, do not call this API directly in the callback thread, or it will cause a deadlock. This function takes a long time to execute, so it's not recommended to call this API in the main thread, or the main thread may be blocked.
  */
 BYTERTC_API void destroyRtcEngine(bytertc::IRtcEngine* engine);
 
@@ -3462,5 +3449,3 @@ BYTERTC_API const char* getErrorDescription(int code);
 BYTERTC_API const char* getSDKVersion();
 
 }    // namespace bytertc
-
-#endif  // BYTE_RTC_INTERFACE_H__

@@ -109,6 +109,7 @@ if(WIN32)
   message(${DEPENDS_DIR})
   
   add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory  \"${SDK_DIR}\\basic_beauty\" \"${CMAKE_OUTPUT_DIR}\\basic_beauty\" 
 	COMMAND copy ${SDK_DIR}\\*.dll \"${CMAKE_OUTPUT_DIR}/\" /y
     COMMAND copy ${SRC_FILE1} \"${CMAKE_OUTPUT_DIR}/\" /y
 	COMMAND copy ${DEPENDS_DIR}\\*.dll \"${CMAKE_OUTPUT_DIR}/\" /y

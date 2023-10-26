@@ -61,7 +61,7 @@ void VideoCallLoginWidget::showEvent(QShowEvent*) {
 
     ui.edt_user_name->setText(videocall::DataMgr::instance().user_name().c_str());
 
-    ui.lbl_demo_ver->setText(QObject::tr("app_version_vxxx").arg("3.0.0"));
+    ui.lbl_demo_ver->setText(QObject::tr("app_version_vxxx").arg("3.0.2"));
 	ui.lbl_sdk_ver->setText(QObject::tr("sdk_version_vxxx").arg(RtcEngineWrap::getSDKVersion().c_str()));
     videocall::DataMgr::instance().setUserName(videocall::DataMgr::instance().user_name());
 }

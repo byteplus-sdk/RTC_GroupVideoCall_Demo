@@ -69,11 +69,18 @@ struct AudioFormat {
     /** 
      * @brief Audio sample rate. See AudioSampleRate{@link #AudioSampleRate}
      */
-    AudioSampleRate sample_rate;
+    AudioSampleRate sample_rate = kAudioSampleRateAuto;
     /** 
      * @brief Audio channels. See AudioChannel{@link #AudioChannel}
      */
-    AudioChannel channel;
+    AudioChannel channel = kAudioChannelAuto;
+    /** 
+     * @brief Samples per audio frame returned by callback. `0` by default. The default samples per callback is the minimum value.
+     *        The minimum value is `sampleRate * channel * 0.01s`, the value when the callback interval is 0.01s.
+     *        The maximum value is `2048`. If the value is invalid, the samples per callback uses the default value.
+     *        This parameter only takes effect when setting the read-write callback. It does not take effect when calling enableAudioFrameCallback{@link #IRTCVideo#enableAudioFrameCallback} to enable read-only callback.
+     */
+    int samples_per_call = 0;
 };
 /** 
  * @type keytype
@@ -83,25 +90,25 @@ enum AudioProcessorMethod{
     /** 
      * @brief Locally captured audio frame.
      */
-    kAudioFrameProcessorRecord = 0,
+    kAudioProcessorMethodRecord = 0,
     /** 
      * @brief The mixed remote audio.
      */
-    kAudioFrameProcessorPlayback = 1,
+    kAudioProcessorMethodPlayback = 1,
     /** 
      * @brief The audio streams from remote users.
      */
-    kAudioFrameProcessorRemoteUser = 2,
+    kAudioProcessorMethodRemoteUser = 2,
     /** 
      * @hidden(Windows,Linux,macOS)
      * @brief The SDK-level in-ear monitoring.
      */
-    kAudioFrameProcessorEarMonitor = 3,
+    kAudioProcessorMethodEarMonitor = 3,
     /** 
      * @hidden(Linux)
      * @brief The shared-screen audio.
      */
-    kAudioFrameProcessorScreen = 4,
+    kAudioProcessorMethodScreen = 4,
 };
 /** 
  * @type keytype
@@ -259,7 +266,7 @@ enum AudioScenarioType {
 
 /** 
  * @type keytype
- * @brief Private method. Change sound effect type
+ * @brief Change sound effect type. For more types, contact the technical supporters.
  */
 enum VoiceChangerType {
     /** 
@@ -591,6 +598,86 @@ enum AudioMixingError {
      */
     kAudioMixingErrorCanNotOpen = 701,
 };
+/**  
+ * @type keytype
+ * @brief Player state.
+ */
+enum PlayerState {
+    /**  
+     * @brief Not started.
+     */
+    kPlayerStateIdle = 0,
+    /**  
+     * @brief Preloaded.
+     */
+    kPlayerStatePreloaded,
+    /**  
+     * @brief Opened.
+     */
+    kPlayerStateOpened,
+    /**  
+     * @brief Playing.
+     */
+    kPlayerStatePlaying,
+    /**  
+     * @brief Paused.
+     */
+    kPlayerStatePaused,
+    /**  
+     * @brief Stopped or finished.
+     */
+    kPlayerStateStopped,
+    /**  
+     * @brief Failed.
+     */
+    kPlayerStateFailed,
+};
+/**  
+ * @type keytype
+ * @brief Error code for audio playout.
+ */
+enum PlayerError {
+    /**  
+     * @brief OK
+     */
+    kPlayerErrorOK = 0,
+    /**  
+     * @brief Format not supported.
+     */
+    kPlayerErrorFormatNotSupport,
+    /**  
+     * @brief Invalid file path.
+     */
+    kPlayerErrorInvalidPath,
+    /**  
+     * @brief The prerequisite is not met. Check the specific API doc.
+     */
+    kPlayerErrorInvalidState,
+    /**  
+     * @brief Invalid position.
+     */
+    kPlayerErrorInvalidPosition,
+    /**  
+     * @brief Invalid volume.
+     */
+    kPlayerErrorInvalidVolume,
+    /**  
+     * @brief Invalid pitch value.
+     */
+    kPlayerErrorInvalidPitch,
+    /**  
+     * @brief Invalid audio track.
+     */
+    kPlayerErrorInvalidAudioTrackIndex,
+    /** 
+     * @brief Invalid playback speed.
+     */
+    kPlayerErrorInvalidPlaybackSpeed,
+    /**  
+     * @brief Invalid effect ID. Receive this error code when you call other APIs before the audio file is preloaded or opened.
+     */
+    kPlayerErrorInvalidEffectId,
+};
 
 /** 
  * @type keytype
@@ -715,27 +802,27 @@ struct RTCASRConfig {
     /** 
      * @brief Application ID
      */
-    const char* app_id;
+    const char* app_id = 0;
     /** 
      * @brief User ID
      */
-    const char* user_id;
+    const char* user_id = 0;
     /** 
      * @brief For authentication methods. See ASRAuthorizationType{@link #ASRAuthorizationType}
      */
-    ASRAuthorizationType authorization_type;
+    ASRAuthorizationType authorization_type = kASRAuthorizationTypeToken;
     /** 
      * @brief Access token
      */
-    const char* access_token;
+    const char* access_token = 0;
     /** 
      * @brief Private key. Signature  cannot be empty in authentication mode, and it is empty in token authentication mode. See [Authentication Method](https://docs.byteplus.com/speech/docs/authentication-method).
      */
-    const char* secret_key;
+    const char* secret_key = 0;
     /** 
      * @brief For scenario information. See Business Clusters (https://docs.byteplus.com/en/speech/docs/real-time-speech-recog)
      */
-    const char* cluster;
+    const char* cluster = 0;
 };
 
 /** 
@@ -825,8 +912,7 @@ struct AudioMixingConfig {
       */
     int64_t callback_on_progress_interval = 0;
     /** 
-     * @brief Attach the process information of local audio file mixing to the captured audio data. Enable the function to enhance the synchronicity of the remote audio mixing.
-     * @notes <br>
+     * @brief Attach the process information of local audio file mixing to the captured audio data. Enable the function to enhance the synchronicity of the remote audio mixing. <br>
      *        + The function is effective when mixing a single audio file. <br>
      *        + Use `true` for enabling the function and `false` for disable the function. The default is `false`.
      */
@@ -854,6 +940,68 @@ enum AudioMixingDualMonoMode{
      * @brief Can hear the left and right audio channels in the audio file at the same time
      */
     kAudioMixingDualMonoModeMix
+};
+/** 
+ * @type keytype
+ * @brief Mixing configuration
+ */
+struct AudioEffectPlayerConfig {
+    /**  
+     * @brief Mixing playback types. See AudioMixingType{@link #AudioMixingType}
+     */
+    AudioMixingType type = kAudioMixingTypePlayoutAndPublish;
+    /** 
+     * @brief Mix playback times
+     *        + Play_count < = 0: Infinite loop <br>
+     *        + Play_count == 1: Play once (default) <br>
+     *        + Play_count > 1: Play play_count times
+     */
+    int play_count = 1;
+    /** 
+     * @brief The increase or decrease value compared with the original pitch of the music file. The range is `[-12, 12]`. The default value is 0. The pitch distance between two adjacent values is half a step. A positive value indicates a rising pitch, and a negative value indicates a falling pitch.
+     */
+    int pitch = 0;
+    /** 
+     * @brief The starting position in ms. 0 by default.
+     */
+    int start_pos = 0;
+};
+/** 
+ * @type keytype
+ * @brief Mixing configuration
+ */
+struct MediaPlayerConfig {
+    /** 
+     * @brief Mix playback times
+     *        + Play_count < = 0: Infinite loop <br>
+     *        + Play_count == 1: Play once (default) <br>
+     *        + Play_count > 1: Play play_count times
+     */
+    int play_count = 1;
+    /** 
+     * @brief The starting position in ms. 0 by default.
+     */
+    int start_pos = 0;
+    /** 
+     * @brief Set the interval of the periodic callback onMediaPlayerPlayingProgress{@link #IMediaPlayerEventHandler#onMediaPlayerPlayingProgress} during audio mixing in ms.
+     *       + interval > 0: The callback is enabled. The actual interval is `10*(mod(10)+1)`.
+     *       + interval <= 0: The callback is disabled.
+     */
+    int64_t callback_on_progress_interval = 0;
+    /** 
+     * @brief Attach the process information of local audio file mixing to the captured audio data. Enable the function to enhance the synchronicity of the remote audio mixing. <br>
+     *        + The function is effective when mixing a single audio file. <br>
+     *        + Use `true` for enabling the function and `false` for disable the function. The default is `false`.
+     */
+    bool sync_progress_to_record_frame = false;
+    /** 
+    * @brief Play the audio automatically. If not, call start{@link #IMediaPlayer#start} to play the audio.
+    */
+    bool auto_play = true;
+    /** 
+     * @brief For mixing playback types. See AudioMixingType{@link #AudioMixingType}
+     */
+    AudioMixingType type = kAudioMixingTypePlayoutAndPublish;
 };
 
 /** 
@@ -931,6 +1079,10 @@ struct AudioPropertiesConfig {
      *        Locally captured microphone audio info and locally captured screen audio info are included by default.
      */
     AudioPropertiesMode audio_report_mode = kAudioPropertiesModeMicrophone;
+    /** 
+     * @brief Sets whether to return the vocal pitch of the local user. 
+     */
+    bool enable_voice_pitch = false;
 };
 /** 
  * @type keytype
@@ -964,6 +1116,15 @@ struct AudioPropertiesInfo {
      *        + -1: VAD not activated.<br>
      */
     int vad = -1;
+    
+    /** 
+     * @brief The vocal pitch of the local user, in Hertz. The range is [50, 1600]. <br>   
+     *        When the following two conditions are met at the same time, the vocal pitch of the local user will be returned:
+     *      + Calls enableAudioPropertiesReport{@link #IRTCVideo#enableAudioPropertiesReport}, and sets the value of enable_voice_pitch to `true`. <br>
+     *      + The local user's voice is included in the locally captured audio data. <br>
+     *        In other situations, `0` will be returned. 
+     */    
+    double voice_pitch = 0;
 };
 
 /** 
@@ -1162,11 +1323,11 @@ enum AudioAbilityType {
     /** 
      * @brief The volume setting is accessible.
      */
-    kAudioAbilityAble = 0,
+    kAudioAbilityTypeAble = 0,
     /** 
      * @brief The volume setting is inaccessible.
      */
-    kAudioAbilityUnable = 1,
+    kAudioAbilityTypeUnable = 1,
 };
 /** 
  * @type keytype
@@ -1176,11 +1337,11 @@ enum AudioAlignmentMode {
     /** 
      * @brief Disabled
      */
-    kAudioAlighmentModeOff,
+    kAudioAlignmentModeOff,
     /** 
      * @brief All subscribed audio streams are aligned based on the process of the background music.
      */
-    kAudioAlighmentModeAudioMixing,
+    kAudioAlignmentModeAudioMixing,
 };
 
 /** 
@@ -1402,11 +1563,12 @@ struct AudioRecordingConfig {
     }
     /** 
      * @brief Absolute path of the recorded file, file name included. The App must have the write and read permission of the path.
-     * @notes The files format is restricted to .aac and .wav.
+     * The files format is restricted to .aac and .wav.
      */
     const char* absolute_file_name;
     /** 
      * @brief The source of the recording. See AudioFrameSource{@link #AudioFrameSource}.
+     * It is kAudioFrameSourceMixed = 2, by default.
      */
     AudioFrameSource frame_source;
     /** 
@@ -1415,16 +1577,16 @@ struct AudioRecordingConfig {
     AudioSampleRate sample_rate;
     /** 
      * @brief Number of audio channels. See AudioChannel{@link #AudioChannel}.
-     * @notes If number of audio channels of recording is different than that of audio capture, the behavior is: <br>
+     *        If number of audio channels of recording is different than that of audio capture, the behavior is: <br>
      *        + If the number of capture is 1, and the number of recording is 2, the recorded audio is two-channel data after copying mono-channel data. <br>
      *        + If the number of capture is 2, and the number of recording is 1, the recorded audio is recorded by mixing the audio of the two channels.
      */
     AudioChannel channel;
     /** 
      * @brief Recording quality. Only valid for .aac file. See AudioQuality{@link #AudioQuality}.
-     * @notes When the sample rate is 32kHz, the file (10min) size for different qualities are: <br>
+     * When the sample rate is 32kHz, the file (10min) size for different qualities are: <br>
      *        + low: 1.2MB; <br>
-     *        + medium: 2MB; <br>
+     *        + [By Default] medium: 2MB; <br>
      *        + high: 3.75MB; <br>
      *        + ultra high: 7.5MB.
      */
@@ -1464,15 +1626,15 @@ enum AudioRecordingErrorCode {
     /** 
      * @brief Not in the room.
      */
-    kAudioRecordingErrorNotInRoom = -2,
+    kAudioRecordingErrorCodeNotInRoom = -2,
     /** 
      * @brief Started.
      */
-    kAudioRecordingAlreadyStarted = -3,
+    kAudioRecordingErrorCodeAlreadyStarted = -3,
     /** 
      * @brief Not started.
      */
-    kAudioRecordingNotStarted = -4,
+    kAudioRecordingErrorCodeNotStarted = -4,
     /** 
      * @brief Failure. Invalid file format.
      */

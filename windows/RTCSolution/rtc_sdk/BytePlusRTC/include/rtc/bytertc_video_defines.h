@@ -133,262 +133,6 @@ struct RemoteStreamSwitch {
 
 /** 
  * @type keytype
- * @brief Errors that may occur during pushing streams to CDN.
- */
-enum TransCodingError {
-    /** 
-     * @brief Successfully pushed streams to target CDN.
-     */
-    kTransCodingErrorOK = 0,
-    /** 
-     * @brief Parameter error. You should reset stream pushing parameters and try again.
-     */
-    kTransCodingErrorInvalidArgument = 1,
-    /** 
-     * @brief Failed to establish a connection with the RTC server. SDK will automatically retry.
-     */
-    kTransCodingErrorSubscribe = 2,
-    /** 
-     * @brief There is an error in the process of stream mixing. We suggest you to try again.
-     */
-    kTransCodingErrorProcessing = 3,
-    /** 
-     * @brief Pushing the stream failed, you can wait for the server to push again.
-     */
-    kTransCodingErrorPublish = 4,
-};
-
-/** 
- * @type keytype
- * @brief Retweet live broadcast contains content.
- */
-enum LiveTranscodingContentControl {
-    /** 
-     * @brief The output of the mixed stream contains audio and video
-     */
-    kVideoAndAudio = 0,
-    /** 
-     * @brief The output mix contains only audio
-     */
-    kAudioOnly,
-    /** 
-     * @brief The output of the mixed stream contains only video
-     */
-    kVideoOnly,
-};
-
-/** 
- * @type keytype
- * @brief  Forward the live video encoder format.
- */
-enum LiveTranscodingVideoCodec {
-    /** 
-     * @brief Use H264 encoding format
-     */
-    kLiveTranscondingH264,
-    /** 
-     * @brief Custom encoder
-     */
-    kLiveTranscodingByteVC1,
-};
-
-/** 
- * @type keytype
- * @brief Forward the live audio encoding format.
- */
-enum LiveTranscodingAudioCodec {
-    /** 
-     * @brief Use AAC encoding format
-     */
-    kLiveTranscodingAAC,
-};
-
-/** 
- * @type keytype
- * @brief AAC  encoding level.
- */
-enum LiveTranscodingAudioProfile {
-    /** 
-     * @brief Encoding level AAC-LC (default)
-     */
-    kLiveTranscodingAACLC,
-    /** 
-     * @brief Encoding level AAC-MAIN
-     */
-    kLiveTranscodingAACMAIN,
-    /** 
-     * @brief Encoding level HE-AAC v1
-     */
-    kLiveTranscodingHEV1,
-    /** 
-     * @brief Encoding level HE-AAC v2
-     */
-    KLiveTranscodingHEV2,
-};
-
-/** 
- * @type keytype
- * @brief Forward push video configuration.
- */
-struct LiveTranscodingVideoConfig {
-    /** 
-     * @brief Forwarding live video encoder format. See LiveTranscodingVideoCodec{@link #LiveTranscodingVideoCodec}
-     */
-    LiveTranscodingVideoCodec codec;
-    /** 
-     * @brief Confluence video frame rate information
-     */
-    int fps;
-    /** 
-     * @brief Video I frame interval.
-     */
-    int gop;
-    /** 
-     * @brief Whether to use the low latency feature. The meaning of the value is as follows:   <br>
-     *         + true: use the low latency feature <br>
-     *         + false: do not use the low latency feature
-     */
-    bool low_latency;
-    /** 
-     *  @brief Confluence video bitrate in bps.
-     */
-    int bitrate;
-    /** 
-     * @brief Width (pixels)
-     */
-    int width;
-    /** 
-     * @brief High (pixels)
-     */
-    int height;
-};
-
-/** 
- * @type keytype
- * @brief  Forward push audio configuration.
- */
-struct LiveTranscodingAudioConfig {
-    /** 
-     * @brief Forwarding live audio encoder format. See LiveTranscodingAudioCodec{@link #LiveTranscodingAudioCodec}
-     */
-    LiveTranscodingAudioCodec codec = kLiveTranscodingAAC;
-    /** 
-     * @brief Confluence audio bitrate in bps.
-     */
-    int bitrate;
-    /** 
-     * @brief Audio frame sampling rate in HZ. Currently supported sampling rates are: 8000HZ, 16000HZ, 32000HZ, 44100HZ, 48000HZ.
-     */
-    int sample_rate;
-    /** 
-     * @brief Number of sound channels
-     */
-    int channels;
-    /** 
-     * @brief AAC  encoding level. See LiveTranscodingAudioProfile{@link #LiveTranscodingAudioProfile}
-     */
-    LiveTranscodingAudioProfile aac_profile = kLiveTranscodingAACLC;
-};
-
-/** 
- * @type keytype
- * @brief Layout information for a single video stream in the confluence.
- */
-struct LiveTranscodingRegion {
-    /** 
-     * @brief The user ID of the video stream publishing user. Required.
-     */
-    const char* uid = nullptr;
-    /** 
-     * @brief The video stream publishes the user's room ID. Required.
-     */
-    const char* roomId = nullptr;
-    /** 
-     * @brief The offset of the user's video layout relative to the left side of the canvas. Relative values in the range [0.0, 1.0].
-     */
-    double x;
-    /** 
-     * @brief The offset of the user's video layout relative to the top of the canvas. Relative values in the range [0.0, 1.0].
-     */
-    double y;
-    /** 
-     * @brief The ratio of the user's video width relative to the user's original video width. Relative values in the range [0.0, 1.0].
-     */
-    double w;
-    /** 
-     * @brief The ratio of the user's video height to the user's original video height. Relative values in the range [0.0, 1.0].
-     */
-    double h;
-    /** 
-     * @brief The hierarchy of user video layouts in the canvas. 0 is the bottom layer, the larger the value, the higher the level, the range is [0, 100].
-     */
-    int zorder;
-    /** 
-     * @brief Transparency. The range is  [0.0, 1.0].
-     */
-    double alpha;
-    /** 
-     * @brief The live broadcast contains content. See LiveTranscodingContentControl{@link #LiveTranscodingContentControl}
-     */
-    LiveTranscodingContentControl content_control = kVideoAndAudio;
-    /** 
-     * @brief Rendering mode
-     */
-    RenderMode render_mode = kRenderModeHidden;
-};
-
-/** 
- * @type keytype
- * @brief Push flow layout settings.
- */
-struct LiveTranscodingLayout {
-    /** 
-     * @brief SEI  information, length must not exceed 4096 bytes
-     */
-    const char* app_data = nullptr;
-    /** 
-     * @brief The background color of the video. The format is a Hex value defined by RGB, such as #FFB6C1 for light pink. Default #000000, black
-     */
-    const char* background_color = nullptr;
-    /** 
-     * @brief Push the live broadcast layout information. See LiveTranscodingRegion{@link #LiveTranscodingRegion}
-     */
-    LiveTranscodingRegion* regions = nullptr;
-    /** 
-     * @brief Number of confluence
-     */
-    int regions_num = 0;
-};
-
-/** 
- * @type keytype
- * @brief Retweet live broadcast configuration information.
- */
-struct LiveTranscodingConfig {
-    /** 
-     * @brief Set the push stream address.
-     */
-    const char* url = nullptr;
-    /** 
-     * @brief Retweet video configuration. See LiveTranscodingVideoConfig{@link #LiveTranscodingVideoConfig}
-     */
-    LiveTranscodingVideoConfig video_config;
-    /** 
-     * @brief Forward push audio configuration. See LiveTranscodingAudioConfig{@link #LiveTranscodingAudioConfig}
-     */
-    LiveTranscodingAudioConfig audio_config;
-    /** 
-     * @brief Push flow layout settings. See LiveTranscodingLayout{@link #LiveTranscodingLayout}
-     */
-    LiveTranscodingLayout layout;
-    /** 
-     * @brief Set dynamically extended customizable parameters.
-     */
-    const char* advanced_config = nullptr;
-};
-
-/** 
- * @type keytype
  * @brief Background mode
  */
 enum BackgroundMode {
@@ -651,27 +395,46 @@ enum VideoStreamType {
 
 /** 
  * @type keytype
- * @brief Video rendering mode <br>
- *        Use setLocalVideoCanvas{@link #IRTCVideo#setLocalVideoCanvas} to bind the video stream to the canvas.
+ * @brief Render target type
+ */
+enum RenderTargetType {
+    /** 
+     * @brief Use this value when the target is in the range of SurfaceView/TextureView for Android, UIView for iOS, NSView for macOS, or HWND for Windows
+     */
+    kRenderTargetView = 0,
+};
+
+/** 
+ * @type keytype
+ * @brief Video rendering configuration.
  */
 struct VideoCanvas {
     /** 
      * @brief Local view handle
      */
-    void* view;
+    void* view = NULL;
     /** 
      * @brief Video rendering mode. See RenderMode{@link #RenderMode}
      */
-    int render_mode;
+    int render_mode = kRenderModeHidden;
     /** 
      * @brief Set the background color of the canvas which is not filled with video frame. The range is `[0x00000000, 0xFFFFFFFF]`. The default is `0x00000000`. The Alpha index is ignored.
      */
-    uint32_t background_color;
+    uint32_t background_color = 0;
+    /** 
+     * @brief See RenderTargetType{@link #RenderTargetType}.
+     */
+    RenderTargetType render_target_type = kRenderTargetView;
+    /** 
+     * @brief Video frame rotation angle. See VideoRotation{@link #VideoRotation}. The default value is 0, which means no rotation is applied.<br>
+     *        This parameter only applies to remote video and does not affect local video settings.
+     */
+     VideoRotation render_rotation = kVideoRotation0;
     /** 
      * @hidden constructor/destructor
      * @brief Constructor
      */
-    VideoCanvas() : view(NULL), render_mode(kRenderModeHidden), background_color(0) {
+    VideoCanvas() : view(NULL), render_mode(kRenderModeHidden), background_color(0), render_target_type(kRenderTargetView) {
     }
     /** 
      * @hidden constructor/destructor
@@ -679,6 +442,29 @@ struct VideoCanvas {
      */
     VideoCanvas(void* v, int m, uint32_t c) : view(v), render_mode(m), background_color(c) {
     }
+};
+
+/** 
+ * @type keytype
+ * @brief Remote video rendering configuration.
+ */
+struct RemoteVideoRenderConfig {
+    /** 
+     * @brief Rendering mode.
+     *        + 1（`RENDER_MODE_HIDDEN`）Fill and Crop. Default setting. The video frame is scaled with a fixed aspect ratio and completely fills the canvas. The region of the video exceeding the canvas will be cropped.
+     *        + 2（`RENDER_MODE_FIT`）Fit. The video frame is scaled with a fixed aspect ratio and is shown completely on the canvas. The region of the canvas not filled with the video frame will be filled with `backgroundColor`.
+     *        + 3（`RENDER_MODE_FILL`）Fill the canvas. The video frame is scaled to fill the canvas. During the process, the aspect ratio may change.
+     */
+    int render_mode = kRenderModeHidden;
+    /** 
+     * @brief Set the background color of the canvas which is not filled with video frame. The range is `[0x00000000, 0xFFFFFFFF]`. The default is `0x00000000`. The Alpha index is ignored.
+     */
+    uint32_t background_color = 0;
+
+    /** 
+     * @brief User-defined render rotation。the value must be 0, 90, 180. 270, 0 mean keeping origin canvas orientation, 90, 180, and 270 represent clockwise rotation angles of the original canvas.
+     */
+    VideoRotation render_rotation = kVideoRotation0;
 };
 
 /** 
@@ -873,32 +659,31 @@ struct DesktopCaptureParameters {
  */
 class IVideoSink {
 public:
-/** 
- * @type keytype
- * @brief Video frame encoding format
- */
-enum PixelFormat {
     /** 
-     * @brief YUV I420 format
+     * @type keytype
+     * @brief Video frame encoding format
      */
-    kI420 = VideoPixelFormat::kVideoPixelFormatI420,
-    /** 
-     * @brief Original format
-     */
-    kOriginal = VideoPixelFormat::kVideoPixelFormatUnknown,
-};
+    enum PixelFormat {
+        /** 
+         * @brief YUV I420 format
+         */
+        kI420 = VideoPixelFormat::kVideoPixelFormatI420,
+        /** 
+         * @brief RGBA format
+         */
+        kRGBA = VideoPixelFormat::kVideoPixelFormatRGBA,
+        /** 
+         * @brief Original format
+         */
+		kOriginal = VideoPixelFormat::kVideoPixelFormatUnknown,
+    };
     /** 
      * @type callback
      * @brief Video frame callback
-     * @param [out] VideoFrame Video frame structure. See IVideoFrame{@link #IVideoFrame}.
+     * @param [out] video_frame Video frame structure. See IVideoFrame{@link #IVideoFrame}.
      * @return Temporarily unavailable
      */
-    virtual bool onFrame(IVideoFrame* videoFrame) = 0;
-    /**
-     * @hidden for internal use only
-     * @valid since 3.50
-     */
-    virtual bool onCacheSyncedFrames(int count, const char** uidArray, IVideoFrame** videoFrameArray) = 0;
+    virtual bool onFrame(IVideoFrame* video_frame) = 0;
 
     /** 
      * @type callback
@@ -942,7 +727,7 @@ enum MirrorMode {
  * @type keytype
  * @brief  Mirror type
  */
-enum MirrorType {
+enum MirrorType : int {
     /** 
      * @brief The preview and the published video stream are not mirrored.
      */
@@ -1005,11 +790,11 @@ enum ZoomConfigType {
     /** 
      * @brief To set the offset for zooming in and zooming out.
      */
-    kZoomFocusOffset = 0, 
+    kZoomConfigTypeFocusOffset = 0, 
     /** 
      * @brief To set the offset for panning and tiling.
      */
-    kZoomMoveOffset,
+    kZoomConfigTypeMoveOffset,
 };
 
 /** 
@@ -1020,31 +805,31 @@ enum ZoomDirectionType {
     /** 
      * @brief Move to the left.
      */
-    kCameraMoveLeft = 0,
+    kZoomDirectionTypeMoveLeft = 0,
     /** 
      * @brief Move to the right.
      */
-    kCameraMoveRight,
+    kZoomDirectionTypeMoveRight,
     /** 
      * @brief Move upwards.
      */
-    kCameraMoveUp,
+    kZoomDirectionTypeMoveUp,
     /** 
      * @brief Move downwards.
      */
-    kCameraMoveDown,
+    kZoomDirectionTypeMoveDown,
     /** 
      * @brief Zoom out.
      */
-    kCameraZoomOut,
+    kZoomDirectionTypeZoomOut,
     /** 
      * @brief Zoom in.
      */
-    kCameraZoomIn,
+    kZoomDirectionTypeZoomIn,
     /** 
      * @brief Reset digital zoom.
      */
-    kCameraReset,
+    kZoomDirectionTypeReset,
 };
 
 /** 
@@ -1073,6 +858,7 @@ struct VideoFrameInfo {
 struct VideoPreprocessorConfig {
     /** 
      * @brief Video frame pixel format. See VideoPixelFormat{@link #VideoPixelFormat}
+     *         Only `kVideoPixelFormatI420` and `kVideoPixelFormatUnknown` are supported.
      */
     VideoPixelFormat required_pixel_format = kVideoPixelFormatUnknown;
 };
@@ -1134,22 +920,22 @@ struct VideoCaptureConfig {
         * @brief (Default) Video capture preference: auto <br>
         *        SDK determines the best video capture parameters referring to the camera output parameters and the encoder configuration.
         */
-        KAuto = 0,
+        kAuto = 0,
        /** 
         * @brief Video capture preference: manual <br>
         *        Set the resolution and the frame rate manually.
         */
-        KManual = 1,
+        kManual = 1,
        /** 
         * @brief Video capture preference: encoder configuration <br>
         *        The capture parameters are the same with the parameters set in setVideoEncoderConfig{@link #IRTCVideo#setVideoEncoderConfig}.
         */
-        KAutoPerformance = 2,
+        kAutoPerformance = 2,
     };
     /** 
      * @brief Video capture preference. See [CapturePreference](#capturepreference-1).
      */
-    CapturePreference capturePreference = CapturePreference::KAuto;
+    CapturePreference capture_preference = CapturePreference::kAuto;
 
     /** 
      * @brief The width of video capture resolution in px.
@@ -1162,7 +948,7 @@ struct VideoCaptureConfig {
     /** 
      * @brief Video capture frame rate in fps.
     */
-    int frameRate = 0;
+    int frame_rate = 0;
 };
 
 /** 
@@ -1173,15 +959,15 @@ enum RecordingType {
     /** 
      * @brief Audio only
      */
-    kRecordAudioOnly = 0,
+    kRecordingTypeAudioOnly = 0,
     /** 
      * @brief Video only
      */
-    kRecordVideoOnly = 1,
+    kRecordingTypeVideoOnly = 1,
     /** 
      * @brief Record audio and video simultaneously
      */
-    kRecordVideoAndAudio = 2,
+    kRecordingTypeVideoAndAudio = 2,
 };
 
 /** 
@@ -1209,7 +995,7 @@ enum RTCVideoDeviceType {
 
 /** 
  * @hidden currently not available
- * @type keytype
+ * @type errorcode
  * @brief State and errors for publishing or subscribing public streams
  */
 enum PublicStreamErrorCode {
@@ -1370,17 +1156,41 @@ enum ScreenMediaType {
  */
 enum EffectBeautyMode {
     /** 
-     * @brief Brightness.
-     */
-    kEffectBeautyWhite = 0,
+     * @brief Brightening.
+     */ 
+    kEffectBeautyModeWhite = 0,
     /** 
-     * @brief Smoothness.
+     * @brief Smoothing.
      */
-    kEffectBeautySmooth = 1,
+    kEffectBeautyModeSmooth = 1,
     /** 
-     * @brief Sharpness.
+     * @brief Sharpening.
+     */ 
+    kEffectBeautyModeSharpen = 2,
+    /** 
+     * @valid since 3.55
+     * @brief Clarity. Integrating Effects SDK v4.4.2+ is required for this sub-item.
+     */ 
+    kEffectBeautyModeClear = 3,
+};
+
+/**  
+ * @type keytype
+ * @brief  video device facing type
+ */
+enum VideoDeviceFacing {
+    /**  
+     * @brief Front-facing video camera
      */
-    kEffectBeautySharpen = 2,
+    kVideoDeviceFacingFront = 0,
+    /**  
+     * @brief Back-facing video camera
+     */
+    kVideoDeviceFacingBack = 1,
+    /**  
+     * @brief video camera facing unknown
+     */
+    kVideoDeviceFacingUnknown = 2,
 };
 
 /** 
@@ -1408,6 +1218,10 @@ struct VideoDeviceInfo {
      * @brief Connection type of the device
      */
     DeviceTransportType transport_type;
+    /**  
+     * @brief  video device facing type
+     */
+    VideoDeviceFacing device_facing;
     /**
      * @hidden constructor/destructon
      */
@@ -1417,6 +1231,7 @@ struct VideoDeviceInfo {
         this->device_vid = 0;
         this->device_pid = 0;
         this->transport_type = DeviceTransportType::kDeviceTransportTypeUnknown;
+        this->device_facing = VideoDeviceFacing::kVideoDeviceFacingFront;
     };
 
     /**
@@ -1431,6 +1246,7 @@ struct VideoDeviceInfo {
             device_vid = src.device_vid;
             device_pid = src.device_pid;
             transport_type = src.transport_type;
+            device_facing = src.device_facing;
         }
 
         return *this;
@@ -1457,8 +1273,8 @@ enum VideoOrientation {
 };
 
 /** 
+ * @hidden not available
  * @type keytype
- * @hidden for internal use only
  * @brief The reason for the change in super resolution mode.
  */
 enum VideoSuperResolutionModeChangedReason {
@@ -1505,6 +1321,7 @@ enum VideoSuperResolutionModeChangedReason {
 };
 
 /** 
+ * @hidden not available
  * @type keytype
  * @brief The reasons for the change in the video noise reduction mode.
  */
@@ -1602,7 +1419,7 @@ struct ScreenCaptureSourceInfo {
      * @brief Tag for the screen to be shared identifying whether it is the primary screen<br>
      *        Only available when the screen-sharing object is a screen. <br>
      */
-    bool primaryMonitor = false;
+    bool primary_monitor = false;
     /** 
      * @brief Coordinates of the screen-sharing object. See Rectangle{@link #Rectangle}.<br>
      *        Valid only when the capture source is the monitor screen. <br>
@@ -1657,6 +1474,7 @@ public:
 /** 
  * @type callback
  * @brief  Custom coded frame callback class
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class IExternalVideoEncoderEventHandler {
 public:
@@ -1697,12 +1515,24 @@ public:
      * @param [in] video_index The subscript of the corresponding encoded stream
      */
     virtual void onRequestKeyFrame(StreamIndex index, int32_t video_index) = 0;
+    /** 
+     * @valid since 3.56
+     * @type callback
+     * @brief As the sender of a external encoded video stream, you will receive this callback at certain moments. 
+     *        Based on the hints of this callback, you can selectively encode the video stream that is ready for transmission, in order to reduce the performance impact of video encoding on the local device. This callback is triggered based on a combination of factors, including  the performance of the local device, the local network, and whether the stream is subscribed by the remote user.
+     * @param index See StreamIndex{@link #StreamIndex}.
+     * @param video_index Subscript of the corresponding encoded stream.
+     * @param active The active state of the corresponding encoded stream.
+     * @notes To receive the callback, call setVideoSourceType{@link #IRTCVideo#setVideoSourceType} to set the input video source to custom encoded video and call setExternalVideoEncoderEventHandler{@link #IRTCVideo#setExternalVideoEncoderEventHandler} to set the callback handler.
+     */
+    virtual void onActiveVideoLayer(StreamIndex index, int32_t video_index, bool active) = 0;
 };
 
 /** 
  * @type callback
  * @region Video Data Callback
  * @brief Local video frame observer
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class ILocalEncodedVideoFrameObserver {
 public:
@@ -1726,6 +1556,7 @@ public:
  * @type callback
  * @region  video management
  * @brief  Remote encoded video data monitor
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class IRemoteEncodedVideoFrameObserver {
 public:
@@ -1769,6 +1600,7 @@ struct VideoMetadataBuffer {
  * @type callback
  * @region video data callback
  * @brief Metadata observer, you can receive metadata in the media stream, or add metadata to the media stream
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class IMetadataObserver {
 public:
@@ -1824,17 +1656,17 @@ public:
      * @type callback
      * @region Video Management
      * @brief Get the successfully captured local screen video frames for custom processing or rendering.
-     * @param [in] videoFrame Video data. See IVideoFrame{@link #IVideoFrame}.
+     * @param [in] video_frame Video data. See IVideoFrame{@link #IVideoFrame}.
      */
-    virtual bool onLocalScreenFrame(IVideoFrame* videoFrame) = 0;
+    virtual bool onLocalScreenFrame(IVideoFrame* video_frame) = 0;
 
     /** 
      * @type callback
      * @region Video Management
      * @brief Get the successfully captured local camera stream for custom processing or rendering.
-     * @param [in] videoFrame Video data. See IVideoFrame{@link #IVideoFrame}.
+     * @param [in] video_frame Video data. See IVideoFrame{@link #IVideoFrame}.
      */
-    virtual bool onLocalVideoFrame(IVideoFrame* videoFrame) = 0;
+    virtual bool onLocalVideoFrame(IVideoFrame* video_frame) = 0;
 
     /** 
      * @type callback
@@ -1842,9 +1674,9 @@ public:
      * @brief Get the successfully captured remote screen video frames for custom processing or rendering.
      * @param [in] roomid The ID of the room from which the video is streamed.
      * @param [in] uid The ID of the remote user who published the stream.
-     * @param [in] videoFrame Video data. See IVideoFrame{@link #IVideoFrame}.
+     * @param [in] video_frame Video data. See IVideoFrame{@link #IVideoFrame}.
      */
-    virtual bool onRemoteScreenFrame(const char* roomid, const char* uid, IVideoFrame* videoFrame) = 0;
+    virtual bool onRemoteScreenFrame(const char* roomid, const char* uid, IVideoFrame* video_frame) = 0;
 
     /** 
      * @type callback
@@ -1852,10 +1684,10 @@ public:
      * @brief Get the successfully captured remote camera stream for custom processing or rendering.
      * @param [in] roomid The ID of the room from which the video is streamed.
      * @param [in] uid The ID of the remote user who published the stream.
-     * @param [in] videoFrame Video data. See IVideoFrame{@link #IVideoFrame}.
+     * @param [in] video_frame Video data. See IVideoFrame{@link #IVideoFrame}.
      * @notes The pixelFormat of the received video frame depends on your platform (macOS, Windows, Linux).
      */
-    virtual bool onRemoteVideoFrame(const char* roomid, const char* uid, IVideoFrame* videoFrame) = 0;
+    virtual bool onRemoteVideoFrame(const char* roomid, const char* uid, IVideoFrame* video_frame) = 0;
 
     /** 
      * @type callback
@@ -1863,9 +1695,9 @@ public:
      * @brief Callback carrying splicing video data
      * @param [in] roomid The ID of the room from which the video is streamed.
      * @param [in] uid The ID of the remote user who published the stream.
-     * @param [in] videoFrame Video data. See IVideoFrame{@link #IVideoFrame}.
+     * @param [in] video_frame Video data. See IVideoFrame{@link #IVideoFrame}.
      */
-    virtual bool onMergeFrame(const char* roomid, const char* uid, IVideoFrame* videoFrame) {
+    virtual bool onMergeFrame(const char* roomid, const char* uid, IVideoFrame* video_frame) {
         return false;
     }
 };
@@ -1873,6 +1705,7 @@ public:
  * @hidden(Linux)
  * @type callback
  * @brief The callback of taking snapshots.
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class ISnapshotResultCallback {
 public:
@@ -1883,27 +1716,29 @@ public:
     /** 
      * @type callback
      * @brief Receives the callback after calling takeLocalSnapshot{@link #IRTCVideo#takeLocalSnapshot}.
-     * @param [in] taskId The index for the snapshot, the same as the return value of takeLocalSnapshot{@link #IRTCVideo#takeLocalSnapshot}.
-     * @param [in] streamIndex See StreamIndex{@link #StreamIndex}.
+     * @param [in] task_id The index for the snapshot, the same as the return value of takeLocalSnapshot{@link #IRTCVideo#takeLocalSnapshot}.
+     * @param [in] stream_index See StreamIndex{@link #StreamIndex}.
      * @param [in] image The snapshot image. If the snapshot task fails, the value is `null`.
-     * @param [in] errorCode Error code: <br>
+     * @param [in] error_code Error code: <br>
      *        + 0: Success. <br>
      *        + -1: Failure. Fails to generate the image. <br>
      *        + -2: Failure. The stream is invalid.
+     *        + -3: Failure. snapshot timeout, default 1s.
      */
-    virtual void onTakeLocalSnapshotResult(long taskId, StreamIndex streamIndex, IVideoFrame* image, int errorCode) = 0;
+    virtual void onTakeLocalSnapshotResult(long task_id, StreamIndex stream_index, IVideoFrame* image, int error_code) = 0;
     /** 
      * @type callback
      * @brief Receives the callback after calling takeRemoteSnapshot{@link #IRTCVideo#takeRemoteSnapshot}.
-     * @param [in] taskId The index for the remote snapshot, the same as the return value of takeRemoteSnapshot{@link #IRTCVideo#takeRemoteSnapshot}.
-     * @param [in] streamKey See RemoteStreamKey{@link #RemoteStreamKey}.
+     * @param [in] task_id The index for the remote snapshot, the same as the return value of takeRemoteSnapshot{@link #IRTCVideo#takeRemoteSnapshot}.
+     * @param [in] stream_key See RemoteStreamKey{@link #RemoteStreamKey}.
      * @param [in] image The snapshot image. If the snapshot task fails, the value is `null`.
-     * @param [in] errorCode Error code: <br>
+     * @param [in] error_code Error code: <br>
      *        + 0: Success. <br>
      *        + -1: Failure. Fails to generate the image. <br>
      *        + -2: Failure. The stream is invalid.
+     *        + -3: Failure. snapshot timeout, default 1s.
      */
-    virtual void onTakeRemoteSnapshotResult(long taskId, RemoteStreamKey streamKey, IVideoFrame* image, int errorCode) = 0;
+    virtual void onTakeRemoteSnapshotResult(long task_id, RemoteStreamKey stream_key, IVideoFrame* image, int error_code) = 0;
 };
 /** 
  * @hidden(macOS, Windows, Linux)
@@ -1932,6 +1767,5 @@ struct MediaTypeEnhancementConfig {
      */
     bool enhance_screen_video = false;
 };
-
 
 }  // namespace bytertc

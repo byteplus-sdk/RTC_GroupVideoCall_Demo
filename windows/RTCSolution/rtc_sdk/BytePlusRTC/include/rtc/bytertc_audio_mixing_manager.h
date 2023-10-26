@@ -5,8 +5,6 @@
 
 #pragma once
 
-#ifndef BYTE_RTC_AUDIO_MIXING_MANAGER_H__
-#define BYTE_RTC_AUDIO_MIXING_MANAGER_H__
 #include "bytertc_audio_frame.h"
 
 namespace bytertc {
@@ -14,6 +12,7 @@ namespace bytertc {
  * @hidden(Linux)
  * @type callback
  * @brief The observer for the audio frames during local audio file mixing.
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class IAudioFileFrameObserver {
 public:
@@ -31,6 +30,7 @@ public:
 };
 
 /** 
+ * @deprecated since 353. Use IAudioEffectPlayer{@link #IAudioEffectPlayer} and IMediaPlayer{@link #IMediaPlayer} instead.
  * @type api
  * @brief Mixing management class
  */
@@ -43,12 +43,13 @@ public:
     IAudioMixingManager() {
     }
     /** 
+     * @deprecated since 353.1, will be deleted in 359, use IMediaPlayer or IAudioEffectPlayer instead
      * @type api
      * @region Audio Mixing
      * @brief  Start mixing audio files.
      *         To mixing multiple audio files at the same time, you can call this method with different mixIDs.
      * @param [in] mix_id Mix ID. Used to identify the mixing task. <br>
-     *         If this method is repeatedly called with the same ID, the previous mixing task will be stopped and a new task will start. When the previous task is stopped, you will receive `onAudioMixingStateChanged`.
+     *         If this method is repeatedly called with the same ID, the previous mixing task will be stopped and a new task will start. When the previous task is stopped, you will receive onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged}.
      * @param [in] file_path The path of the mixing audio file.
      *        You can use the URL of the online file, and the absolute path of the local file. For the URL of the online file, only https protocol is supported.
      *        Recommended audio sample rates: 8KHz, 16KHz, 22.05KHz, 44.1KHz, 48KHz.
@@ -71,7 +72,7 @@ public:
      *         You can set the number of times the file is played, whether the file is played locally or remotely. See AudioMixingConfig{@link #AudioMixingConfig}.
      * @notes   <br>
      *        + If you have already loaded the file in memory with preloadAudioMixing{@link #IAudioMixingManager#preloadAudioMixing}, ensure that the mixID is the same.  <br>
-     *        + After calling this method, you will receive `onAudioMixingStateChanged` about the current mixing status. <br>
+     *        + After calling this method, you will receive onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged} about the current mixing status. <br>
      *        + Call stopAudioMixing{@link #IAudioMixingManager#stopAudioMixing} to stop the mixing task. <br>
      *        + The mixing data of this API comes from an audio file, while the mixing data of enableAudioMixingFrame{@link #IAudioMixingManager#enableAudioMixingFrame} comes from the PCM data from memory. The two mixing APIs do not affect each other.
      */
@@ -85,7 +86,7 @@ public:
      *         Mix ID
      * @notes   <br>
      *        + After calling the startAudioMixing{@link #IAudioMixingManager#startAudioMixing} method to start playing music files and mixes, you can call this method to stop playing music files and mixes. <br>
-     *        + After calling this method to stop playing the music file, the SDK notifies the local callback that the mixing has been stopped. See `onAudioMixingStateChanged`. <br>
+     *        + After calling this method to stop playing the music file, the SDK notifies the local callback that the mixing has been stopped. See onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged}. <br>
      *        + After calling this method to stop playing the music file, the music file will be automatically uninstalled.
      */
     virtual void stopAudioMixing(int mix_id) = 0;
@@ -96,7 +97,7 @@ public:
      * @brief Stop playing all audio files and mixes.
      * @notes  <br>
      *       + After calling startAudioMixing{@link #IAudioMixingManager#startAudioMixing} to play audio files and mixes, you can call this api to stop playing all the files. <br>
-     *       + After calling this api to stop playing all audio and mixes, you will receive `onAudioMixingStateChanged` callback to inform you that the playing and mixing has been stopped.  <br>
+     *       + After calling this api to stop playing all audio and mixes, you will receive onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged} callback to inform you that the playing and mixing has been stopped.  <br>
      *       + After you call this api to stop playing all audio and mixes, the files will be automatically uninstalled.
      */
     virtual void stopAllAudioMixing() = 0;
@@ -110,41 +111,43 @@ public:
      * @notes   <br>
      *        + After calling the startAudioMixing{@link #IAudioMixingManager#startAudioMixing} method to start playing music files and mixes, you can call this method to pause playing music files and mixes. <br>
      *        + After calling this method to pause playing music files and mixing, you can call the resumeAudioMixing{@link #IAudioMixingManager#resumeAudioMixing} method to resume playing and mixing. <br>
-     *        + After calling this method to pause playing the music file, the SDK will notify the local callback that the mixing has been suspended. See `onAudioMixingStateChanged`.
+     *        + After calling this method to pause playing the music file, the SDK will notify the local callback that the mixing has been suspended. See onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged}.
      */
     virtual void pauseAudioMixing(int mix_id) = 0;
     /** 
      * @type api
+     * @deprecated since 353.1, will be deleted in 359, use IAudioEffectPlayer instead
      * @hidden(Linux)
      * @region Mix
      * @brief Pause all audio files and mixes.
      * @notes  <br>
      *       + After calling startAudioMixing{@link #IAudioMixingManager#startAudioMixing}  to play audio files and mixes, you can call this api to pause all the files. <br>
      *       + After calling this api to pause all audio and mixes, you can call resumeAllAudioMixing{@link #IAudioMixingManager#resumeAllAudioMixing} to resume the playing and mixing.   <br>
-     *       + After calling this api to pause all audio and mixes, you will receive `onAudioMixingStateChanged` callback to inform you that the playing and mixing has been paused.
+     *       + After calling this api to pause all audio and mixes, you will receive onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged} callback to inform you that the playing and mixing has been paused.
      */
     virtual void pauseAllAudioMixing() = 0;
 
     /** 
      * @type api
-     * @region  mixing
+     * @region  Mixing
      * @brief Resumes playing music files and mixing.
      * @param  [in] mix_id <br>
      *         ID of the mixing task
      * @notes   <br>
      *        + After calling the pauseAudioMixing{@link #IAudioMixingManager#pauseAudioMixing} method to pause playing music files and mixing, you can resume playing and mixing by calling this method. <br>
-     *        + After calling this method to resume playing the music file and mixing, the SDK will notify the local callback that the music file is playing. See `onAudioMixingStateChanged`.
+     *        + After calling this method to resume playing the music file and mixing, the SDK will notify the local callback that the music file is playing. See onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged}.
      */
     virtual void resumeAudioMixing(int mix_id) = 0;
 
     /** 
      * @type api
+     * @deprecated since 353.1, will be deleted in 359, use IAudioEffectPlayer instead
      * @hidden(Linux)
      * @region Mix
      * @brief Resume playing all audio files and mixes.
      * @notes  <br>
      *       + After calling pauseAllAudioMixing{@link #IAudioMixingManager#pauseAllAudioMixing} , you can call this api to resume playing all the files. <br>
-     *       + After calling this api to resume all audio and mixes, you will receive `onAudioMixingStateChanged` callback to inform you that the playing and mixing has been resumed.
+     *       + After calling this api to resume all audio and mixes, you will receive onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged} callback to inform you that the playing and mixing has been resumed.
      */
     virtual void resumeAllAudioMixing() = 0;
 
@@ -166,7 +169,7 @@ public:
      *        </table>
      * @notes   <br>
      *        + After preloaded, call startAudioMixing{@link #IAudioMixingManager#startAudioMixing} to play the audio file. <br>
-     *        + After calling this method, you will receive `onAudioMixingStateChanged` about the current mixing status. <br>
+     *        + After calling this method, you will receive onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged} about the current mixing status. <br>
      *        + Unload the preloaded file with unloadAudioMixing{@link #IAudioMixingManager#unloadAudioMixing}.
      */
     virtual void preloadAudioMixing(int mix_id, const char* file_path) = 0;
@@ -177,13 +180,14 @@ public:
      * @brief Uninstalls the specified music file.
      * @param  [in] mix_id <br>
      *        Mix ID
-     * @notes Whether the music file is playing or not, after calling this method to uninstall the file, the SDK will call back to notify that the mix has stopped. See `onAudioMixingStateChanged`.
+     * @notes Whether the music file is playing or not, after calling this method to uninstall the file, the SDK will call back to notify that the mix has stopped. See onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged}.
      */
     virtual void unloadAudioMixing(int mix_id) = 0;
 
     /** 
      * @hidden(Windows,Linux,macOS)
      * @type api
+     * @deprecated since 353.1, will be deleted in 359, use IAudioEffectPlayer instead
      * @region Audio Mixing
      * @brief Sets the default volume during audio mixing, which works for both audio file mixing and PCM mixing.
      * @param volume The ratio of the mixing volume to the original volume. The range is `[0, 400]`. The recommended range is `[0, 100]`. <br>
@@ -241,7 +245,7 @@ public:
     /** 
      * @hidden(Linux,macOS)
      * @type api
-     * @region audio mixing
+     * @region Audio Mixing
      * @brief Get the actual time played of the audio file.
      * @param [in] mix_id The audio mixing ID.
      * @return   <br>
@@ -266,6 +270,7 @@ public:
 
     /** 
      * @type api
+     * @deprecated since 353.1, will be deleted in 359, use IMediaPlayer instead
      * @region  Mix
      * @brief Sets the channel mode of the current audio file
      * @param [in] mix_id Mix ID
@@ -284,27 +289,29 @@ public:
      * @param [in] mix_id ID of the mixing task
      * @param [in] pitch The value that is higher or lower than the original pitch of the audio file within a range from -12 to 12. The default value is 0, i.e. No adjustment is made.  <br>
      *        The difference in pitch between two adjacent values within the value range is a semitone, with positive values indicating an ascending tone and negative values indicating a descending tone, and the larger the absolute value set, the more the pitch is raised or lowered.  <br>
-     *        Out of the value range, the setting fails and triggers the `onAudioMixingStateChanged` callback, indicating `AUDIO_MIXING_STATE_FAILED` for playback failure with AudioMixingState{@link # AudioMixingState}, and `AUDIO_MIXING_ERROR_ID_TYPE_ INVALID_PITCH` for invalid value setting with AudioMixingError{@link #AudioMixingError}.
-     * @notes This method needs to be used after calling startAudioMixing{@link #IAudioMixingManager#startAudioMixing} to start playing the audio file and before calling stopAudioMixing{@link #IAudioMixingManager#stopAudioMixing} to stop playing the audio file, otherwise the `onAudioMixingStateChanged` callback will be triggered.
+     *        Out of the value range, the setting fails and triggers the onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged} callback, indicating `AUDIO_MIXING_STATE_FAILED` for playback failure with AudioMixingState{@link # AudioMixingState}, and `AUDIO_MIXING_ERROR_ID_TYPE_ INVALID_PITCH` for invalid value setting with AudioMixingError{@link #AudioMixingError}.
+     * @notes This method needs to be used after calling startAudioMixing{@link #IAudioMixingManager#startAudioMixing} to start playing the audio file and before calling stopAudioMixing{@link #IAudioMixingManager#stopAudioMixing} to stop playing the audio file, otherwise the onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged} callback will be triggered.
      */
     virtual void setAudioMixingPitch(int mix_id, int pitch) = 0;
 
     /** 
      * @type api
+     * @deprecated since 353.1, will be deleted in 359, use IMediaPlayer instead
      * @region Audio Mixing
      * @brief Sets the playback speed of the current audio file.
      * @param [in] mix_id Audio mixing task ID
      * @param [in] speed Ratio of playback speed to original speed in percentage. The range is [50,200], the default value is 100.  <br>
-     *        If the value you set is out of range, the setting fails, and you will receive an `onAudioMixingStateChanged` callback, in which the AudioMixingState{@link #AudioMixingState} is `kAudioMixingStateFailed` and the AudioMixingError{@link #AudioMixingError} is `kAudioMixingErrorInValidPlaybackSpeed`.
+     *        If the value you set is out of range, the setting fails, and you will receive an onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged} callback, in which the AudioMixingState{@link #AudioMixingState} is `kAudioMixingStateFailed` and the AudioMixingError{@link #AudioMixingError} is `kAudioMixingErrorInValidPlaybackSpeed`.
      * @notes   <br>
      *        + This API can not be used on setting playback speed for PCM audio data.  <br>
-     *        + You should call this API after calling startAudioMixing{@link #IAudioMixingManager#startAudioMixing} and receiving an `onAudioMixingStateChanged` callback indicating that the AudioMixingState{@link #AudioMixingState} is `kAudioMixingStatePlaying` and the AudioMixingError{@link #AudioMixingError} is `kAudioMixingErrorOk`.  <br>
-     *        + If you call this API after calling stopAudioMixing{@link #IAudioMixingManager#stopAudioMixing} or unloadAudioMixing{@link #IAudioMixingManager#unloadAudioMixing}, you will receive an `onAudioMixingStateChanged` callback indicating that the AudioMixingState{@link #AudioMixingState} is `kAudioMixingStateFailed` and the AudioMixingError{@link #AudioMixingError} is `kAudioMixingErrorIdNotFound`.
+     *        + You should call this API after calling startAudioMixing{@link #IAudioMixingManager#startAudioMixing} and receiving an onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged} callback indicating that the AudioMixingState{@link #AudioMixingState} is `kAudioMixingStatePlaying` and the AudioMixingError{@link #AudioMixingError} is `kAudioMixingErrorOk`.  <br>
+     *        + If you call this API after calling stopAudioMixing{@link #IAudioMixingManager#stopAudioMixing} or unloadAudioMixing{@link #IAudioMixingManager#unloadAudioMixing}, you will receive an onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged} callback indicating that the AudioMixingState{@link #AudioMixingState} is `kAudioMixingStateFailed` and the AudioMixingError{@link #AudioMixingError} is `kAudioMixingErrorIdNotFound`.
      */
     virtual int setAudioMixingPlaybackSpeed(int mix_id, int speed) = 0;
 
     /** 
      * @type api
+     * @deprecated since 353.1, will be deleted in 359, use IMediaPlayer  instead
      * @region Audio Mixing
      * @brief Sets the interval of audio file playback progress callbacks during audio mixing.
      * @param [in] mix_id ID of the mixing task.<br>
@@ -312,13 +319,14 @@ public:
      * @param [in] interval The time interval (ms) of the audio file playback progress callback in milliseconds.  <br>
      *       + The value of interval is a multiple of 10 greater than 0. When the value set is not divisible by 10, the default is rounded up by 10. For example, if the value is set to 52ms, it will be automatically adjusted to 60ms, then the SDK will trigger `onAudioMixingPlayingProgress` callback at the set interval.  <br>
      *       + If the value is less than or equals to 0, the callback will not be triggered.  <br>
-     * @notes This method needs to be used after calling startAudioMixing{@link #IAudioMixingManager#startAudioMixing} to start playing the audio file, and before calling stopAudioMixing{@link #IAudioMixingManager#stopAudioMixing} to stop playing the audio file, otherwise an error callback `onAudioMixingStateChanged` will be triggered.  <br>
+     * @notes This method needs to be used after calling startAudioMixing{@link #IAudioMixingManager#startAudioMixing} to start playing the audio file, and before calling stopAudioMixing{@link #IAudioMixingManager#stopAudioMixing} to stop playing the audio file, otherwise an error callback onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged} will be triggered.  <br>
      *        If you want to set the interval of playback progress callbacks before the music file starts playing, you need to call startAudioMixing{@link #IAudioMixingManager#startAudioMixing} to set the interval in AudioMixingConfig{@link #AudioMixingConfig}, and you can update the callback interval through this method after the audio file starts playing.
      */
     virtual void setAudioMixingProgressInterval(int mix_id, int64_t interval) = 0;
 
     /** 
      * @type api
+     * @deprecated since 353.1, will be deleted in 359, use IMediaPlayer instead
      * @region Audio Mixing
      * @brief If you need to call `enableVocalInstrumentBalance` to adjust the volume of the audio file or PCM data used for audio mixing, you must import the original loudness value of the audio file or PCM data via this API.
      * @param [in] mix_id ID of the mixing task
@@ -330,11 +338,12 @@ public:
 
     /** 
      * @type api
+     * @deprecated since 353.1, will be deleted in 359, use IMediaPlayer instead
      * @region Audio Mixing
      * @brief Starts PCM mixing. <br>
      *        To mix multiple PCM audio data, call this API multiple times with different mix_ids.
      * @param [in] mix_id ID of the mixing task. Used to identify the mixing. Ensure it is unique. <br>
-     *        If this API is called repeatedly with the same mix_id, the previous mixing will stop, and the next mixing will start, and you will receive `onAudioMixingStateChanged` notification that the previous mixing has stopped.
+     *        If this API is called repeatedly with the same mix_id, the previous mixing will stop, and the next mixing will start, and you will receive onAudioMixingStateChanged`{@link #IRTCVideoEventHandler#onaudiomixingstatechanged} notification that the previous mixing has stopped.
      * @param [in] type Mixing type <br>
      *        Whether the PCM data is mixed locally and sent to the remotes. See AudioMixingType{@link #AudioMixingType}.
      * @notes   <br>
@@ -345,6 +354,7 @@ public:
 
     /** 
      * @type api
+     * @deprecated since 353.1, will be deleted in 359, use IMediaPlayer instead
      * @region Audio Mixing
      * @brief End PCM mixing.
      * @param mix_id ID of the mixing task.
@@ -353,6 +363,7 @@ public:
 
     /** 
      * @type api
+     * @deprecated since 353.1, will be deleted in 359, use IMediaPlayer instead
      * @region Audio Mixing
      * @brief Push PCM audio frame data for mixing
      * @param mix_id ID of the mixing task.
@@ -368,6 +379,7 @@ public:
 
     /** 
      * @type api
+     * @deprecated since 353.1, will be deleted in 359, use IMediaPlayer instead
      * @region Audio Mixing
      * @brief Gets the track index of the current audio file
      * @param [in] mix_id Mixding ID
@@ -382,6 +394,7 @@ public:
 
     /** 
      * @type api
+     * @deprecated since 353.1, will be deleted in 359, use IMediaPlayer instead
      * @region Audio Mixing
      * @brief Specifies the playback track of the current audio file.
      * @param [in] mix_id ID of the mixing task.
@@ -393,6 +406,7 @@ public:
      */
     virtual void selectAudioTrack(int mix_id, int audio_track_index) = 0;
     /** 
+     * @deprecated since 353.1, will be deleted in 359, use IMediaPlayer instead
      * @hidden(Linux)
      * @type api
      * @brief Register the observer for the audio frames during local audio file mixing.
@@ -409,5 +423,3 @@ public:
 };
 
 }  // namespace bytertc
-
-#endif // BYTE_RTC_AUDIO_MIXING_MANAGER_H__

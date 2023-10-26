@@ -48,7 +48,7 @@
 	</message>
 	<message>
 		<source>audio_video_calls</source>
-		<translation>Video Call</translation>
+		<translation>Group Video Call</translation>
 	</message>
 	<message>
 		<source>available_update</source>

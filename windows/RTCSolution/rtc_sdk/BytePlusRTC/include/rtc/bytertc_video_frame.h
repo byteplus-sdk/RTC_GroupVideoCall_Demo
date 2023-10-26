@@ -5,12 +5,10 @@
 
 #pragma once
 
-#ifndef BYTE_RTC_VIDEO_FRAME_H__
-#define BYTE_RTC_VIDEO_FRAME_H__
-
 #include <stdint.h>
 #include <stddef.h>
 #include <memory>
+#include <cstring>
 #include "bytertc_media_defines.h"
 #ifdef BYTERTC_ANDROID
 #include <jni.h>
@@ -51,15 +49,15 @@ enum VideoRotation {
     */
     kVideoRotation0 = 0,
     /** 
-     * @brief Rotate 90 degrees clockwise. 
+     * @brief Rotate 90 degrees clockwise.
     */
     kVideoRotation90 = 90,
     /** 
-     * @brief Rotate 180 degrees clockwise. 
+     * @brief Rotate 180 degrees clockwise.
     */
     kVideoRotation180 = 180,
     /** 
-     * @brief Rotate 270 degrees clockwise. 
+     * @brief Rotate 270 degrees clockwise.
     */
     kVideoRotation270 = 270
 };
@@ -100,15 +98,15 @@ enum VideoCodecMode {
     /** 
      * @brief Automatic selection
      */
-    kCodecModeAuto = 0,
+    kVideoCodecModeAuto = 0,
     /** 
      * @brief Hardcoding
      */
-    kCodecModeHardware,
+    kVideoCodecModeHardware,
     /** 
      * @brief Softcoding
      */
-    kCodecModeSoftware,
+    kVideoCodecModeSoftware,
 };
 
 /** 
@@ -121,7 +119,7 @@ enum VideoEncodePreference {
      */
     kVideoEncodePreferenceDisabled = 0,
     /** 
-     * @brief (Default) Frame rate first.
+     * @brief (Default) Frame rate first. The resolution will not be changed.
      */
     kVideoEncodePreferenceFramerate,
     /** 
@@ -148,7 +146,8 @@ enum CameraID {
      */
     kCameraIDBack = 1,
     /** 
-     *@brief External camera
+     * @hidden currently not available
+     * @brief External camera
      */
     kCameraIDExternal = 2,
     /** 
@@ -162,7 +161,6 @@ enum CameraID {
 #define SEND_KBPS_DISABLE_VIDEO_SEND 0
 
 /** 
- * @hidden used in streaming only
  * @deprecated since 3.45 along with setVideoEncoderConfig(StreamIndex index, const VideoSolution* solutions, int solution_num) = 0;
  * @type keytype
  * @brief Video stream parameters
@@ -275,13 +273,13 @@ struct VideoEncoderConfig {
     /** 
      * @brief Video frame rate in fps
      */
-    int frameRate;
+    int frame_rate;
     /** 
      * @brief Maximum bit rate in kbps. Optional for internal capturing while mandatory for custom capturing.  <br>
      *        The default value is -1 in internal capturing mode, SDK will automatically calculate the applicable bit rate based on the input resolution and frame rate.  <br>
      *        No stream will be encoded and published if you set this parameter to 0.
      */
-    int maxBitrate = SEND_KBPS_AUTO_CALCULATE;
+    int max_bitrate = SEND_KBPS_AUTO_CALCULATE;
     /** 
      * @brief Minimum video encoding bitrate in kbps. The encoding bitrate will not be lower than the `minBitrate`.<br>
      *        It defaults to `0`. <br>
@@ -290,11 +288,11 @@ struct VideoEncoderConfig {
      *        + When `maxBitrate` = `0`, the video encoding is disabled.<br>
      *        + When `maxBitrate` < `0`, the bitrate is self-adapted.
      */
-    int minBitrate = 0;
+    int min_bitrate = 0;
     /** 
      * @brief Encoding preference. The default value is kVideoEncodePreferenceFramerate. See VideoEncodePreference{@link #VideoEncodePreference}.
      */
-    VideoEncodePreference encoderPreference = VideoEncodePreference::kVideoEncodePreferenceFramerate;
+    VideoEncodePreference encoder_preference = VideoEncodePreference::kVideoEncodePreferenceFramerate;
 };
 
 /** 
@@ -336,7 +334,7 @@ struct VideoSolutionDescription {
     /** 
      * @brief The encoding mode of the video. See VideoCodecMode{@link #VideoCodecMode}
      */
-    VideoCodecMode codec_mode = VideoCodecMode::kCodecModeAuto;
+    VideoCodecMode codec_mode = VideoCodecMode::kVideoCodecModeAuto;
     /** 
      * @brief Video coding quality preference strategy. See VideoEncodePreference{@link #VideoEncodePreference}
      */
@@ -497,6 +495,11 @@ enum VideoFrameType {
      * @brief Vaapi
      */
     kVideoFrameTypeVAAPI,
+	/** 
+     * @hidden(Windows)
+     * @brief nvidia jetson dma
+     */
+    kVideoFrameTypeNvidiaJetsonDma,
 };
 
 /** 
@@ -625,7 +628,6 @@ typedef struct VideoFrameBuilder {
      * @brief Texture ID (only for texture type frame)
      */
     uint32_t texture_id = 0;
-
     /** 
      * @brief User-defined pointer used for release the memory space, if the pointer is not empty.
      */
@@ -965,26 +967,24 @@ struct ScreenVideoEncoderConfig {
     /** 
      * @brief The frame rate(in fps).
      */
-    int frameRate;
+    int frame_rate;
     /** 
      * @brief The maximum bitrate(in kbps). Optional for internal capture while mandatory for custom capture.
      *        If you set this value to -1, RTC will automatically recommend the bitrate based on the input resolution and frame rate.
      *        If you set this value to 0, streams will not be encoded and published.
      *        On Version 3.44 or later, the default value for internal capture is -1. On versions earlier than 3.44, you must set the maximum bit rate because there is no default value.
      */
-    int maxBitrate = SEND_KBPS_AUTO_CALCULATE;
+    int max_bitrate = SEND_KBPS_AUTO_CALCULATE;
     /** 
      * @brief The minimum bitrate(in kbps).Optional for internal capture while mandatory for custom capture.
      *        The minimum bitrate must be set lower than the maximum bitrate. Otherwise, streams will not be encoded and published.
      */
-    int minBitrate = 0;
+    int min_bitrate = 0;
     /** 
      * @brief The encoding modes for shared-screen streams.See ScreenVideoEncoderPreference{@link #ScreenVideoEncoderPreference}.
      */
-    ScreenVideoEncodePreference encoderPreference = ScreenVideoEncodePreference::kScreenVideoEncodePreferenceQuality;
+    ScreenVideoEncodePreference encoder_preference = ScreenVideoEncodePreference::kScreenVideoEncodePreferenceQuality;
 };
 
 
 }  // namespace bytertc
-
-#endif // BYTE_RTC_VIDEO_FRAME_H__

@@ -9,7 +9,6 @@
 
 namespace bytertc {
 
-#ifndef ByteRTC_AUDIO_ONLY
 /** 
  * @type api
  * @region  engine management
@@ -84,7 +83,9 @@ public:
      * @type api
      * @region  Video Facility Management
      * @brief  Get a list of video capture devices in the current system.
-     * @return  Contains a list of all video capture devices in the system. See IVideoDeviceCollection{@link #IVideoDeviceCollection}. <br>
+     * @return  Contains a list of all video capture devices in the system. See IVideoDeviceCollection{@link #IVideoDeviceCollection}.
+     * If a time-out occurs, it returns an empty list. By default, the time-out duration is set to 10 seconds. We recommend to call this API once you get notification of `kMediaDeviceListUpdated` via onVideoDeviceStateChanged{@link #IRTCVideoEventHandler#onVideoDeviceStateChanged}.
+     * @notes When receiving onVideoDeviceStateChanged{@link #IRTCVideoEventHandler#onVideoDeviceStateChanged} for device change, you can call this API to get the latest list of audio playback devices.
      */
     virtual IVideoDeviceCollection* enumerateVideoCaptureDevices() = 0;
     /** 
@@ -116,6 +117,5 @@ public:
     }
 };
 
-#endif  // ByteRTC_AUDIO_ONLY
 
 }  // namespace bytertc

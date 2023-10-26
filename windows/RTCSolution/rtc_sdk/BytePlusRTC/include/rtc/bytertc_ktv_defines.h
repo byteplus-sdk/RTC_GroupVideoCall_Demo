@@ -1,5 +1,5 @@
-﻿#ifndef BYTERTC_KTV_DEFINES_H
-#define BYTERTC_KTV_DEFINES_H
+#pragma once
+
 #include <string>
 
 namespace bytertc {
@@ -13,23 +13,23 @@ enum MusicFilterType {
     /** 
      * @brief No filter.
      */
-    kFilterNone = 0,
+    kMusicFilterTypeNone = 0,
     /** 
      * @brief Remove music that does not have lyrics.
      */
-    kFilterWithoutLyric     = 1 << 0,
+    kMusicFilterTypeWithoutLyric     = 1 << 0,
     /** 
      * @brief Remove music that does not support scoring.
      */
-    kFilterUnsupportedScore     = 1 << 1,
+    kMusicFilterTypeUnsupportedScore     = 1 << 1,
     /** 
      * @brief Remove music that does not support accompany mode.
      */
-    kFilterUnsupportedAccopmay  = 1 << 2,
+    kMusicFilterTypeUnsupportedAccopmay  = 1 << 2,
     /** 
      * @brief Remove music that does not have a climax part.
      */
-    kFilterUnsupportedClimx     = 1 << 3,
+    kMusicFilterTypeUnsupportedClimx     = 1 << 3,
 };
 
 /** 
@@ -41,11 +41,11 @@ enum MusicHotType {
     /** 
      * @brief Hot music in the content center.
      */
-    kHotContentCenter       = 1 << 0,
+    kMusicHotTypeContentCenter       = 1 << 0,
     /** 
      * @brief Hot music of the project.
      */
-    kHotProject          = 1 << 1,
+    kMusicHotTypeProject          = 1 << 1,
 };
 
 /** 
@@ -57,11 +57,11 @@ enum class AudioTrackType {
     /** 
      * @brief Play the original music with vocals.
      */
-    kAudioTrackTypeOriginal = 1,
+    kOriginal = 1,
     /** 
      * @brief Play the instrumental music without vocals.
      */
-    kAudioTrackTypeAccompy = 2
+    kAccompy = 2
 };
 
 /** 
@@ -73,15 +73,15 @@ enum class AudioPlayType {
     /** 
      * @brief Only play on the local side.
      */
-    kAudioPlayTypeLocal,
+    kLocal,
     /** 
      * @brief Only play on the remote side.
      */
-    kAudioPlayTypeRemote,
+    kRemote,
     /** 
      * @brief Play on the local and remote side.
      */
-    kAudioPlayTypeLocalAndRemote
+    kLocalAndRemote
 };
 
 /** 
@@ -93,23 +93,23 @@ enum class PlayState {
     /** 
      * @brief Playing.
      */
-    kPlayStatePlaying = 1,
+    kPlaying = 1,
     /** 
      * @brief Paused.
      */
-    kPlayStatePaused = 2,
+    kPaused = 2,
     /** 
      * @brief Stopped.
      */
-    kPlayStateStoped = 3,
+    kStoped = 3,
     /** 
      * @brief Failed to play.
      */
-    kPlayStateFailed = 4,
+    kFailed = 4,
     /** 
      * @brief Finished.
      */
-    kPlayStateFinished = 5,
+    kFinished = 5,
 };
 
 /** 
@@ -121,19 +121,19 @@ enum class LyricStatus {
     /** 
      * @brief No lyrics.
      */
-    kLyricStatusNone = 0,
+    kNone = 0,
     /** 
      * @brief KRC lyrics.
      */
-    kLyricStatusKRC = 1,
+    kKRC = 1,
     /** 
      * @brief LRC lyrics.
      */
-    kLyricStatusLRC = 2,
+    kLRC = 2,
     /** 
      * @brief KRC and LRC lyrics.
      */
-    kLyricStatusKRCAndLRC = 3
+    kKRCAndLRC = 3
 };
 
 /** 
@@ -145,11 +145,11 @@ enum class DownloadLyricType {
     /** 
      * @brief KRC lyrics file.
      */
-    kDownKrc,
+    kKRC,
     /** 
      * @brief LRC lyrics file.
      */
-    kDownLrc
+    kLRC
 };
 
 
@@ -245,19 +245,19 @@ enum DownloadFileType {
     /** 
      * @brief Audio file.
      */
-    kDownloadMusic = 1,
+    kDownloadFileTypeMusic = 1,
     /** 
      * @brief KRC lyrics file.
      */
-    kDownloadKRC = 2,
+    kDownloadFileTypeKRC = 2,
     /** 
      * @brief LRC lyrics file.
      */
-    kDownloadLRC = 3,
+    kDownloadFileTypeLRC = 3,
     /** 
      * @brief MIDI file.
      */
-    kDownloadMIDI = 4
+    kDownloadFileTypeMIDI = 4
 
 } ;
 
@@ -284,70 +284,96 @@ struct DownloadResult {
 
 /** 
  * @hidden currently not available
- * @type keytype
+ * @type errorcode
  * @brief KTV error code.
  */
 enum KTVErrorCode {
     /** 
      * @brief Success.
      */
-    kErrorCodeKTVOK = 0,
+    kKTVErrorCodeOK = 0,
     /** 
      * @brief Invalid AppID.
      */
-    kErrorCodeKTVAppidInValid = -3000,
+    kKTVErrorCodeAppidInValid = -3000,
     /** 
      * @brief Invalid parameter.
      */
-    kErrorCodeKTVParasInValid = -3001,
+    kKTVErrorCodeParasInValid = -3001,
     /** 
      * @brief Failed to get music resources.
      */
-    kErrorCodeKTVGetMusicFailed = -3002,
+    kKTVErrorCodeGetMusicFailed = -3002,
     /** 
      * @brief Failed to get lyrics.
      */
-    kErrorCodeKTVGetLyricFailed = -3003,
+    kKTVErrorCodeGetLyricFailed = -3003,
     /** 
      * @brief The music is removed.
      */
-    kErrorCodeKTVMusicTakedown = -3004,
+    kKTVErrorCodeMusicTakedown = -3004,
     /** 
      * @brief Failed to download the music file.
      */
-    kErrorCodeKTVMusicDownload = -3005,
+    kKTVErrorCodeMusicDownload = -3005,
     /** 
      * @brief Failed to download the MIDI file.
      */
-    kErrorCodeKTVMidiDownloadFailed = -3006,
+    kKTVErrorCodeMidiDownloadFailed = -3006,
     /** 
      * @brief The system is busy.
      */
-    kErrorCodeKTVSystemBusy = -3007,
+    kKTVErrorCodeSystemBusy = -3007,
     /** 
      * @brief Network anomaly.
      */
-    kErrorCodeKTVNetwork = -3008,
+    kKTVErrorCodeNetwork = -3008,
     /** 
      * @brief The KTV feature is not added to the room.
      */
-    kErrorCodeKTVNotJoinRoom = -3009,
+    kKTVErrorCodeNotJoinRoom = -3009,
     /** 
      * @brief Failed to parse data.
      */
-    kErrorCodeKTVParseData = -3010,
+    kKTVErrorCodeParseData = -3010,
     /** 
+     * @hidden
+     * @deprecated since 353.
      * @brief Failed to download.
      */
-    kErrorCodeKTVDownload = -3011,
+    kKTVErrorCodeDownload = -3011,
     /** 
      * @brief Already downloading.
      */
-    kErrorCodeKTVDownloading = -3012,
+    kKTVErrorCodeDownloading = -3012,
     /** 
      * @brief Internal error. Contact the technical support representatives for help.
      */
-    kErrorCodeKTVInternalDomain = -3013
+    kKTVErrorCodeInternalDomain = -3013,
+    /** 
+     * @brief Failed to download because of insufficient disk space. Please retry after clearing cache.
+     */
+    kKTVErrorCodeInsufficientDiskSpace = -3014,
+    /** 
+     * @brief Failed to download because of music decryption failed. Contact the technical support representatives for help.
+     */
+    kKTVErrorCodeMusicDecryptionFailed = -3015,
+    /** 
+     * @brief Failed to download because of music rename failed. Please retry.
+     */
+    kKTVErrorCodeFileRenameFailed = -3016,
+    /** 
+     * @brief Failed to download because of network failure. Please retry.
+     */
+    kKTVErrorCodeDownloadTimeOut = -3017,
+    /** 
+     * @brief Failed to clear cache because the file is occupied or the system is abnormal. Please retry.
+     */
+    kKTVErrorCodeClearCacheFailed = -3018,
+    /** 
+     * @brief Cancel download task.
+     */
+    kKTVErrorCodeDownloadCanceled = -3019
 };
 
 /** 
@@ -359,57 +385,56 @@ enum KTVPlayerErrorCode {
     /** 
      * @brief Success.
      */
-    kErrorCodeKTVPlayOK = 0,
+    kKTVPlayerErrorCodeOK = 0,
     /** 
      * @brief Failed to play the music. Download first.
      */
-    kErrorCodeKTVPlayFileNotExist = -3020,
+    kKTVPlayerErrorCodeFileNotExist = -3020,
     /** 
      * @brief Failed to play the music. Check the file's format.
      */
-    kErrorCodeKTVPlayFileError = -3021,
+    kKTVPlayerErrorCodeFileError = -3021,
     /** 
      * @brief Failed to play the music. Join a room first.
      */
-    kErrorCodeKTVPlayNotJoinRoom = -3022,
+    kKTVPlayerErrorCodeNotJoinRoom = -3022,
     /** 
      * @brief Invalid parameter.
      */
-    kErrorCodeKTVPlayParam = -3023,
+    kKTVPlayerErrorCodeParam = -3023,
     /** 
      * @brief Failed to play the music. Invalid path or failed to open the file.
      */
-    kErrorCodeKTVPlayStartError = -3024,
+    kKTVPlayerErrorCodeStartError = -3024,
     /** 
      * @brief Invalid mixing ID.
      */
-    kErrorCodeKTVPlayMixIdError = -3025,
+    kKTVPlayerErrorCodeMixIdError = -3025,
     /** 
      * @brief Invalid position.
      */
-    kErrorCodeKTVPlayPositionError = -3026,
+    kKTVPlayerErrorCodePositionError = -3026,
     /** 
      * @brief Invalid volume.
      */
-    kErrorCodeKTVPlayAudioVolumeError = -3027,
+    kKTVPlayerErrorCodeAudioVolumeError = -3027,
     /** 
      * @brief Do not support the mix type.
      */
-    kErrorCodeKTVPlayTypeError = -3028,
+    kKTVPlayerErrorCodeTypeError = -3028,
     /** 
      * @brief Invalid pitch.
      */
-    kErrorCodeKTVPlayPitchError = -3029,
+    kKTVPlayerErrorCodePitchError = -3029,
     /** 
      * @brief Invalid audio track.
      */
-    kErrorCodeKTVPlayAudioTrackError = -3030,
+    kKTVPlayerErrorCodeAudioTrackError = -3030,
     /** 
      * @brief Mixing in process.
      */
-    kErrorCodeKTVPlayStartingError = -3031
+    kKTVPlayerErrorCodeStartingError = -3031
 };
 
 
 } // namespace bytertc
-#endif // BYTERTC_KTV_DEFINES_H

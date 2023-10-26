@@ -5,15 +5,13 @@
 
 #pragma once
 
-#ifndef BYTE_RTC_ROOM_EVENT_HANDLER_INTERFACE_H__
-#define BYTE_RTC_ROOM_EVENT_HANDLER_INTERFACE_H__
-
 #include "rtc/bytertc_defines.h"
 
 namespace bytertc {
 /** 
  * @type callback
  * @brief  Audio & video room event callback interface
+ * Note: Callback functions are thrown synchronously in a non-UI thread within the SDK. Therefore, you must not perform any time-consuming operations or direct UI operations within the callback function, as this may cause the app to crash.
  */
 class IRTCRoomEventHandler {
 public:
@@ -68,8 +66,8 @@ public:
       *        When the user calls the leaveRoom{@link #IRTCRoom#leaveRoom}, the SDK will stop all publishing subscription streams and release all call-related media resources. After that, the user receives this callback . <br>
       * @param [in] stats Reserved parameter.
       * @notes   <br>
-      *        + If calling leaveRoom{@link #IRTCRoom#leaveRoom} and then destroyRTCVideo{@link #destroyRTCVideo} immediately after, the user will not receive this callback. <br>
-      *        + If the app needs to use the media resources of the device for purposes other than RTC, you should init the resources after receiving this callback. Receiving this callback ensures that the resources are not occupied by RTC SDK.
+      *        + After the user calls the leaveRoom{@link #IRTCRoom#leaveRoom} method to leave the room, if destroy{@link #IRTCRoom#destroy} is called to destroy the room instance or destroyRTCVideo{@link #destroyRTCVideo} method is called to destroy the RTC engine immediately, this callback event will not be received. <br>
+      *        + If the app needs to use the system audio & video device after leaving the room, it is recommended to initialize the audio & video device after receiving this callback, otherwise the initialization may fail due to the SDK occupying the audio & video device. <br>
       */
     virtual void onLeaveRoom(const RtcRoomStats& stats) {
         (void)stats;
@@ -400,7 +398,6 @@ public:
         (void)mode;
     }
 
-#ifndef ByteRTC_AUDIO_ONLY
     /**
      * @hidden for internal use only
      * @brief callback when the maximum screen share fps is changed
@@ -415,8 +412,8 @@ public:
      * @brief Callback when the maximum screen shared pixels (resolution) is chang
      * @param [in] screenPixels The recommended maximum video width × height value to maintain the frame rate.
      */
-    virtual void onMaximumScreenSharePixelsUpdated(int screenPixels) {
-        (void)screenPixels;
+    virtual void onMaximumScreenSharePixelsUpdated(int screen_pixels) {
+        (void)screen_pixels;
     }
 
     /** 
@@ -431,7 +428,7 @@ public:
      *         + When the specified user in the room is disabled/unbanned Video stream sending, all users in the room will receive the callback. <br>
      *        + If the banned user leaves or disconnects and then rejoins the room, the user is still banned from publishing audio stream, and all users in the room will be informed via the callback. <br>
      *         + After the specified user is banned, other users in the room will check out and enter the room again, and will receive the callback again. <br>
-     *         + If the conference mode is enabled in the console, only the user whose stream is banned will receive this callback.
+     *         + If the Audio selection is enabled in the console, only the user whose stream is banned will receive this callback.
      */
     virtual void onVideoStreamBanned(const char* uid, bool banned) {
         (void)uid;
@@ -448,7 +445,6 @@ public:
         (void)state;
     }
 
-#endif  // ByteRTC_AUDIO_ONLY
     /** 
      * @type callback
      * @region Audio event callback
@@ -462,7 +458,7 @@ public:
      *        + If the banned user leaves or disconnects and then rejoins the room, the user is still banned from publishing audio stream, and all users in the room will be informed via the callback. <br>
      *         + After the specified user is banned, other users in the room will check out and enter the room again, and will receive the callback again. <br>
      *         + The same room is created again after dissolution, and the state in the room is empty.  <br>
-     *         + If the conference mode is enabled in the console, only the user whose stream is banned will receive this callback.
+     *         + If the Audio selection is enabled in the console, only the user whose stream is banned will receive this callback.
      */
     virtual void onAudioStreamBanned(const char* uid, bool banned) {
         (void)uid;
@@ -492,12 +488,12 @@ public:
     /** 
      * @type callback
      * @brief Report the network quality of the users every 2s after the local user joins the room and starts publishing or subscribing to a stream.
-     * @param [in] localQuality Local network quality. Refer to NetworkQualityStats{@link #NetworkQualityStats} for details.
-     * @param [in] remoteQualities Network quality of the subscribed users. Refer to NetworkQualityStats{@link #NetworkQualityStats} for details.
-     * @param [in] remoteQualityNum Array length of `remoteQualities`
+     * @param [in] local_quality Local network quality. Refer to NetworkQualityStats{@link #NetworkQualityStats} for details.
+     * @param [in] remote_qualities Network quality of the subscribed users. Refer to NetworkQualityStats{@link #NetworkQualityStats} for details.
+     * @param [in] remote_quality_num Array length of `remoteQualities`
      * @notes See [In-call Stats](106866) for more information.
      */
-    virtual void onNetworkQuality(const NetworkQualityStats& localQuality, const NetworkQualityStats* remoteQualities, int remoteQualityNum) {
+    virtual void onNetworkQuality(const NetworkQualityStats& local_quality, const NetworkQualityStats* remote_qualities, int remote_quality_num) {
     }
 
     /** 
@@ -505,12 +501,12 @@ public:
      * @type callback
      * @region Room Management
      * @brief Callback on the result of calling setRoomExtraInfo{@link #IRTCRoom#setRoomExtraInfo} to set extra information about the room.
-     * @param [in] taskId The task ID of the API call.
-     * @param [in] errCode See SetRoomExtraInfoResult{@link #SetRoomExtraInfoResult} for the setting results and reasons.
+     * @param [in] task_id The task ID of the API call.
+     * @param [in] error_code See SetRoomExtraInfoResult{@link #SetRoomExtraInfoResult} for the setting results and reasons.
      */
-    virtual void onSetRoomExtraInfoResult(int64_t taskId, SetRoomExtraInfoResult errCode) {
-        (void)taskId;
-        (void)errCode;
+    virtual void onSetRoomExtraInfoResult(int64_t task_id, SetRoomExtraInfoResult error_code) {
+        (void)task_id;
+        (void)error_code;
     }
 
     /** 
@@ -520,14 +516,29 @@ public:
      * @brief Callback used to receive the extra information set by the other users in the same room with setRoomExtraInfo{@link #IRTCRoom#setRoomExtraInfo}.
      * @param [in] key Key of the extra information.
      * @param [in] value Content of the extra information.
-     * @param [in] lastUpdateUserId The ID of the last user who updated this information.
-     * @param [in] lastUpdateTimeMs The Unix time in ms when this information was last updated. 
+     * @param [in] last_update_user_id The ID of the last user who updated this information.
+     * @param [in] last_update_time_ms The Unix time in ms when this information was last updated. 
      */
-    virtual void onRoomExtraInfoUpdate(const char*key,const char* value,const char* lastUpdateUserId,int64_t lastUpdateTimeMs) {
+    virtual void onRoomExtraInfoUpdate(const char*key, const char* value, const char* last_update_user_id, int64_t last_update_time_ms) {
         (void)key;
         (void)value;
-        (void)lastUpdateUserId;
-        (void)lastUpdateTimeMs;
+        (void)last_update_user_id;
+        (void)last_update_time_ms;
+    }
+
+    /** 
+     * @valid since 3.54
+     * @type callback
+     * @region Room Management
+     * @brief Callback for user to set user visibility by calling setUserVisibility{@link #IRTCRoom#setUserVisibility}.
+     * @param [in] current_user_visibility Visibility of the current user.
+     *        + true: Visible. The user can publish media streams. The other users in the room get informed of the behaviors of the user, such as joining room, starting video capture, and leaving room.
+     *        + false: Invisible. The user cannot publish media streams. The other users in the room do not get informed of the behaviors of the user, such as joining room, starting video capture, or leaving room.
+     * @param [in] error_code Error code for setting user visibility. See UserVisibilityChangeError{@link #UserVisibilityChangeError}.
+     */
+    virtual void onUserVisibilityChanged(bool current_user_visibility, UserVisibilityChangeError error_code) {
+        (void)current_user_visibility;
+        (void)error_code;
     }
 
     /** 
@@ -537,8 +548,8 @@ public:
      * @brief  Callback on subtitle states. <br>
      *         After you call startSubtitle{@link #IRTCRoom#startSubtitle} and stopSubtitle{@link #IRTCRoom#stopSubtitle}, you will receive this callback which informs you of the states and error codes of the subtitling task, as well as detailed information on the third party services' errors. 
      * @param [in] state The states of subtitles. Refer to SubtitleState{@link #SubtitleState} for details. 
-     * @param [in] errorCode  Error codes of the subtitling task. Refer to SubtitleErrorCode{@link #SubtitleErrorCode}.
-     * @param [in] errorMessage Detailed information on the third party services' errors. 
+     * @param [in] error_code  Error codes of the subtitling task. Refer to SubtitleErrorCode{@link #SubtitleErrorCode}.
+     * @param [in] error_message Detailed information on the third party services' errors. 
      */
     virtual void onSubtitleStateChanged(SubtitleState state, SubtitleErrorCode error_code, const char* error_message) {
     }
@@ -549,8 +560,8 @@ public:
      * @region Subtitle translation service
      * @brief  Callback on subtitle messages.  <br>
      *         After calling startSubtitle{@link #IRTCRoom#startSubtitle}, you will receive this callback which informs you of the related information on subtitles. 
-     * @param [in] subtitles  Subtitle messages. Refer to SubtitleMessage{@link #SubtitleMessage} for details. 
-     * @param [in] cnt  The number of subtitle messages.
+     * @param [in] subtitles Subtitle messages. Refer to SubtitleMessage{@link #SubtitleMessage} for details. 
+     * @param [in] cnt The number of subtitle messages.
      */
     virtual void onSubtitleMessageReceived(const SubtitleMessage* subtitles, int cnt) {
     }
@@ -558,4 +569,3 @@ public:
 
 } // namespace bytertc
 
-#endif // BYTE_RTC_ROOM_EVENT_HANDLER_INTERFACE_H__

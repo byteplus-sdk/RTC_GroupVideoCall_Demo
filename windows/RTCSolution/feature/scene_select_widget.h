@@ -26,8 +26,6 @@ class SceneSelectWidget : public QWidget {
  private:
 	void initControls();
 	void initConnects();
-	void setupMeetingSceneButton();
-	void setupEduSceneButton();
 	void setupMoreSceneButton();
 	void setupVideoCallSceneButton();
 	int scene_count_{ 0 };

@@ -6,4 +6,5 @@ rootProject.name = "veRTC_Demo"
 include ':component:LoginKit'
 include ':component:JoinRTSParamsKit'
 
-include ':solutions:videocall'
+include ':solutions:groupvideocall'
+
