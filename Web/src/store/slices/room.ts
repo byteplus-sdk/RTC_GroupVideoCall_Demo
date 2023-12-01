@@ -65,7 +65,6 @@ export const roomSlice = createSlice({
       state.localUser = payload.user;
     },
     localLeaveRoom: (state) => {
-      console.log('localLeaveRoom clear', state);
       state.roomId = undefined;
       state.time = -1;
       state.localUser = {

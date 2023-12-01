@@ -12,7 +12,6 @@ import VERTC, {
   AutoPlayFailedEvent,
   PlayerEvent,
 } from '@byteplus/rtc';
-
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { message as Message } from 'antd';
@@ -147,9 +146,6 @@ const useRtcListeners = (isDev: boolean): IEventListener => {
   };
 
   const handleRemoteStreamStats = (e: RemoteStreamStats) => {
-    if (isDev) {
-      return;
-    }
     dispatch(
       updateRemoteUser({
         userId: e.userId,
@@ -160,9 +156,6 @@ const useRtcListeners = (isDev: boolean): IEventListener => {
   };
 
   const handleLocalStreamStats = (e: LocalStreamStats) => {
-    if (isDev) {
-      return;
-    }
     dispatch(
       updateLocalUser({
         audioStats: e.audioStats,
@@ -172,9 +165,6 @@ const useRtcListeners = (isDev: boolean): IEventListener => {
   };
 
   const handleLocalAudioPropertiesReport = (e: LocalAudioPropertiesInfo[]) => {
-    if (isDev) {
-      return;
-    }
     const localAudioInfo = e.find(
       (audioInfo) => audioInfo.streamIndex === StreamIndex.STREAM_INDEX_MAIN
     );
@@ -188,9 +178,6 @@ const useRtcListeners = (isDev: boolean): IEventListener => {
   };
 
   const handleRemoteAudioPropertiesReport = (e: RemoteAudioPropertiesInfo[]) => {
-    if (isDev) {
-      return;
-    }
     const remoteAudioInfo = e
       .filter((audioInfo) => audioInfo.streamKey.streamIndex === StreamIndex.STREAM_INDEX_MAIN)
       .map((audioInfo) => ({
@@ -211,7 +198,7 @@ const useRtcListeners = (isDev: boolean): IEventListener => {
       deviceId = devices.videoInputs?.[0].deviceId || '';
     }
 
-    RtcClient.switchDevice('camera', deviceId);
+    await RtcClient.switchDevice('camera', deviceId);
     dispatch(setCameraList(devices.videoInputs));
     dispatch(
       updateSelectedDevice({
@@ -228,7 +215,7 @@ const useRtcListeners = (isDev: boolean): IEventListener => {
       if (device.deviceState === 'inactive') {
         deviceId = devices.audioInputs?.[0].deviceId || '';
       }
-      RtcClient.switchDevice('microphone', deviceId);
+      await RtcClient.switchDevice('microphone', deviceId);
       dispatch(setMicrophoneList(devices.audioInputs));
 
       dispatch(
@@ -268,7 +255,7 @@ const useRtcListeners = (isDev: boolean): IEventListener => {
         await RtcClient.stopAudioCapture();
         await RtcClient.stopVideoCapture();
         await RtcClient.stopScreenCapture();
-        RtcClient.leaveRoom();
+        await RtcClient.leaveRoom();
         Utils.removeLoginInfo();
         dispatch(localLeaveRoom());
         dispatch(resetConfig());
@@ -282,12 +269,9 @@ const useRtcListeners = (isDev: boolean): IEventListener => {
   };
 
   const handleUserMessageReceived = (e: { userId: string; message: any }) => {
-    console.log('handleUserMessageReceived', e);
-
     handleOnCloseRoom(e);
   };
   const handleRoomMessageReceived = (e: { userId: string; message: any }) => {
-    console.log('handleRoomMessageReceived', e);
     handleOnCloseRoom(e);
   };
 
@@ -311,7 +295,6 @@ const useRtcListeners = (isDev: boolean): IEventListener => {
   const playerFail = (params: { type: 'audio' | 'video'; userId: string }) => {
     const { type, userId } = params;
     let playUser = playStatus.current?.[userId] || {};
-
 
     playUser = { ...playUser, [type]: false };
 
@@ -339,8 +322,6 @@ const useRtcListeners = (isDev: boolean): IEventListener => {
     } else if (rawEvent.type === 'pause') {
       playUser = playerFail({ type, userId });
     }
-
-    console.log('playStatusplayStatusplayStatus', playStatus);
 
     playStatus.current[userId] = playUser;
   };

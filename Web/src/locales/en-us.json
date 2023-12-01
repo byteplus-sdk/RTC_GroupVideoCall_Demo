@@ -33,7 +33,7 @@
   "FluencyPreferred": "Fluency preferred",
   "End": "End",
   "leaveReconfirm": "Are you going to leave the room?",
-  "timeout": "The duration of LIVE can't exceed 15 minutes in this application.",
+  "timeout": "The duration of LIVE can't exceed 20 minutes in this application.",
   "isSharing": "A user in the room is screen-sharing",
   "safariShare": "About to share your entire screen , are you sure?",
   "videocalls": "Video Call",
