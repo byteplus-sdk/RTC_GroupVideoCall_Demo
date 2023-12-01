@@ -3,11 +3,12 @@ import { AudioProfileType, MirrorType } from '@byteplus/rtc';
 import { AudioProfile, RESOLUTIOIN_LIST } from '@/config';
 
 export interface StreamState {
-  videoEncodeConfig: typeof RESOLUTIOIN_LIST[number]['text'];
+  videoEncodeConfig: string;
   audioProfile: AudioProfileType;
   mirror: MirrorType;
-  shareScreenConfig: typeof RESOLUTIOIN_LIST[number]['text'];
+  shareScreenConfig: string;
 }
+
 const initialState: StreamState = {
   videoEncodeConfig: RESOLUTIOIN_LIST[0].text,
   audioProfile: AudioProfile[0].type,

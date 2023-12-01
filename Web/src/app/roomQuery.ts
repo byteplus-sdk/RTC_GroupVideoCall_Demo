@@ -4,7 +4,7 @@ import baseQuery from './baseQuery';
 
 export const roomQuery = createApi({
   baseQuery,
-  reducerPath: 'room',
+  reducerPath: 'roomquery',
   endpoints: (build) => ({
     freeLogin: build.mutation({
       query: (body: { device_id: string; user_name: string }) => ({

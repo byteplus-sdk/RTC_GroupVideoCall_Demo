@@ -85,8 +85,6 @@ class Utils {
     const username = sessionStorage.getItem('username') as string;
     const publishAudio = sessionStorage.getItem('publishAudio');
     const publishVideo = sessionStorage.getItem('publishVideo');
-    console.log('publishAudio', publishAudio);
-    console.log('publishVideo', publishVideo);
 
     return {
       roomId,

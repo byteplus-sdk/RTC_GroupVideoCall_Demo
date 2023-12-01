@@ -12,9 +12,10 @@ const resources = {
     translation: en,
   },
 };
+
 i18n.use(initReactI18next).init({
   resources,
-  fallbackLng: process.env.REACT_APP_LOCAL,
+  fallbackLng: 'en',
 });
 
 export default i18n;

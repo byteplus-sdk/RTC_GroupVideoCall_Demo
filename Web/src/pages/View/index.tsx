@@ -47,7 +47,6 @@ function View() {
         const permission = await RtcClient.checkPermission();
         dispatch(setDevicePermissions(permission));
 
-        console.log('enableDevicesenableDevicesenableDevices');
         if (!permission) return;
 
         const formValues = Utils.getLoginInfo();

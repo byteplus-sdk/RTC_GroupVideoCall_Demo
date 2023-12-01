@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { IUser, LocalUser } from '@/store/slices/room';
@@ -25,19 +25,31 @@ function VideoPlayer(props: IProps) {
 
   const domId = `${isLocalUser ? 'local' : 'remote'}-${user?.userId}-0`;
 
+  const startPublish = useMemo(() => {
+    return !!(user?.publishVideo || user?.publishAudio);
+  }, [user?.publishVideo, user?.publishAudio]);
+
+  const startPublishVideo = useMemo(() => {
+    return !!user?.publishVideo;
+  }, [user?.publishVideo]);
+
   useEffect(() => {
     RtcClient.setVideoPlayer((user as IUser).userId!, domId);
-    // if (user?.publishVideo) {
-    //   if (user.publishVideo) {
-    //   } else {
-    //     RtcClient.setVideoPlayer((user as IUser).userId!, undefined);
-    //   }
-    // }
-
     return () => {
       RtcClient.setVideoPlayer((user as IUser).userId!, undefined);
     };
-  }, []);
+  }, [startPublish]);
+
+  let micSrcImg = MicrophoneOff;
+  const isMicrophoneOn = user?.publishAudio && !user?.audioPropertiesInfo?.linearVolume;
+  const isMicrophoneOff = !user?.publishAudio;
+  const hasIcon = isMicrophoneOn || isMicrophoneOff;
+  if (isMicrophoneOn) {
+    micSrcImg = MicrophoneOn;
+  }
+  if (isMicrophoneOff) {
+    micSrcImg = MicrophoneOff;
+  }
 
   return (
     <div
@@ -48,9 +60,11 @@ function VideoPlayer(props: IProps) {
         visibility: user ? 'visible' : 'hidden',
       }}
     >
-      <div className={styles.userAvatar}>
-        <span>{user?.username?.[0]}</span>
-      </div>
+      {!startPublishVideo && (
+        <div className={styles.userAvatar}>
+          <span>{user?.username?.[0]}</span>
+        </div>
+      )}
       <div
         id={domId}
         className={styles.videoPlayer}
@@ -59,11 +73,7 @@ function VideoPlayer(props: IProps) {
         }}
       />
       <div className={styles.userInfo}>
-        {!user?.publishAudio && <Icon src={MicrophoneOff} className={styles.userMicrophone} />}
-
-        {user?.publishAudio && !user?.audioPropertiesInfo?.linearVolume && (
-          <Icon src={MicrophoneOn} className={styles.userMicrophone} />
-        )}
+        {hasIcon && <Icon src={micSrcImg} className={styles.userMicrophone} />}
         {user?.publishAudio && !!user?.audioPropertiesInfo?.linearVolume && (
           <img
             src={MicHasVolumeImg}
@@ -78,7 +88,6 @@ function VideoPlayer(props: IProps) {
         )}
 
         {isUserShare && <Icon src={getIcon('shareScreen')} className={styles.userScreen} />}
-
         <span className={styles.usernameWrapper}>
           <span className={styles.username}>{user?.username}</span>
           {isLocalUser ? `(${t('Me')})` : ''}
