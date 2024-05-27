@@ -9,11 +9,7 @@
 #include "videocall/core/data_mgr.h"
 #include "videocall/core/videocall_manager.h"
 
-/** {zh}
- * 单例对象，便于其他类代码中访问对应的接口
- */
-
-/** {en}
+/**
 * Singleton object, which is convenient for accessing the corresponding interface in other class codes
 */
 VideoCallRtcEngineWrap& VideoCallRtcEngineWrap::instance() {
@@ -393,14 +389,12 @@ void VideoCallRtcEngineWrap::onVideoStateChanged(std::string device_id,
 	}
 
 	switch (device_state) {
-		// {zh} 插入一个新的设备
-		// {en} Insert a new device
+		// Insert a new device
 		case bytertc::kMediaDeviceStateAdded:
 			vrd::util::showToastInfo(QObject::tr("new_camera_plugin").toStdString());
 			emit instance().sigUpdateVideoDevices();
 			break;
-		// {zh} 拔出设备
-		// {en} Pull out the device
+		// Pull out the device
 		case bytertc::kMediaDeviceStateRemoved:
 			vrd::util::showToastInfo(QObject::tr("camera_unplugged").toStdString());
 			emit instance().sigUpdateVideoDevices();
@@ -426,14 +420,12 @@ void VideoCallRtcEngineWrap::onAudioStateChanged(std::string device_id,
     }
 
 	switch (device_state) {
-	// {zh} 插入一个新的设备
-	// {en} Insert a new device
+	// Insert a new device
 	case bytertc::kMediaDeviceStateAdded:  
 		vrd::util::showToastInfo(QObject::tr("new_mic_plugin").toStdString());
 		emit instance().sigUpdateAudioDevices();
 		break;
-	// {zh} 拔出设备
-	// {en} Pull out the device
+	// Pull out the device
 	case bytertc::kMediaDeviceStateRemoved:
 	{
 		std::string curDeviceStr;

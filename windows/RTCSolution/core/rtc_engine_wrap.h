@@ -10,7 +10,6 @@
 
 #include "core/common_define.h"
 #include "rtc/bytertc_advance.h"
-#include "rtc/bytertc_engine_interface.h"
 #include "rtc/bytertc_video_frame.h"
 
 #include "bytertc_video.h"
@@ -18,11 +17,7 @@
 #include "bytertc_video_event_handler.h"
 #include "bytertc_room_event_handler.h"
 
-/** {zh}
- * Qt自定义事件类，用于将工作线程的数据转发给主线程处理
- */
-
-/** {en}
+/**
 * Qt custom event class, used to forward the data of the worker thread 
 *  to the main thread for processing
 */
@@ -111,12 +106,7 @@ struct RemoteStreamKeyWrap {
     bytertc::StreamIndex stream_index;
 };
 
-/** {zh}
- * ByteRTC接口封装以及回调接收类,适用于全场景
- * 注意,相关接口和回调的具体含义可直接参看RTC原生接口的释义
- */
-
- /** {en}
+ /**
   * ByteRTC interface wrapper and callback receiving class, applicable to all scenarios
   * Note that for the specific meaning of related interfaces and callbacks, please refer to the definition of RTC native interface directly
   */

@@ -6,11 +6,7 @@
 
 namespace vrd {
 
-/** {zh}
-* 音视频通话场景模块，用于该场景的实例化，进入和退出
-*/
-
-/** {en}
+/**
 * Video call scene module, used for instantiation, entry and exit of the scene
 */
 class VideoCallModule : public QObject, public IModule {

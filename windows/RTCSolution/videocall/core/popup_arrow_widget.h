@@ -2,11 +2,7 @@
 
 #include <QWidget>
 
-/** {zh}
- * 自定义的带有箭头的弹出式窗口，可以自定义箭头方向
- */
-
-/** {en}
+/**
 * Custom pop-up window with arrow, you can customize the direction of the arrow
 */
 class PopupArrowWidget : public QWidget
@@ -28,8 +24,7 @@ public:
     void setArrowPosition(ArrowPosition position);
 
 signals:
-    // {zh} 该信号用于失去焦点后自动关闭本窗口
-    // {en} This signal is used to automatically close the window after losing focus
+    // This signal is used to automatically close the window after losing focus
     void widgetVisiblilityChanged(bool isVisibled);
 
 protected:

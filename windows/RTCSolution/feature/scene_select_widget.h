@@ -1,10 +1,6 @@
 #include "ui_scene_select.h"
 
-/** {zh}
- * 场景选择主页面，包括场景按钮的初始化和 TopBarWidget
- */
-
- /** {en}
+ /**
   * Scene selection main page, including initialization of scene buttons and TopBarWidget
   */
 class SceneSelectWidget : public QWidget {

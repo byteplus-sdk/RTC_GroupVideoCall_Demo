@@ -159,8 +159,7 @@ void Videocell::RemoteSetAudioMute(bool mute)
 
 bool Videocell::eventFilter(QObject* obj, QEvent* event)
 {
-	// {zh} 指定某个QLabel
-	// {en} Specify a QLabel
+	// Specify a QLabel
 	if (obj == m_video_label_ || obj == m_audio_label_)
 	{
 		if (event->type() == QEvent::MouseButtonPress)

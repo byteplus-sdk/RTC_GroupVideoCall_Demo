@@ -5,14 +5,8 @@
 namespace Ui {
 	class VideoCallMainPage;
 }
-/** {zh}
- * 音视频通话主页面
- * 上边部分显示通话时长，房间号等信息
- * 中间部分是视频渲染区域，主要包括FocusVideoView和NormalVideoView
- * 下边部分是房间控制按钮，包括音频，视频，美颜，共享，通话数据，设置，结束通话
- */
 
-/** {en}
+/**
 * Video call main page
 * The top part displays the call duration, room number and other information
 * The middle part is the video rendering area, mainly including FocusVideoView and NormalVideoView

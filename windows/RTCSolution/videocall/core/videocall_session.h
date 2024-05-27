@@ -8,11 +8,7 @@
 
 namespace vrd {
 
-/** {zh}
- * 需要和服务端通信的相关接口和通知定义
- */
-
- /** {en}
+ /**
   * Related interfaces and notification definitions that need to communicate with the server
   */
 class VideoCallSession {
@@ -23,9 +19,7 @@ public:
     void setToken(const std::string& token);
     void setRoomId(const std::string& roomId);
     std::string user_id();
-
-    // {zh} ----------------------------------接口----------------------------------
-    // {en} ----------------------------------interface----------------------------------
+    // ----------------------------------interface----------------------------------
     void changeUserName(CSTRING_REF_PARAM name, CallBackFunction&& callback);
 
     void initSceneConfig(std::function<void(void)>&& callback);
@@ -39,9 +33,7 @@ public:
     void stopScreenShare(std::function<void(int)> callback);
     void userReconnect(std::function<void(int)> callback);
     void cleanUser(const std::string& userId, std::function<void(int)> callback);
-
-    // {zh} ----------------------------------通知----------------------------------
-    // {en} ----------------------------------notify----------------------------------
+    // ----------------------------------notify----------------------------------
     void onCallEnd(std::function<void(int)>&& callback);
 
 private:

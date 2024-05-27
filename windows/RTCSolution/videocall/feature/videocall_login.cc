@@ -92,8 +92,7 @@ void VideoCallLoginWidget::initConnections() {
             if (login_) return;
             login_ = true;
             videocall::DataMgr::instance().setUserName(std::string(ui.edt_user_name->text().toUtf8()));
-            // {zh} 清除可能在其他房间的相同用户
-            // {en} Clear the same user who may be in another room
+            // Clear the same user who may be in another room
             vrd::VideoCallSession::instance().cleanUser(videocall::DataMgr::instance().user_id(), 
                 [=](int code) {
                     auto roomId = QString("call_").append(ui.edt_room_id->text());
@@ -108,8 +107,7 @@ void VideoCallLoginWidget::initConnections() {
                                     videocall::DataMgr::instance().room_id(),
                                     videocall::DataMgr::instance().user_id(),
                                     videocall::DataMgr::instance().token());
-                                // {zh} 适配无摄像头权限进房后移动端头像画面初始化失败
-                                // {en} Solve the issue that the avatar of the mobile app fails to initialize after entering the room without camera permission
+                                // Solve the issue that the avatar of the mobile app fails to initialize after entering the room without camera permission
                                 VideoCallRtcEngineWrap::muteLocalVideo(videocall::DataMgr::instance().mute_video());
                                 VideoCallRtcEngineWrap::enableLocalVideo(!videocall::DataMgr::instance().mute_video());
                                 VideoCallRtcEngineWrap::muteLocalAudio(videocall::DataMgr::instance().mute_audio());

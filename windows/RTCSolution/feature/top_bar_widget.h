@@ -6,11 +6,8 @@
 #include "push_button_warp.h"
 
 class MenuWarp;
-/** {zh}
- * 主页面顶部栏，主要包括设置菜单和一些子菜单项
- */
 
- /** {en}
+ /**
   * The top bar of the main page, including the settings menu and some submenu items
   */
 class TopBarWidget : public QWidget {

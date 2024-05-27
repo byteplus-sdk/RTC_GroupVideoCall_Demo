@@ -115,7 +115,6 @@ void SceneSelectWidget::initConnects() {
         });
 }
 
-
 void SceneSelectWidget::setupMoreSceneButton() {
 	auto moreBtn = new ImageButton(this);
     ui.sceneSelectLayout->addWidget(moreBtn, scene_count_ / 4,

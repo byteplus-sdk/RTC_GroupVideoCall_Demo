@@ -81,8 +81,7 @@ void VideoCallMainPage::init() {
     const auto& roomId = videocall::DataMgr::instance().room_id();
     auto find_pos = roomId.find("call_");
     if (find_pos != std::string::npos) {
-        // {zh} 5只得是前缀"call_"的长度
-        // {en} 5 means the length of string prefix "call_"
+        // 5 means the length of string prefix "call_"
         ui->lbl_room_id->setText(roomId.substr(find_pos + 5).c_str());
     }
     else {
@@ -234,8 +233,7 @@ void VideoCallMainPage::initConnections() {
 }
 
 void VideoCallMainPage::initCameraOption() {
-    // {zh} 摄像头选项按钮
-    // {en} camera option button
+    // camera option button
     auto camera_option_btn = new QPushButton(ui->cameraBtn);
     camera_option_btn->setFixedSize(QSize(16, 16));
     camera_option_btn->setIconSize(QSize(12, 12));
@@ -295,8 +293,7 @@ void VideoCallMainPage::initCameraOption() {
 }
 
 void VideoCallMainPage::initMicOption() {
-    // {zh} 麦克风选项按钮
-    // {en} mic option button
+    // mic option button
     auto audio_option_btn = new QPushButton(ui->micBtn);
     audio_option_btn->setFixedSize(QSize(16, 16));
     audio_option_btn->setIconSize(QSize(12, 12));
@@ -357,8 +354,7 @@ void VideoCallMainPage::initMicOption() {
 }
 
 void VideoCallMainPage::initShareOption() {
-    // {zh} 共享内容选项按钮
-    // {en} share option button
+    // share option button
     auto share_option_btn = new QPushButton(ui->shareBtn);
     share_option_btn->setFixedSize(QSize(16, 16));
     share_option_btn->setIconSize(QSize(12, 12));
