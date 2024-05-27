@@ -1,14 +1,14 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallLoginViewController.h"
-#import "GroupVideoCallRTCManager.h"
-#import "GroupVideoCallRoomViewController.h"
-#import "GroupVideoCallRoomUserModel.h"
-#import "GroupVideoCallRTSManager.h"
 #import "GroupVideoCallMockDataComponent.h"
+#import "GroupVideoCallRTCManager.h"
+#import "GroupVideoCallRTSManager.h"
+#import "GroupVideoCallRoomUserModel.h"
+#import "GroupVideoCallRoomViewController.h"
 
 #define TEXTFIELD_MAX_LENGTH 18
 
@@ -34,17 +34,17 @@
     self.view.backgroundColor = [UIColor blackColor];
     [self initUIComponent];
     [self authorizationStatusMicAndCamera];
-    
+
     NSString *sdkVer = [GroupVideoCallRTCManager getSdkVersion];
     NSString *appVer = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
     NSString *appStr = [NSString stringWithFormat:LocalizedString(@"app_version_v%@"), appVer];
     NSString *sdkStr = [NSString stringWithFormat:LocalizedString(@"sdk_version_v%@"), sdkVer];
     self.verLabel.text = [NSString stringWithFormat:@"%@ / %@", appStr, sdkStr];
-    
+
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyBoardDidShow:) name:UIKeyboardWillShowNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyBoardDidHide:) name:UIKeyboardWillHideNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
-    
+
     [self applicationBecomeActive];
 }
 
@@ -52,7 +52,7 @@
     [super viewWillAppear:animated];
     [self.navigationController setNavigationBarHidden:YES animated:NO];
     [UIApplication sharedApplication].statusBarStyle = UIStatusBarStyleLightContent;
-    
+
     ByteRTCVideoCanvas *canvas = [[ByteRTCVideoCanvas alloc] init];
     canvas.view = self.videoView;
     canvas.renderMode = ByteRTCRenderModeHidden;
@@ -61,7 +61,7 @@
     [[GroupVideoCallRTCManager shareRtc] setDeviceAudioRoute:ByteRTCAudioRouteSpeakerphone];
     [[GroupVideoCallRTCManager shareRtc] switchVideoCapture:YES];
     [[GroupVideoCallRTCManager shareRtc] setupLocalVideo:canvas];
-    
+
     self.isSpeakers = YES;
     [self updateSetingBtnImage];
     if (self.enableAudioBtn.status != ButtonStatusIllegal) {
@@ -90,7 +90,7 @@
     CGRect keyboardRect = [[notifiction.userInfo objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
     [UIView animateWithDuration:0.25 animations:^{
         [self.enterRoomBtn mas_updateConstraints:^(MASConstraintMaker *make) {
-            make.bottom.equalTo(self.view).offset(-keyboardRect.size.height - 80/2);
+            make.bottom.equalTo(self.view).offset(-keyboardRect.size.height - 80 / 2);
         }];
     }];
     self.emptImageView.hidden = YES;
@@ -100,7 +100,7 @@
 - (void)keyBoardDidHide:(NSNotification *)notifiction {
     [UIView animateWithDuration:0.25 animations:^{
         [self.enterRoomBtn mas_updateConstraints:^(MASConstraintMaker *make) {
-            make.bottom.equalTo(self.view).offset(-288/2 - [DeviceInforTool getVirtualHomeHeight]);
+            make.bottom.equalTo(self.view).offset(-288 / 2 - [DeviceInforTool getVirtualHomeHeight]);
         }];
     }];
     self.emptImageView.hidden = (self.enableVideoBtn.status == ButtonStatusNone);
@@ -121,7 +121,7 @@
     if (checkRoomId) {
         return;
     }
-    
+
     GroupVideoCallRoomUserModel *userModel = [[GroupVideoCallRoomUserModel alloc] init];
     userModel.uid = [LocalUserComponent userModel].uid;
     userModel.name = [LocalUserComponent userModel].name;
@@ -130,26 +130,26 @@
     userModel.isEnableVideo = self.enableVideoBtn.status == ButtonStatusNone;
     userModel.isScreen = NO;
     userModel.isSpeakers = self.isSpeakers;
-    
+
     [PublicParameterComponent share].roomId = userModel.roomId;
-    
+
     [[ToastComponent shareToastComponent] showLoading];
     __weak __typeof(self) wself = self;
     [GroupVideoCallRTSManager joinRoom:userModel
-                            block:^(NSString * _Nonnull token,
-                                    NSInteger duration,
-                                    RTSACKModel * _Nonnull model) {
-        if (model.result) {
-            [wself jumpToRoomVC:userModel
-                       rtcToken:token
-                       duration:duration];
-        } else {
-            AlertActionModel *alertModel = [[AlertActionModel alloc] init];
-            alertModel.title = LocalizedString(@"ok");
-            [[AlertActionManager shareAlertActionManager] showWithMessage:model.message actions:@[alertModel]];
-        }
-        [[ToastComponent shareToastComponent] dismiss];
-    }];
+                                 block:^(NSString *_Nonnull token,
+                                         NSInteger duration,
+                                         RTSACKModel *_Nonnull model) {
+                                     if (model.result) {
+                                         [wself jumpToRoomVC:userModel
+                                                    rtcToken:token
+                                                    duration:duration];
+                                     } else {
+                                         AlertActionModel *alertModel = [[AlertActionModel alloc] init];
+                                         alertModel.title = LocalizedString(@"ok");
+                                         [[AlertActionManager shareAlertActionManager] showWithMessage:model.message actions:@[alertModel]];
+                                     }
+                                     [[ToastComponent shareToastComponent] dismiss];
+                                 }];
 }
 
 - (void)jumpToRoomVC:(GroupVideoCallRoomUserModel *)localSession
@@ -169,7 +169,7 @@
         alertCancelModel.title = LocalizedString(@"cancel");
         AlertActionModel *alertModel = [[AlertActionModel alloc] init];
         alertModel.title = LocalizedString(@"ok");
-        alertModel.alertModelClickBlock = ^(UIAlertAction * _Nonnull action) {
+        alertModel.alertModelClickBlock = ^(UIAlertAction *_Nonnull action) {
             if ([action.title isEqualToString:LocalizedString(@"ok")]) {
                 [SystemAuthority autoJumpWithAuthorizationStatusWithType:AuthorizationTypeAudio];
             }
@@ -190,7 +190,7 @@
         alertCancelModel.title = LocalizedString(@"cancel");
         AlertActionModel *alertModel = [[AlertActionModel alloc] init];
         alertModel.title = LocalizedString(@"ok");
-        alertModel.alertModelClickBlock = ^(UIAlertAction * _Nonnull action) {
+        alertModel.alertModelClickBlock = ^(UIAlertAction *_Nonnull action) {
             if ([action.title isEqualToString:LocalizedString(@"ok")]) {
                 [SystemAuthority autoJumpWithAuthorizationStatusWithType:AuthorizationTypeCamera];
             }
@@ -217,14 +217,14 @@
 - (void)updateTextFieldChange:(UITextField *)textField {
     NSInteger tagNum = (self.roomIdTextField == textField) ? 3001 : 3002;
     UILabel *label = [self.view viewWithTag:tagNum];
-    
+
     NSString *message = @"";
     BOOL isExceedMaximLength = NO;
     if (textField.text.length > TEXTFIELD_MAX_LENGTH) {
         textField.text = [textField.text substringToIndex:TEXTFIELD_MAX_LENGTH];
         isExceedMaximLength = YES;
     }
-    
+
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(dismissErrorLabel:) object:textField];
     BOOL isIllegal = NO;
     if (self.roomIdTextField == textField) {
@@ -261,7 +261,7 @@
     button.imageView.contentMode = UIViewContentModeScaleAspectFit;
     button.backgroundColor = [UIColor colorWithWhite:1 alpha:0.1];
     button.layer.masksToBounds = YES;
-    button.layer.cornerRadius = 44/2;
+    button.layer.cornerRadius = 44 / 2;
 }
 
 - (void)updateEnterRoomButtonColor:(BOOL)isEnable {
@@ -279,7 +279,7 @@
     lineView.backgroundColor = [UIColor colorFromHexString:@"#FFFFFF"];
     [self.view addSubview:lineView];
     [lineView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.size.mas_equalTo(CGSizeMake(630/2, 1));
+        make.size.mas_equalTo(CGSizeMake(630 / 2, 1));
         make.centerX.equalTo(self.view);
         make.top.mas_equalTo(view.mas_bottom).offset(0);
     }];
@@ -304,78 +304,78 @@
     [self.videoView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self.view);
     }];
-    
+
     [self.view addSubview:self.maskView];
     [self.maskView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self.view);
     }];
-    
+
     [self.view addSubview:self.logoImageView];
     [self.logoImageView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.size.mas_equalTo(CGSizeMake(106, 20));
         make.centerX.equalTo(self.view);
-        make.top.mas_equalTo(128/2 + [DeviceInforTool getStatusBarHight]);
+        make.top.mas_equalTo(128 / 2 + [DeviceInforTool getStatusBarHight]);
     }];
-    
+
     [self.view addSubview:self.emptImageView];
     [self.emptImageView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.width.height.mas_equalTo(120);
         make.centerX.equalTo(self.view);
         make.top.mas_equalTo(self.logoImageView.mas_bottom).offset(50);
     }];
-    
+
     [self.maskView addGestureRecognizer:self.tap];
-    
+
     [self.view addSubview:self.enableAudioBtn];
     [self.enableAudioBtn mas_makeConstraints:^(MASConstraintMaker *make) {
         make.size.mas_equalTo(CGSizeMake(44, 44));
-        make.left.mas_equalTo(123/2);
-        make.bottom.mas_equalTo(-120/2 - [DeviceInforTool getVirtualHomeHeight]);
+        make.left.mas_equalTo(123 / 2);
+        make.bottom.mas_equalTo(-120 / 2 - [DeviceInforTool getVirtualHomeHeight]);
     }];
-    
+
     [self.view addSubview:self.enableVideoBtn];
     [self.enableVideoBtn mas_makeConstraints:^(MASConstraintMaker *make) {
         make.size.mas_equalTo(CGSizeMake(44, 44));
         make.centerX.equalTo(self.view);
-        make.bottom.mas_equalTo(-120/2 - [DeviceInforTool getVirtualHomeHeight]);
+        make.bottom.mas_equalTo(-120 / 2 - [DeviceInforTool getVirtualHomeHeight]);
     }];
-    
+
     [self.view addSubview:self.setingBtn];
     [self.setingBtn mas_makeConstraints:^(MASConstraintMaker *make) {
         make.size.mas_equalTo(CGSizeMake(44, 44));
-        make.right.mas_equalTo(-123/2);
-        make.bottom.mas_equalTo(-120/2 - [DeviceInforTool getVirtualHomeHeight]);
+        make.right.mas_equalTo(-123 / 2);
+        make.bottom.mas_equalTo(-120 / 2 - [DeviceInforTool getVirtualHomeHeight]);
     }];
-    
+
     [self.view addSubview:self.enterRoomBtn];
     [self.enterRoomBtn mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.size.mas_equalTo(CGSizeMake(630/2, 100/2));
+        make.size.mas_equalTo(CGSizeMake(630 / 2, 100 / 2));
         make.centerX.equalTo(self.view);
-        make.bottom.equalTo(self.view).offset(-288/2 - [DeviceInforTool getVirtualHomeHeight]);
+        make.bottom.equalTo(self.view).offset(-288 / 2 - [DeviceInforTool getVirtualHomeHeight]);
     }];
-    
+
     [self.view addSubview:self.roomIdTextField];
     [self.roomIdTextField mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.size.mas_equalTo(CGSizeMake(630/2, (40 + 46)/2));
+        make.size.mas_equalTo(CGSizeMake(630 / 2, (40 + 46) / 2));
         make.centerX.equalTo(self.view);
         make.bottom.equalTo(self.enterRoomBtn.mas_top).offset(-40);
     }];
-    
+
     [self.view addSubview:self.verLabel];
     [self.verLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.centerX.equalTo(self.view);
         make.bottom.equalTo(self.view).offset(-([DeviceInforTool getVirtualHomeHeight] + 20));
     }];
-    
+
     [self.view addSubview:self.navLeftButton];
     [self.navLeftButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.height.width.mas_equalTo(16);
         make.left.mas_equalTo(16);
         make.top.equalTo(self.view).offset([DeviceInforTool getStatusBarHight] + 16);
     }];
-    
+
     [self addLineView:self.roomIdTextField];
-    
+
     [self addErrorLabel:self.roomIdTextField tag:3001];
 }
 
@@ -385,7 +385,7 @@
             self.enableAudioBtn.status = ButtonStatusIllegal;
         }
     }];
-    
+
     [SystemAuthority authorizationStatusWithType:AuthorizationTypeCamera block:^(BOOL isAuthorize) {
         if (!isAuthorize) {
             self.emptImageView.hidden = NO;
@@ -415,12 +415,12 @@
         [_roomIdTextField addTarget:self action:@selector(roomNumTextFieldChange:) forControlEvents:UIControlEventEditingChanged];
         NSString *message = LocalizedString(@"please_enter_room_number");
         NSMutableAttributedString *attrString = [[NSMutableAttributedString alloc] initWithString:message];
-        
-        [attrString addAttributes:@{NSForegroundColorAttributeName : [UIColor colorFromHexString:@"#FFFFFF"]}
+
+        [attrString addAttributes:@{NSForegroundColorAttributeName: [UIColor colorFromHexString:@"#FFFFFF"]}
                             range:NSMakeRange(0, message.length)];
-        [attrString addAttributes:@{NSFontAttributeName : [UIFont systemFontOfSize:14]}
+        [attrString addAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:14]}
                             range:NSMakeRange(0, message.length)];
-        
+
         _roomIdTextField.attributedPlaceholder = attrString;
         _roomIdTextField.text = @"";
     }
@@ -465,7 +465,7 @@
         _enterRoomBtn = [[UIButton alloc] init];
         _enterRoomBtn.backgroundColor = [UIColor clearColor];
         _enterRoomBtn.layer.masksToBounds = YES;
-        _enterRoomBtn.layer.cornerRadius = 50/2;
+        _enterRoomBtn.layer.cornerRadius = 50 / 2;
         [_enterRoomBtn setTitle:LocalizedString(@"enter_the_room") forState:UIControlStateNormal];
         _enterRoomBtn.titleLabel.font = [UIFont systemFontOfSize:16 weight:UIFontWeightRegular];
         [_enterRoomBtn addTarget:self action:@selector(onClickEnterRoom:) forControlEvents:UIControlEventTouchUpInside];

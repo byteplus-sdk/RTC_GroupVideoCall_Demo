@@ -1,7 +1,7 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallNameView.h"
 
@@ -20,7 +20,7 @@
     if (self) {
         self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.4];
         self.layer.cornerRadius = 11.f;
-        
+
         self.micIcon = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"room_mic" bundleName:HomeBundleName]];
         [self addSubview:self.micIcon];
         [self.micIcon mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -28,7 +28,7 @@
             make.centerY.equalTo(self);
             make.width.height.equalTo(@(12.f));
         }];
-        
+
         self.nameLabel = [UILabel new];
         self.nameLabel.font = [UIFont systemFontOfSize:11];
         self.nameLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
@@ -60,6 +60,5 @@
 - (void)setName:(NSString *)name {
     self.nameLabel.text = name;
 }
-
 
 @end

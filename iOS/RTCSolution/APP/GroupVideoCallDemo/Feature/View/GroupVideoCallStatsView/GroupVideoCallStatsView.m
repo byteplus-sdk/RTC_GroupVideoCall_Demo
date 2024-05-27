@@ -1,17 +1,17 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallStatsView.h"
+#import "GroupVideoCallRoomAudioStatsTableViewCell.h"
 #import "GroupVideoCallRoomStatsView.h"
 #import "GroupVideoCallRoomVideoStatsTableViewCell.h"
-#import "GroupVideoCallRoomAudioStatsTableViewCell.h"
 
 @interface GroupVideoCallStatsView () <UITableViewDelegate, UITableViewDataSource>
 
-@property (nonatomic, copy) NSArray <GroupVideoCallRoomParamInfoModel *>*videoStatsInfoArray;
-@property (nonatomic, copy) NSArray <GroupVideoCallRoomParamInfoModel *>*audioStatsInfoArray;
+@property (nonatomic, copy) NSArray<GroupVideoCallRoomParamInfoModel *> *videoStatsInfoArray;
+@property (nonatomic, copy) NSArray<GroupVideoCallRoomParamInfoModel *> *audioStatsInfoArray;
 
 @property (nonatomic, strong) GroupVideoCallRoomStatsView *statsView;
 
@@ -26,14 +26,14 @@
     if (self) {
         self.backgroundColor = [UIColor clearColor];
         self.hidden = YES;
-        
+
         [self addSubview:self.statsView];
         [self.statsView mas_makeConstraints:^(MASConstraintMaker *make) {
             make.left.width.equalTo(self);
             make.height.mas_equalTo(414.f);
             make.bottom.equalTo(self).offset(414);
         }];
-        
+
         [self addSubview:self.statsCloseButton];
         [self.statsCloseButton mas_makeConstraints:^(MASConstraintMaker *make) {
             make.edges.equalTo(self);
@@ -44,19 +44,17 @@
 
 #pragma mark - Publish Action
 
-- (void)setVideoStats:(NSArray <GroupVideoCallRoomParamInfoModel *>*)videoStats {
+- (void)setVideoStats:(NSArray<GroupVideoCallRoomParamInfoModel *> *)videoStats {
     self.videoStatsInfoArray = videoStats;
-    
+
     [self.statsView.statsTableView reloadData];
 }
 
-- (void)setAudioStats:(NSArray <GroupVideoCallRoomParamInfoModel *>*)audioStats {
+- (void)setAudioStats:(NSArray<GroupVideoCallRoomParamInfoModel *> *)audioStats {
     self.audioStatsInfoArray = audioStats;
-    
+
     [self.statsView.statsTableView reloadData];
 }
-
-
 
 - (void)showStatsView {
     [UIView animateWithDuration:0.25 animations:^{
@@ -65,7 +63,7 @@
         }];
         [self.statsView.superview layoutIfNeeded];
     }];
-    
+
     self.hidden = NO;
     self.statsCloseButton.hidden = NO;
     self.statsView.hidden = NO;

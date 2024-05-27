@@ -1,7 +1,7 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "BaseUserModel.h"
 
@@ -16,4 +16,3 @@
 @property (nonatomic, assign) BOOL isSpeakers;
 
 @end
-

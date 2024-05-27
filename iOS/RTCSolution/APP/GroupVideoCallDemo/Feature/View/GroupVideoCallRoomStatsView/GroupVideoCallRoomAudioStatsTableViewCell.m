@@ -1,7 +1,7 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallRoomAudioStatsTableViewCell.h"
 
@@ -14,7 +14,6 @@
 @property (nonatomic, strong) UILabel *netQualityLabel;
 
 @end
-
 
 @implementation GroupVideoCallRoomAudioStatsTableViewCell
 
@@ -35,28 +34,28 @@
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         self.backgroundColor = [UIColor clearColor];
         self.contentView.backgroundColor = [UIColor clearColor];
-        
+
         UIView *backView = [UIView new];
         backView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.15];
         [self.contentView addSubview:backView];
-        
+
         [backView mas_makeConstraints:^(MASConstraintMaker *make) {
             make.left.top.equalTo(self.contentView).offset(16.f);
             make.right.equalTo(self.contentView).offset(-16.f);
             make.bottom.equalTo(self.contentView);
         }];
-        
+
         self.nameLabel = [UILabel new];
         self.nameLabel.textColor = [UIColor colorFromHexString:@"#86909C"];
         self.nameLabel.font = [UIFont boldSystemFontOfSize:12.f];
         [backView addSubview:self.nameLabel];
-        
+
         [self.nameLabel mas_makeConstraints:^(MASConstraintMaker *make) {
             make.left.equalTo(backView).offset(16.f);
             make.top.equalTo(backView).offset(8.f);
             make.height.equalTo(@(22.f));
         }];
-        
+
         UILabel *bitTitle = [UILabel new];
         bitTitle.textColor = [UIColor colorFromHexString:@"#86909C"];
         bitTitle.font = [UIFont systemFontOfSize:12.f];
@@ -67,7 +66,7 @@
             make.top.equalTo(self.nameLabel.mas_bottom).offset(15.f);
             make.height.equalTo(@(22.f));
         }];
-        
+
         self.bitLabel = [UILabel new];
         self.bitLabel.textColor = [UIColor colorFromHexString:@"#E5E6EB"];
         self.bitLabel.font = [UIFont boldSystemFontOfSize:12.f];
@@ -77,7 +76,7 @@
             make.top.equalTo(bitTitle.mas_bottom);
             make.height.equalTo(@(22.f));
         }];
-        
+
         UILabel *delayTitle = [UILabel new];
         delayTitle.textColor = [UIColor colorFromHexString:@"#86909C"];
         delayTitle.font = [UIFont systemFontOfSize:12.f];
@@ -119,7 +118,7 @@
             make.top.equalTo(lostTitle.mas_bottom);
             make.height.equalTo(@(22.f));
         }];
-        
+
         UILabel *netTitle = [UILabel new];
         netTitle.textColor = [UIColor colorFromHexString:@"#86909C"];
         netTitle.font = [UIFont systemFontOfSize:12.f];
@@ -140,7 +139,6 @@
             make.top.equalTo(netTitle.mas_bottom);
             make.height.equalTo(@(22.f));
         }];
-
     }
     return self;
 }

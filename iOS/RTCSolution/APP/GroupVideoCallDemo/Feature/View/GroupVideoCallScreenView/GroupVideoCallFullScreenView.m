@@ -1,11 +1,11 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallFullScreenView.h"
-#import "GroupVideoCallRTCManager.h"
 #import "GroupVideoCallNameView.h"
+#import "GroupVideoCallRTCManager.h"
 
 @interface GroupVideoCallFullScreenView ()
 
@@ -31,7 +31,7 @@
         self.userInteractionEnabled = YES;
         UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(fullClickActione)];
         [self addGestureRecognizer:tap];
-        
+
         [self addConstraints];
     }
     return self;
@@ -46,14 +46,14 @@
     if (self.hidden) {
         self.hidden = NO;
         self.dismissBlock = block;
-        
+
         UIView *screenRenderView = [[GroupVideoCallRTCManager shareRtc] getScreenStreamViewWithUid:uid];
         screenRenderView.hidden = NO;
         [self.renderScreenView addSubview:screenRenderView];
         [screenRenderView mas_makeConstraints:^(MASConstraintMaker *make) {
             make.edges.equalTo(self.renderScreenView);
         }];
-        
+
         [self.nameView setName:userName];
         GroupVideoCallNameView *nameView = [self.userTagLandscapeView viewWithTag:3001];
         [nameView setName:userName];
@@ -90,7 +90,7 @@
 
 - (void)setIsLandscape:(BOOL)isLandscape {
     _isLandscape = isLandscape;
-    
+
     self.orientationButton.status = isLandscape ? ButtonStatusActive : ButtonStatusNone;
     self.userTagLandscapeView.hidden = isLandscape ? NO : YES;
     self.nameView.hidden = isLandscape ? YES : NO;
@@ -101,12 +101,12 @@
     [self addSubview:self.renderScreenView];
     [self addSubview:self.orientationButton];
     [self addSubview:self.nameView];
-    
+
     [self.userTagLandscapeView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.top.right.equalTo(self);
         make.height.mas_equalTo(30);
     }];
-    
+
     [self.renderScreenView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.userTagLandscapeView.mas_bottom);
         make.left.right.bottom.equalTo(self);
@@ -114,15 +114,14 @@
 
     [self.orientationButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.size.mas_equalTo(CGSizeMake(44, 44));
-        make.right.bottom.mas_equalTo(-32/2);
+        make.right.bottom.mas_equalTo(-32 / 2);
     }];
-    
+
     [self.nameView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self).offset(4.f);
         make.bottom.equalTo(self).offset(-4.f);
     }];
 }
-
 
 #pragma mark - Getter
 
@@ -138,7 +137,7 @@
         _userTagLandscapeView = [[UIView alloc] init];
         _userTagLandscapeView.backgroundColor = [UIColor clearColor];
         _userTagLandscapeView.hidden = YES;
-        
+
         GroupVideoCallNameView *nameView = [[GroupVideoCallNameView alloc] init];
         nameView.tag = 3001;
         [_userTagLandscapeView addSubview:nameView];

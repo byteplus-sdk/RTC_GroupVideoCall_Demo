@@ -1,10 +1,10 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
-#import <UIKit/UIKit.h>
 #import "GroupVideoCallRoomUserModel.h"
+#import <UIKit/UIKit.h>
 
 @interface GroupVideoCallRoomViewController : UIViewController
 

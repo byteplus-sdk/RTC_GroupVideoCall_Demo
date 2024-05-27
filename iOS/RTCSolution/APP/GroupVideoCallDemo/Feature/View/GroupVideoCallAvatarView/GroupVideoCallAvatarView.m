@@ -1,7 +1,7 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallAvatarView.h"
 #import "GroupVideoCallNameView.h"
@@ -28,7 +28,7 @@
             make.size.mas_equalTo(CGSizeMake(0, 0));
             make.center.equalTo(self);
         }];
-        
+
         self.centerNameLabel = [UILabel new];
         self.centerNameLabel.backgroundColor = [UIColor colorFromHexString:@"#3E4045"];
         self.centerNameLabel.textAlignment = NSTextAlignmentCenter;
@@ -46,7 +46,7 @@
         [self.videoContainerView mas_makeConstraints:^(MASConstraintMaker *make) {
             make.edges.equalTo(self);
         }];
-        
+
         self.nameTagView = [GroupVideoCallNameView new];
         [self addSubview:self.nameTagView];
         [self.nameTagView mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -60,7 +60,7 @@
 
 - (void)layoutSubviews {
     [super layoutSubviews];
-    
+
     CGFloat labelWidth = 0;
     CGFloat volumeWidth = 0;
     if (self.frame.size.width >= SCREEN_WIDTH) {
@@ -79,11 +79,11 @@
         volumeWidth = 58;
         self.backgroundColor = [UIColor colorFromHexString:@"#282B30"];
     }
-    
+
     [self.volumeImageView mas_updateConstraints:^(MASConstraintMaker *make) {
         make.size.mas_equalTo(CGSizeMake(volumeWidth, volumeWidth));
     }];
-    
+
     [self.centerNameLabel mas_updateConstraints:^(MASConstraintMaker *make) {
         make.size.mas_equalTo(CGSizeMake(labelWidth, labelWidth));
     }];
@@ -102,7 +102,7 @@
     } else {
         self.volumeImageView.hidden = YES;
     }
-    
+
     [self.nameTagView setMicStatus:status];
 }
 
@@ -110,10 +110,10 @@
     if (name.length >= 1) {
         NSString *firstLetter = [name substringToIndex:1];
         self.centerNameLabel.text = firstLetter;
-    }else {
+    } else {
         self.centerNameLabel.text = nil;
     }
-    
+
     [self.nameTagView setName:name];
 }
 

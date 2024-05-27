@@ -1,7 +1,7 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallRoomBottomView.h"
 
@@ -20,12 +20,12 @@
         self.isAction = NO;
         self.clipsToBounds = NO;
         self.backgroundColor = [UIColor colorFromHexString:@"#1D2129"];
-        
+
         [self addSubview:self.contentView];
         [self.contentView mas_makeConstraints:^(MASConstraintMaker *make) {
             make.edges.equalTo(self);
         }];
-        
+
         [self addSubviewAndConstraints];
     }
     return self;
@@ -63,8 +63,8 @@
         [self.contentView addSubview:button];
         [self.buttonLists addObject:button];
     }
-    
-    [self.contentView.subviews mas_distributeViewsAlongAxis:MASAxisTypeHorizontal withFixedItemLength:150/2 leadSpacing:0 tailSpacing:0];
+
+    [self.contentView.subviews mas_distributeViewsAlongAxis:MASAxisTypeHorizontal withFixedItemLength:150 / 2 leadSpacing:0 tailSpacing:0];
     [self.contentView.subviews mas_updateConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.contentView);
         make.bottom.mas_equalTo(-[DeviceInforTool getVirtualHomeHeight]);

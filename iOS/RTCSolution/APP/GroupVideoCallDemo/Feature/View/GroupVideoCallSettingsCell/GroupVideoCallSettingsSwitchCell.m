@@ -1,7 +1,7 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallSettingsSwitchCell.h"
 #import <Masonry.h>
@@ -31,24 +31,24 @@
 - (void)createUIComponent {
     [self.contentView addSubview:self.settingsLabel];
     [self.settingsLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-      make.left.equalTo(self.contentView).mas_offset(15.f);
-      make.centerY.equalTo(self.contentView);
+        make.left.equalTo(self.contentView).mas_offset(15.f);
+        make.centerY.equalTo(self.contentView);
     }];
 
     self.settingsSwitch = [[UISwitch alloc] init];
     self.settingsSwitch.onTintColor = [UIColor colorFromHexString:@"#4080FF"];
     [self.contentView addSubview:self.settingsSwitch];
     [self.settingsSwitch mas_makeConstraints:^(MASConstraintMaker *make) {
-      make.right.equalTo(self.contentView).mas_offset(-15.f);
-      make.centerY.equalTo(self.contentView);
+        make.right.equalTo(self.contentView).mas_offset(-15.f);
+        make.centerY.equalTo(self.contentView);
     }];
     [self.settingsSwitch addTarget:self
                             action:@selector(switchValueChange:)
                   forControlEvents:UIControlEventTouchUpInside];
-    
+
     [self.contentView addSubview:self.lineView];
     [self.lineView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.mas_equalTo(32/2.f);
+        make.left.mas_equalTo(32 / 2.f);
         make.height.mas_equalTo(1);
         make.right.bottom.equalTo(self.contentView);
     }];

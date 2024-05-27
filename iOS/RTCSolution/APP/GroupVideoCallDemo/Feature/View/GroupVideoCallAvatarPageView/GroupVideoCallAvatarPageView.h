@@ -1,7 +1,7 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import <UIKit/UIKit.h>
 
@@ -15,10 +15,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-
 @interface GroupVideoCallAvatarPageView : UIView
 
-@property (nonatomic, weak) id <GroupVideoCallAvatarPageViewDelegate> avatarPageViewDelegate;
+@property (nonatomic, weak) id<GroupVideoCallAvatarPageViewDelegate> avatarPageViewDelegate;
 
 @property (nonatomic, readonly) NSUInteger currentPageIndex;
 
@@ -72,7 +71,6 @@ NS_ASSUME_NONNULL_BEGIN
  * @brief Set the video window corresponding to the index as the main window (only effective when there are only two video windows)
  */
 - (void)bringViewToMainAvatarViewOfIndex:(NSUInteger)index;
-
 
 @end
 

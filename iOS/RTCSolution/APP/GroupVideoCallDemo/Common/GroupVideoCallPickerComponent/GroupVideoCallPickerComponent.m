@@ -1,11 +1,11 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallPickerComponent.h"
 
-@interface GroupVideoCallPickerComponent () <UIPickerViewDelegate,UIPickerViewDataSource>
+@interface GroupVideoCallPickerComponent () <UIPickerViewDelegate, UIPickerViewDataSource>
 
 @property (nonatomic, strong) UIPickerView *pickerView;
 @property (nonatomic, weak) UIView *superView;
@@ -24,7 +24,6 @@
 @end
 
 @implementation GroupVideoCallPickerComponent
-
 
 - (instancetype)initWithHeight:(CGFloat)height superView:(UIView *)superView {
     self = [super init];
@@ -59,11 +58,11 @@
 
 - (void)show:(NSArray *)dataLists selectItem:(id)item {
     [self addSubViewAndConstraints];
-    
+
     self.dataLists = dataLists;
     [self.pickerView reloadAllComponents];
     self.selectItem = dataLists.firstObject;
-    
+
     if (item) {
         NSInteger row = 0;
         if ([item isKindOfClass:[NSDictionary class]]) {
@@ -81,7 +80,7 @@
         self.selectRow = row;
         [self.pickerView selectRow:row inComponent:0 animated:NO];
     }
-    
+
     dispatch_async(dispatch_get_main_queue(), ^{
         [UIView animateWithDuration:0.25 animations:^{
             [self.contentView mas_updateConstraints:^(MASConstraintMaker *make) {
@@ -122,34 +121,34 @@
     [self.maskView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(_superView);
     }];
-    
+
     [self.maskView addSubview:self.contentView];
     [self.contentView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.right.equalTo(self.maskView);
         make.bottom.equalTo(self.maskView).offset(_currentHeight);
         make.height.mas_equalTo(_currentHeight);
     }];
-    
+
     [self.contentView addSubview:self.titleLabel];
     [self.titleLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.height.mas_equalTo(108/2);
+        make.height.mas_equalTo(108 / 2);
         make.width.top.centerX.equalTo(self.contentView);
     }];
-    
+
     [self.contentView addSubview:self.cancelButton];
     [self.cancelButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.width.height.mas_greaterThanOrEqualTo(44);
         make.left.equalTo(self.titleLabel).offset(18);
         make.centerY.equalTo(self.titleLabel);
     }];
-    
+
     [self.contentView addSubview:self.confirmButton];
     [self.confirmButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.width.height.mas_equalTo(44);
         make.right.equalTo(self.titleLabel).offset(-18);
         make.centerY.equalTo(self.titleLabel);
     }];
-    
+
     [self.contentView addSubview:self.pickerView];
     [self.pickerView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.right.bottom.equalTo(self.contentView);
@@ -166,7 +165,6 @@
     return self.dataLists.count;
 }
 
-
 #pragma mark - UIPickerViewDelegate
 
 - (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
@@ -175,7 +173,7 @@
     self.selectRow = row;
 }
 
-- (UIView *)pickerView:(UIPickerView *)pickerView viewForRow:(NSInteger)row forComponent:(NSInteger)component reusingView:(UIView *)view{
+- (UIView *)pickerView:(UIPickerView *)pickerView viewForRow:(NSInteger)row forComponent:(NSInteger)component reusingView:(UIView *)view {
     id item = self.dataLists[row];
     NSString *titleString = @"";
     if ([item isKindOfClass:[NSDictionary class]]) {
@@ -217,7 +215,6 @@
     return _pickerView;
 }
 
-
 - (UIView *)contentView {
     if (!_contentView) {
         _contentView = [[UIView alloc] init];
@@ -258,9 +255,8 @@
     return _confirmButton;
 }
 
-
 - (void)dealloc {
-    NSLog(@"dealloc %@",NSStringFromClass([self class]));
+    NSLog(@"dealloc %@", NSStringFromClass([self class]));
 }
 
 @end

@@ -1,7 +1,7 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallRoomNavView.h"
 
@@ -27,7 +27,7 @@
     if (self) {
         self.backgroundColor = [UIColor colorFromHexString:@"#1D2129"];
         [self addSubviewAndConstraints];
-        
+
         __weak __typeof(self) wself = self;
         [self.timer startTimerWithSpace:1 block:^(BOOL result) {
             [wself timerMethod];
@@ -67,7 +67,6 @@
     self.roomIdLabel.text = [NSString stringWithFormat:@"ID：%@", roomIDStr];
 }
 
-
 #pragma mark - Private Action
 
 - (void)timerMethod {
@@ -83,17 +82,17 @@
     [self addSubview:self.switchCameraBtn];
     [self.switchCameraBtn mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self).mas_offset(16.f);
-        make.centerY.equalTo(self).mas_offset([DeviceInforTool getStatusBarHight]/2);
+        make.centerY.equalTo(self).mas_offset([DeviceInforTool getStatusBarHight] / 2);
         make.height.width.mas_equalTo(24);
     }];
 
     [self addSubview:self.hangeupButton];
     [self.hangeupButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.right.equalTo(self).mas_offset(-16.f);
-        make.centerY.equalTo(self).mas_offset([DeviceInforTool getStatusBarHight]/2);
+        make.centerY.equalTo(self).mas_offset([DeviceInforTool getStatusBarHight] / 2);
         make.height.width.mas_equalTo(24.f);
     }];
-    
+
     [self.contentView addSubview:self.lineView];
     [self.contentView addSubview:self.roomIdLabel];
     [self.contentView addSubview:self.timeLabel];
@@ -103,19 +102,19 @@
         make.centerX.equalTo(self);
         make.centerY.equalTo(self.hangeupButton);
     }];
-    
+
     [self.roomIdLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self.contentView);
         make.centerY.equalTo(self.hangeupButton);
         make.height.mas_equalTo(44);
     }];
-    
+
     [self.lineView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.size.mas_equalTo(CGSizeMake(1, 12));
         make.left.equalTo(self.roomIdLabel.mas_right).offset(10);
         make.centerY.equalTo(self.hangeupButton);
     }];
-    
+
     [self.timeLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self.lineView.mas_right).offset(8);
         make.right.equalTo(self.contentView);
@@ -126,7 +125,7 @@
 - (void)roomIdLabelLongPressAction:(UILongPressGestureRecognizer *)pan {
     UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
     pasteboard.string = self.localVideoSession.roomId;
-    
+
     [[ToastComponent shareToastComponent] showWithMessage:LocalizedString(@"room_number_copied")];
 }
 
@@ -155,7 +154,7 @@
         _roomIdLabel = [[UILabel alloc] init];
         _roomIdLabel.textColor = [UIColor whiteColor];
         _roomIdLabel.font = [UIFont systemFontOfSize:16.f];
-        
+
         _roomIdLabel.userInteractionEnabled = YES;
         UILongPressGestureRecognizer *longTouch = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(roomIdLabelLongPressAction:)];
         longTouch.minimumPressDuration = 1;

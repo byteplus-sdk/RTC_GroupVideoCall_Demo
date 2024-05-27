@@ -1,7 +1,7 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallRoomItemButton.h"
 
@@ -17,7 +17,7 @@
     self = [super init];
     if (self) {
         self.clipsToBounds = NO;
-        
+
         [self addSubview:self.desLabel];
         [self.desLabel mas_makeConstraints:^(MASConstraintMaker *make) {
             make.bottom.equalTo(self).offset(-10);
@@ -29,13 +29,13 @@
 
 - (void)setDesTitle:(NSString *)desTitle {
     _desTitle = desTitle;
-    
+
     self.desLabel.text = desTitle;
 }
 
 - (void)setIsAction:(BOOL)isAction {
     _isAction = isAction;
-    
+
     if (isAction) {
         self.desLabel.textColor = [UIColor colorFromHexString:@"#165DFF"];
     } else {

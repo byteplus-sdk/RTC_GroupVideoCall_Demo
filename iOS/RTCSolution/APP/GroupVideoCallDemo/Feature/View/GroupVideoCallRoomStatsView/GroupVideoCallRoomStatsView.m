@@ -1,7 +1,7 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallRoomStatsView.h"
 
@@ -18,16 +18,15 @@
 
 @end
 
-
 @implementation GroupVideoCallRoomStatsView
 
 - (instancetype)init {
     self = [super init];
     if (self) {
         self.currentSelectedIndex = 0;
-        
+
         self.backgroundColor = [UIColor colorFromHexString:@"#272E3B"];
-        
+
         self.videoStatsButton = [UIButton new];
         [self.videoStatsButton setTitle:LocalizedString(@"video_real-time_data") forState:UIControlStateNormal];
         [self.videoStatsButton setTitleColor:[UIColor colorFromHexString:@"#E5E6EB"] forState:UIControlStateNormal];
@@ -36,13 +35,13 @@
         [self.videoStatsButton addTarget:self action:@selector(onClickTitle:) forControlEvents:UIControlEventTouchUpInside];
         [self addSubview:self.videoStatsButton];
         self.videoStatsButton.selected = YES;
-        
+
         [self.videoStatsButton mas_makeConstraints:^(MASConstraintMaker *make) {
             make.left.top.equalTo(self);
             make.width.equalTo(@(0.5 * SCREEN_WIDTH));
             make.height.equalTo(@(48.f));
         }];
-        
+
         self.videoStatsLine = [UIView new];
         self.videoStatsLine.backgroundColor = [UIColor colorFromHexString:@"#4080FF"];
         [self addSubview:self.videoStatsLine];
@@ -53,7 +52,7 @@
             make.height.equalTo(@(2.f));
         }];
         self.videoStatsLine.hidden = NO;
-        
+
         self.audioStatsButton = [UIButton new];
         [self.audioStatsButton setTitle:LocalizedString(@"audio_real-time_data") forState:UIControlStateNormal];
         [self.audioStatsButton setTitleColor:[UIColor colorFromHexString:@"#E5E6EB"] forState:UIControlStateNormal];
@@ -61,7 +60,7 @@
         self.audioStatsButton.titleLabel.font = [UIFont systemFontOfSize:16];
         [self.audioStatsButton addTarget:self action:@selector(onClickTitle:) forControlEvents:UIControlEventTouchUpInside];
         [self addSubview:self.audioStatsButton];
-        
+
         [self.audioStatsButton mas_makeConstraints:^(MASConstraintMaker *make) {
             make.right.top.equalTo(self);
             make.width.equalTo(@(0.5 * SCREEN_WIDTH));
@@ -107,6 +106,5 @@
     }
     [self.statsTableView reloadData];
 }
-
 
 @end

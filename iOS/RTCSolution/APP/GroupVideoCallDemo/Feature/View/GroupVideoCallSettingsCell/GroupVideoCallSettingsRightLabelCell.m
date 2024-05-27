@@ -1,7 +1,7 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallSettingsRightLabelCell.h"
 #import <Masonry.h>
@@ -33,26 +33,26 @@
     [self.contentView addSubview:self.settingsLabel];
     [self.settingsLabel setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
     [self.settingsLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.equalTo(self.contentView).mas_offset(32/2.f);
+        make.left.equalTo(self.contentView).mas_offset(32 / 2.f);
         make.centerY.equalTo(self.contentView);
     }];
 
     [self.contentView addSubview:self.settingsRightLabel];
     [self.settingsRightLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.right.equalTo(self.contentView).mas_offset(-80/2.f);
+        make.right.equalTo(self.contentView).mas_offset(-80 / 2.f);
         make.centerY.equalTo(self.contentView);
     }];
-    
+
     [self.contentView addSubview:self.moreImageView];
     [self.moreImageView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.size.mas_equalTo(CGSizeMake(32/2, 32/2));
-        make.right.equalTo(self.contentView).mas_offset(-32/2.f);
+        make.size.mas_equalTo(CGSizeMake(32 / 2, 32 / 2));
+        make.right.equalTo(self.contentView).mas_offset(-32 / 2.f);
         make.centerY.equalTo(self.contentView);
     }];
-    
+
     [self.contentView addSubview:self.lineView];
     [self.lineView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.mas_equalTo(32/2.f);
+        make.left.mas_equalTo(32 / 2.f);
         make.height.mas_equalTo(1);
         make.right.bottom.equalTo(self.contentView);
     }];

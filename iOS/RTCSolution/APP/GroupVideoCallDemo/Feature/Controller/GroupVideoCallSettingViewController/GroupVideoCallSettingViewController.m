@@ -1,14 +1,14 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
-#import "GroupVideoCallMockDataComponent.h"
-#import "GroupVideoCallSettingsRightLabelCell.h"
-#import "GroupVideoCallSettingsSwitchCell.h"
 #import "GroupVideoCallSettingViewController.h"
+#import "GroupVideoCallMockDataComponent.h"
 #import "GroupVideoCallPickerComponent.h"
 #import "GroupVideoCallRTCManager.h"
+#import "GroupVideoCallSettingsRightLabelCell.h"
+#import "GroupVideoCallSettingsSwitchCell.h"
 
 static NSString *const kGroupVideoCallSettingsRightLabelCellIdentifier = @"kGroupVideoCallSettingsRightLabelCellIdentifier";
 static NSString *const kGroupVideoCallSettingsSwitchCellIdentifier = @"kGroupVideoCallSettingsSwitchCellIdentifier";
@@ -75,7 +75,7 @@ typedef NS_ENUM(NSInteger, SettingsGroupType) {
             [labelCell settingsLabel].text = self.groupTypes[indexPath.row];
             [labelCell settingsRightLabel].text = mockData.currentaudioProfileDic[@"title"];
         } break;
-            
+
         case SettingsGroupTypeMirror: {
             cell = (GroupVideoCallSettingsSwitchCell *)[tableView dequeueReusableCellWithIdentifier:kGroupVideoCallSettingsSwitchCellIdentifier forIndexPath:indexPath];
             GroupVideoCallSettingsSwitchCell *mirrorCell = (GroupVideoCallSettingsSwitchCell *)cell;
@@ -126,14 +126,14 @@ typedef NS_ENUM(NSInteger, SettingsGroupType) {
                 wself.audioProfilePicker = nil;
             };
         } break;
-        
+
         default:
             break;
     }
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 119/2;
+    return 119 / 2;
 }
 
 #pragma mark - Private Action
@@ -165,7 +165,7 @@ typedef NS_ENUM(NSInteger, SettingsGroupType) {
 
 - (GroupVideoCallPickerComponent *)resolutionPicker {
     if (!_resolutionPicker) {
-        _resolutionPicker = [[GroupVideoCallPickerComponent alloc] initWithHeight:566/2 superView:self.view];
+        _resolutionPicker = [[GroupVideoCallPickerComponent alloc] initWithHeight:566 / 2 superView:self.view];
         _resolutionPicker.titleStr = LocalizedString(@"resolution");
     }
     return _resolutionPicker;
@@ -173,7 +173,7 @@ typedef NS_ENUM(NSInteger, SettingsGroupType) {
 
 - (GroupVideoCallPickerComponent *)audioProfilePicker {
     if (!_audioProfilePicker) {
-        _audioProfilePicker = [[GroupVideoCallPickerComponent alloc] initWithHeight:566/2 superView:self.view];
+        _audioProfilePicker = [[GroupVideoCallPickerComponent alloc] initWithHeight:566 / 2 superView:self.view];
         _audioProfilePicker.titleStr = LocalizedString(@"call_quality");
     }
     return _audioProfilePicker;

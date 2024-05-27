@@ -1,20 +1,20 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallRoomViewController.h"
-#import "GroupVideoCallSettingViewController.h"
-#import "GroupVideoCallRoomNavView.h"
-#import "GroupVideoCallRoomBottomView.h"
-#import "GroupVideoCallRoomViewController+Listener.h"
-#import "UIViewController+Orientation.h"
-#import "GroupVideoCallRTCManager.h"
-#import "GroupVideoCallRTSManager.h"
 #import "GroupVideoCallAvatarPageView.h"
 #import "GroupVideoCallAvatarView.h"
 #import "GroupVideoCallFullScreenView.h"
+#import "GroupVideoCallRTCManager.h"
+#import "GroupVideoCallRTSManager.h"
+#import "GroupVideoCallRoomBottomView.h"
+#import "GroupVideoCallRoomNavView.h"
+#import "GroupVideoCallRoomViewController+Listener.h"
+#import "GroupVideoCallSettingViewController.h"
 #import "GroupVideoCallStatsView.h"
+#import "UIViewController+Orientation.h"
 
 @interface GroupVideoCallRoomViewController () <UINavigationControllerDelegate, GroupVideoCallRTCManagerDelegate, GroupVideoCallRoomNavViewDelegate, GroupVideoCallRoomBottomViewDelegate, GroupVideoCallAvatarPageViewDelegate>
 
@@ -24,7 +24,7 @@
 @property (nonatomic, strong) GroupVideoCallFullScreenView *fullScreenView;
 @property (nonatomic, strong) GroupVideoCallStatsView *statsView;
 @property (nonatomic, strong) GroupVideoCallRoomUserModel *localUserModel;
-@property (nonatomic, strong) NSMutableArray <GroupVideoCallRoomUserModel *>*userArray;
+@property (nonatomic, strong) NSMutableArray<GroupVideoCallRoomUserModel *> *userArray;
 @property (nonatomic, assign) NSInteger currentFullScreenUserIndex;
 @property (nonatomic, assign) NSInteger duration;
 
@@ -38,15 +38,15 @@
     self = [super init];
     if (self) {
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationBecomeActive) name:UIApplicationWillEnterForegroundNotification object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationEnterBackground) name: UIApplicationDidEnterBackgroundNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
         [UIApplication sharedApplication].idleTimerDisabled = YES;
         self.localUserModel = loginModel;
         self.duration = duration;
         self.currentFullScreenUserIndex = -1;
-        
+
         [GroupVideoCallRTCManager shareRtc].delegate = self;
         [[GroupVideoCallRTCManager shareRtc] joinRTCRoomWithModel:self.localUserModel
-                                                    rtcToken:rtcToken];
+                                                         rtcToken:rtcToken];
     }
     return self;
 }
@@ -62,7 +62,7 @@
     [self createUIComponent];
     [self updateNavTime:self.duration];
     [self startLocalCameraPreview];
-    
+
     __weak __typeof(self) wself = self;
     self.fullScreenView.clickOrientationBlock = ^(BOOL isLandscape) {
         if (!isLandscape) {
@@ -78,13 +78,13 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    
+
     [self.navigationController setNavigationBarHidden:YES animated:NO];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
-    
+
     [self setAllowAutoRotate:ScreenOrientationPortrait];
 }
 
@@ -110,9 +110,9 @@
     CGFloat bottomBottom = 0;
     if (isLandscape) {
         navHeight = 0;
-        bottomBottom = (128/2 + [DeviceInforTool getVirtualHomeHeight] * 2);
+        bottomBottom = (128 / 2 + [DeviceInforTool getVirtualHomeHeight] * 2);
     }
-    
+
     [self.navView mas_updateConstraints:^(MASConstraintMaker *make) {
         make.height.mas_equalTo(navHeight);
     }];
@@ -129,21 +129,21 @@
     }
 }
 
-- (void)rtcManager:(GroupVideoCallRTCManager * _Nonnull)rtcManager onUserJoined:(NSString *_Nullable)uid userName:(NSString *_Nullable)name {
+- (void)rtcManager:(GroupVideoCallRTCManager *_Nonnull)rtcManager onUserJoined:(NSString *_Nullable)uid userName:(NSString *_Nullable)name {
     // The remote user joins the room
     dispatch_queue_async_safe(dispatch_get_main_queue(), ^{
         [self addRemoteUserViewWithUid:uid name:name];
     });
 }
 
-- (void)rtcManager:(GroupVideoCallRTCManager * _Nonnull)rtcManager onUserLeaved:(NSString *_Nullable)uid {
+- (void)rtcManager:(GroupVideoCallRTCManager *_Nonnull)rtcManager onUserLeaved:(NSString *_Nullable)uid {
     // The remote user leaves the room
     dispatch_queue_async_safe(dispatch_get_main_queue(), ^{
         [self removeRemoteUserViewWithUid:uid isOnlyRemoveScreenShare:NO];
     });
 }
 
-- (void)rtcManager:(GroupVideoCallRTCManager * _Nonnull)rtcManager didScreenStreamAdded:(NSString *_Nullable)screenStreamsUid {
+- (void)rtcManager:(GroupVideoCallRTCManager *_Nonnull)rtcManager didScreenStreamAdded:(NSString *_Nullable)screenStreamsUid {
     // Callback on new screen sharing media streams from remote users in the room.
     dispatch_queue_async_safe(dispatch_get_main_queue(), ^{
         [self addRemoteScreenViewWithUid:screenStreamsUid];
@@ -158,7 +158,7 @@
     });
 }
 
-- (void)rtcManager:(GroupVideoCallRTCManager *_Nullable)rtcManager didUpdateVideoStatsInfo:(NSDictionary <NSString *, GroupVideoCallRoomParamInfoModel *>*_Nullable)statsInfo {
+- (void)rtcManager:(GroupVideoCallRTCManager *_Nullable)rtcManager didUpdateVideoStatsInfo:(NSDictionary<NSString *, GroupVideoCallRoomParamInfoModel *> *_Nullable)statsInfo {
     // Received video stream information change
     dispatch_queue_async_safe(dispatch_get_main_queue(), ^{
         NSMutableArray *videoStatsInfoArray = [NSMutableArray array];
@@ -166,21 +166,21 @@
             if (userModel.isScreen) {
                 continue;
             }
-            
+
             GroupVideoCallRoomParamInfoModel *videoStatsInfo = [statsInfo objectForKey:userModel.uid];
             if (!videoStatsInfo) {
                 continue;
             }
-            
+
             videoStatsInfo.name = userModel.name;
             [videoStatsInfoArray addObject:videoStatsInfo];
         }
-        
+
         [self.statsView setVideoStats:videoStatsInfoArray];
     });
 }
 
-- (void)rtcManager:(GroupVideoCallRTCManager *_Nullable)rtcManager didUpdateAudioStatsInfo:(NSDictionary <NSString *, GroupVideoCallRoomParamInfoModel *>*_Nullable)statsInfo {
+- (void)rtcManager:(GroupVideoCallRTCManager *_Nullable)rtcManager didUpdateAudioStatsInfo:(NSDictionary<NSString *, GroupVideoCallRoomParamInfoModel *> *_Nullable)statsInfo {
     // Received audio stream information change
     dispatch_queue_async_safe(dispatch_get_main_queue(), ^{
         NSMutableArray *audioStatsInfoArray = [NSMutableArray array];
@@ -188,16 +188,16 @@
             if (userModel.isScreen) {
                 continue;
             }
-            
+
             GroupVideoCallRoomParamInfoModel *audioStatsInfo = [statsInfo objectForKey:userModel.uid];
             if (!audioStatsInfo) {
                 continue;
             }
-            
+
             audioStatsInfo.name = userModel.name;
             [audioStatsInfoArray addObject:audioStatsInfo];
         }
-        
+
         [self.statsView setAudioStats:audioStatsInfoArray];
     });
 }
@@ -207,9 +207,9 @@
     for (GroupVideoCallRoomUserModel *userModel in self.userArray) {
         NSUInteger index = [self.userArray indexOfObject:userModel];
         GroupVideoCallAvatarView *avatarView = (GroupVideoCallAvatarView *)[self.roomMainView avatarViewAtIndex:index];
-        
+
         GroupVideoCallAvatarViewMicStatus micStatus = GroupVideoCallAvatarViewMicStatusOff;
-        
+
         if (userModel.isEnableAudio) {
             NSString *uid = userModel.uid;
             NSNumber *value = [volumeInfo objectForKey:uid];
@@ -225,27 +225,27 @@
     }
 }
 
-- (void)rtcManager:(GroupVideoCallRTCManager *_Nonnull)rtcManager onUserMuteAudio:(NSString * _Nonnull)uid isMute:(BOOL)isMute {
+- (void)rtcManager:(GroupVideoCallRTCManager *_Nonnull)rtcManager onUserMuteAudio:(NSString *_Nonnull)uid isMute:(BOOL)isMute {
     // Callback received when the remote user closes the audio stream
     dispatch_queue_async_safe(dispatch_get_main_queue(), ^{
         [self setMuteAudioWithUid:uid ismute:isMute];
     });
 }
 
-- (void)rtcManager:(GroupVideoCallRTCManager *_Nonnull)rtcManager onUserMuteVideo:(NSString * _Nonnull)uid isMute:(BOOL)isMute {
+- (void)rtcManager:(GroupVideoCallRTCManager *_Nonnull)rtcManager onUserMuteVideo:(NSString *_Nonnull)uid isMute:(BOOL)isMute {
     // Callback received when the remote user closes the video stream
     dispatch_queue_async_safe(dispatch_get_main_queue(), ^{
         [self setMuteVideoWithUid:uid ismute:isMute];
     });
 }
 
-- (void)rtcManager:(GroupVideoCallRTCManager *)rtcManager onAudioRouteChanged:(BOOL)isHeadset {
+- (void)rtcManager:(GroupVideoCallRTCManager *)rtcManager onAudioRouteChanged:(BOOL)isHeadset isSpeakerphone:(BOOL)isSpeakerphone {
     // Received remote user audio settings change
     if (isHeadset) {
         [self.bottomView updateButtonStatus:RoomBottomStatusAudio enable:NO];
     } else {
         [self.bottomView updateButtonStatus:RoomBottomStatusAudio enable:YES];
-        [self.bottomView updateButtonStatus:RoomBottomStatusAudio close:NO];
+        [self.bottomView updateButtonStatus:RoomBottomStatusAudio close:!isSpeakerphone];
     }
 }
 
@@ -274,7 +274,6 @@
         GroupVideoCallSettingViewController *settingsVC = [[GroupVideoCallSettingViewController alloc] init];
         [self.navigationController pushViewController:settingsVC animated:YES];
     } else {
-        
     }
 }
 
@@ -293,11 +292,9 @@
 #pragma mark - GroupVideoCallAvatarPageViewDelegate
 
 - (void)onShowAvatarView:(UIView *)avatarView index:(NSUInteger)index {
-    
 }
 
 - (void)onHideAvatarView:(UIView *)avatarView index:(NSUInteger)index {
-    
 }
 
 - (void)onClickAvatarView:(UIView *)avatarView index:(NSUInteger)index {
@@ -313,27 +310,25 @@
         if (!userModel.isScreen) {
             return;
         }
-        
+
         [self showFullScreenViewWithIndex:index];
     }
 }
 
 - (void)onScrollToPageIndex:(NSUInteger)pageIndex {
-    
 }
 
 #pragma mark - Network request Action
 
 - (void)groupVideoCallReconnect {
     __weak __typeof(self) wself = self;
-    [GroupVideoCallRTSManager reconnectWithBlock:^(NSString * _Nonnull RTCToken, RTSACKModel * _Nonnull model) {
+    [GroupVideoCallRTSManager reconnectWithBlock:^(NSString *_Nonnull RTCToken, RTSACKModel *_Nonnull model) {
         if (model.code == RTSStatusCodeUserIsInactive ||
-                   model.code == RTSStatusCodeRoomDisbanded ||
-                   model.code == RTSStatusCodeUserNotFound) {
+            model.code == RTSStatusCodeRoomDisbanded ||
+            model.code == RTSStatusCodeUserNotFound) {
             [wself hangUp];
             [[ToastComponent shareToastComponent] showWithMessage:model.message];
         } else {
-
         }
     }];
 }
@@ -345,7 +340,7 @@
      * @brief leave business room
      */
     [GroupVideoCallRTSManager leaveRoom];
-    
+
     /**
      * @brief leave the RTC room
      */
@@ -359,7 +354,7 @@
     for (GroupVideoCallRoomUserModel *userModel in self.userArray) {
         if ([userModel.uid isEqualToString:uid] && !userModel.isScreen) {
             NSUInteger index = [self.userArray indexOfObject:userModel];
-        
+
             GroupVideoCallAvatarView *avatarView = (GroupVideoCallAvatarView *)[self.roomMainView avatarViewAtIndex:index];
             [avatarView setVideoStatus:isMute ? GroupVideoCallAvatarViewVideoStatusOff : GroupVideoCallAvatarViewVideoStatusOn];
         }
@@ -381,31 +376,31 @@
     if (index >= self.userArray.count) {
         return;
     }
-    
+
     self.currentFullScreenUserIndex = index;
-    
+
     GroupVideoCallRoomUserModel *userModel = self.userArray[index];
     NSString *uid = userModel.uid;
-    
+
     [self setAllowAutoRotate:ScreenOrientationLandscapeAndPortrait];
     __weak __typeof(self) wself = self;
     [self.fullScreenView show:uid
                      userName:userModel.name
                        roomId:self.localUserModel.roomId
                         block:^(BOOL isRemove) {
-        if (userModel.isScreen) {
-            if (!isRemove) {
-                /**
-                 * @brief If you remove the screen flow, you don't need to add it again. If it is a manual click, you need to re-add the screen flow.
-                 */
-                [wself addRemoteScreenViewWithUid:uid];
-            }
-        } else {
-            [wself restoreUserStreamDisplay];
-        }
-        [wself setAllowAutoRotate:ScreenOrientationPortrait];
-        wself.currentFullScreenUserIndex = -1;
-    }];
+                            if (userModel.isScreen) {
+                                if (!isRemove) {
+                                    /**
+                                     * @brief If you remove the screen flow, you don't need to add it again. If it is a manual click, you need to re-add the screen flow.
+                                     */
+                                    [wself addRemoteScreenViewWithUid:uid];
+                                }
+                            } else {
+                                [wself restoreUserStreamDisplay];
+                            }
+                            [wself setAllowAutoRotate:ScreenOrientationPortrait];
+                            wself.currentFullScreenUserIndex = -1;
+                        }];
 }
 
 - (void)restoreUserStreamDisplay {
@@ -413,18 +408,18 @@
     if (!smallView) {
         return;
     }
-    
+
     GroupVideoCallRoomUserModel *userModel = self.userArray[self.currentFullScreenUserIndex];
-    
+
     ByteRTCVideoCanvas *videoCanvas = [ByteRTCVideoCanvas new];
     videoCanvas.view = smallView;
     videoCanvas.renderMode = ByteRTCRenderModeHidden;
-    
+
     ByteRTCRemoteStreamKey *streamKey = [[ByteRTCRemoteStreamKey alloc] init];
     streamKey.userId = userModel.uid;
     streamKey.roomId = self.localUserModel.roomId;
     streamKey.streamIndex = ByteRTCStreamIndexMain;
-    
+
     [[GroupVideoCallRTCManager shareRtc] setupRemoteVideoStreamKey:streamKey canvas:videoCanvas];
 }
 
@@ -439,32 +434,32 @@
 - (void)createUIComponent {
     [self.view addSubview:self.navView];
     [self.view addSubview:self.bottomView];
-    
+
     CGFloat navHeight = 44 + [DeviceInforTool getStatusBarHight];
-    CGFloat bottomHeight = 128/2 + [DeviceInforTool getVirtualHomeHeight];
-    
+    CGFloat bottomHeight = 128 / 2 + [DeviceInforTool getVirtualHomeHeight];
+
     [self.navView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.left.right.equalTo(self.view);
         make.height.mas_equalTo(navHeight);
     }];
-    
+
     [self.bottomView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.right.equalTo(self.view);
         make.bottom.equalTo(self.view).offset(0);
         make.height.mas_equalTo(bottomHeight);
     }];
-    
+
     self.roomMainView = [[GroupVideoCallAvatarPageView alloc] initWithFrame:CGRectMake(0, navHeight, self.view.frame.size.width, self.view.frame.size.height - navHeight - bottomHeight)];
     self.roomMainView.avatarPageViewDelegate = self;
     [self.view addSubview:self.roomMainView];
-    
+
     [self.view addSubview:self.fullScreenView];
     [self.fullScreenView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.right.equalTo(self.view);
         make.top.equalTo(self.navView.mas_bottom);
         make.bottom.equalTo(self.bottomView.mas_top);
     }];
-    
+
     [self.view addSubview:self.statsView];
     [self.statsView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self.view);
@@ -475,7 +470,7 @@
     AlertActionModel *alertCancelModel = [[AlertActionModel alloc] init];
     alertCancelModel.title = LocalizedString(@"ok");
     __weak typeof(self) weakSelf = self;
-    alertCancelModel.alertModelClickBlock = ^(UIAlertAction * _Nonnull action) {
+    alertCancelModel.alertModelClickBlock = ^(UIAlertAction *_Nonnull action) {
         [weakSelf hangUp];
     };
     AlertActionModel *alertModel = [[AlertActionModel alloc] init];
@@ -491,7 +486,7 @@
             self.localUserModel.isEnableAudio = isEnableAudio;
             [[GroupVideoCallRTCManager shareRtc] publishAudioStream:isEnableAudio];
             [SystemAuthority autoJumpWithAuthorizationStatusWithType:AuthorizationTypeAudio];
-            
+
             [self setMuteAudioWithUid:[LocalUserComponent userModel].uid ismute:!self.localUserModel.isEnableAudio];
         } else {
             [[ToastComponent shareToastComponent] showWithMessage:LocalizedString(@"microphone_permission_disabled")];
@@ -506,7 +501,7 @@
             self.localUserModel.isEnableVideo = !self.localUserModel.isEnableVideo;
             [[GroupVideoCallRTCManager shareRtc] switchVideoCapture:self.localUserModel.isEnableVideo];
             [SystemAuthority autoJumpWithAuthorizationStatusWithType:AuthorizationTypeCamera];
-            
+
             [self setMuteVideoWithUid:[LocalUserComponent userModel].uid ismute:!self.localUserModel.isEnableVideo];
         } else {
             [[ToastComponent shareToastComponent] showWithMessage:LocalizedString(@"camera_permission_disabled")];
@@ -517,11 +512,11 @@
 - (void)startLocalCameraPreview {
     NSString *name = [NSString stringWithFormat:LocalizedString(@"%@ (me)"), [LocalUserComponent userModel].name];
     [self.userArray addObject:self.localUserModel];
-    
+
     GroupVideoCallAvatarView *avatarView = [GroupVideoCallAvatarView new];
     [avatarView setName:name];
     [self.roomMainView addAvatarView:avatarView];
-    
+
     ByteRTCVideoCanvas *canvas = [[ByteRTCVideoCanvas alloc] init];
     canvas.view = avatarView.videoContainerView;
     canvas.renderMode = ByteRTCRenderModeHidden;
@@ -535,7 +530,7 @@
     userModel.name = name;
     userModel.isScreen = NO;
     [self.userArray addObject:userModel];
-    
+
     GroupVideoCallAvatarView *avatarView = [GroupVideoCallAvatarView new];
     [avatarView setName:name];
     [self.roomMainView addAvatarView:avatarView];
@@ -543,14 +538,14 @@
     ByteRTCVideoCanvas *videoCanvas = [ByteRTCVideoCanvas new];
     videoCanvas.view = avatarView.videoContainerView;
     videoCanvas.renderMode = ByteRTCRenderModeHidden;
-    
+
     ByteRTCRemoteStreamKey *streamKey = [[ByteRTCRemoteStreamKey alloc] init];
     streamKey.userId = uid;
     streamKey.roomId = self.localUserModel.roomId;
     streamKey.streamIndex = ByteRTCStreamIndexMain;
-    
+
     [[GroupVideoCallRTCManager shareRtc] setupRemoteVideoStreamKey:streamKey
-                                                       canvas:videoCanvas];
+                                                            canvas:videoCanvas];
 }
 
 - (void)removeRemoteUserViewWithUid:(NSString *)uid
@@ -595,12 +590,12 @@
         screenModel.isEnableAudio = screenUserModel.isEnableAudio;
         screenModel.isEnableVideo = YES;
         [self.userArray insertObject:screenModel atIndex:0];
-        
+
         GroupVideoCallAvatarView *avatarView = [GroupVideoCallAvatarView new];
         [avatarView setName:tagMessage];
         [self.roomMainView addAvatarView:avatarView atIndex:0];
     }
-    
+
     GroupVideoCallAvatarView *avatarView = (GroupVideoCallAvatarView *)[self.roomMainView avatarViewAtIndex:0];
     UIView *screenRenderView = [[GroupVideoCallRTCManager shareRtc] getScreenStreamViewWithUid:uid];
     screenRenderView.hidden = NO;

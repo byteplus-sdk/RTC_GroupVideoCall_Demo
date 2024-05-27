@@ -1,7 +1,7 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallRoomVideoStatsTableViewCell.h"
 
@@ -36,28 +36,28 @@
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         self.backgroundColor = [UIColor clearColor];
         self.contentView.backgroundColor = [UIColor clearColor];
-        
+
         UIView *backView = [UIView new];
         backView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.15];
         [self.contentView addSubview:backView];
-        
+
         [backView mas_makeConstraints:^(MASConstraintMaker *make) {
             make.left.top.equalTo(self.contentView).offset(16.f);
             make.right.equalTo(self.contentView).offset(-16.f);
             make.bottom.equalTo(self.contentView);
         }];
-        
+
         self.nameLabel = [UILabel new];
         self.nameLabel.textColor = [UIColor colorFromHexString:@"#86909C"];
         self.nameLabel.font = [UIFont boldSystemFontOfSize:12.f];
         [backView addSubview:self.nameLabel];
-        
+
         [self.nameLabel mas_makeConstraints:^(MASConstraintMaker *make) {
             make.left.equalTo(backView).offset(16.f);
             make.top.equalTo(backView).offset(8.f);
             make.height.equalTo(@(22.f));
         }];
-        
+
         UILabel *resolutionTitle = [UILabel new];
         resolutionTitle.textColor = [UIColor colorFromHexString:@"#86909C"];
         resolutionTitle.font = [UIFont systemFontOfSize:12.f];
@@ -68,7 +68,7 @@
             make.top.equalTo(self.nameLabel.mas_bottom).offset(15.f);
             make.height.equalTo(@(22.f));
         }];
-        
+
         self.resolutionLabel = [UILabel new];
         self.resolutionLabel.textColor = [UIColor colorFromHexString:@"#E5E6EB"];
         self.resolutionLabel.font = [UIFont boldSystemFontOfSize:12.f];
@@ -78,7 +78,7 @@
             make.top.equalTo(resolutionTitle.mas_bottom);
             make.height.equalTo(@(22.f));
         }];
-        
+
         UILabel *bitTitle = [UILabel new];
         bitTitle.textColor = [UIColor colorFromHexString:@"#86909C"];
         bitTitle.font = [UIFont systemFontOfSize:12.f];
@@ -89,7 +89,7 @@
             make.top.equalTo(resolutionTitle);
             make.height.equalTo(@(22.f));
         }];
-        
+
         self.bitLabel = [UILabel new];
         self.bitLabel.textColor = [UIColor colorFromHexString:@"#E5E6EB"];
         self.bitLabel.font = [UIFont boldSystemFontOfSize:12.f];
@@ -99,7 +99,7 @@
             make.top.equalTo(bitTitle.mas_bottom);
             make.height.equalTo(@(22.f));
         }];
-        
+
         UILabel *fpsTitle = [UILabel new];
         fpsTitle.textColor = [UIColor colorFromHexString:@"#86909C"];
         fpsTitle.font = [UIFont systemFontOfSize:12.f];
@@ -110,7 +110,7 @@
             make.top.equalTo(resolutionTitle);
             make.height.equalTo(@(22.f));
         }];
-        
+
         self.frameRateLabel = [UILabel new];
         self.frameRateLabel.textColor = [UIColor colorFromHexString:@"#E5E6EB"];
         self.frameRateLabel.font = [UIFont boldSystemFontOfSize:12.f];
@@ -120,7 +120,7 @@
             make.top.equalTo(fpsTitle.mas_bottom);
             make.height.equalTo(@(22.f));
         }];
-        
+
         UILabel *delayTitle = [UILabel new];
         delayTitle.textColor = [UIColor colorFromHexString:@"#86909C"];
         delayTitle.font = [UIFont systemFontOfSize:12.f];
@@ -131,7 +131,7 @@
             make.bottom.equalTo(backView).offset(-30.f);
             make.height.equalTo(@(22.f));
         }];
-        
+
         self.delayLabel = [UILabel new];
         self.delayLabel.textColor = [UIColor colorFromHexString:@"#E5E6EB"];
         self.delayLabel.font = [UIFont boldSystemFontOfSize:12.f];
@@ -141,7 +141,7 @@
             make.top.equalTo(delayTitle.mas_bottom);
             make.height.equalTo(@(22.f));
         }];
-        
+
         UILabel *lostTitle = [UILabel new];
         lostTitle.textColor = [UIColor colorFromHexString:@"#86909C"];
         lostTitle.font = [UIFont systemFontOfSize:12.f];
@@ -162,7 +162,7 @@
             make.top.equalTo(lostTitle.mas_bottom);
             make.height.equalTo(@(22.f));
         }];
-        
+
         UILabel *netTitle = [UILabel new];
         netTitle.textColor = [UIColor colorFromHexString:@"#86909C"];
         netTitle.font = [UIFont systemFontOfSize:12.f];
@@ -183,7 +183,6 @@
             make.top.equalTo(netTitle.mas_bottom);
             make.height.equalTo(@(22.f));
         }];
-
     }
     return self;
 }

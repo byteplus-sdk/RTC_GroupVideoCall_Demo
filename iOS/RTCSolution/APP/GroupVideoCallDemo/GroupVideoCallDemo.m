@@ -1,13 +1,13 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallDemo.h"
-#import "JoinRTSParams.h"
+#import "GroupVideoCallDemoConstants.h"
 #import "GroupVideoCallLoginViewController.h"
 #import "GroupVideoCallRTCManager.h"
-#import "GroupVideoCallDemoConstants.h"
+#import "JoinRTSParams.h"
 
 @implementation GroupVideoCallDemo
 
@@ -19,12 +19,12 @@
     inputModel.loginToken = [LocalUserComponent userModel].loginToken;
     __weak __typeof(self) wself = self;
     [JoinRTSParams getJoinRTSParams:inputModel
-                              block:^(JoinRTSParamsModel * _Nonnull model) {
-        [wself joinRTS:model block:block];
-    }];
+                              block:^(JoinRTSParamsModel *_Nonnull model) {
+                                  [wself joinRTS:model block:block];
+                              }];
 }
 
-- (void)joinRTS:(JoinRTSParamsModel * _Nonnull)model
+- (void)joinRTS:(JoinRTSParamsModel *_Nonnull)model
           block:(void (^)(BOOL result))block {
     if (!model) {
         [[ToastComponent shareToastComponent] showWithMessage:LocalizedString(@"connection_failed")];
@@ -35,22 +35,22 @@
     }
     // Connect RTS
     [[GroupVideoCallRTCManager shareRtc] connect:model.appId
-                                   RTSToken:model.RTSToken
-                                  serverUrl:model.serverUrl
-                                  serverSig:model.serverSignature
-                                        bid:model.bid
-                                      block:^(BOOL result) {
-        if (result) {
-            GroupVideoCallLoginViewController *next = [[GroupVideoCallLoginViewController alloc] init];
-            UIViewController *topVC = [DeviceInforTool topViewController];
-            [topVC.navigationController pushViewController:next animated:YES];
-        } else {
-            [[ToastComponent shareToastComponent] showWithMessage:LocalizedString(@"connection_failed")];
-        }
-        if (block) {
-            block(result);
-        }
-    }];
+                                        RTSToken:model.RTSToken
+                                       serverUrl:model.serverUrl
+                                       serverSig:model.serverSignature
+                                             bid:model.bid
+                                           block:^(BOOL result) {
+                                               if (result) {
+                                                   GroupVideoCallLoginViewController *next = [[GroupVideoCallLoginViewController alloc] init];
+                                                   UIViewController *topVC = [DeviceInforTool topViewController];
+                                                   [topVC.navigationController pushViewController:next animated:YES];
+                                               } else {
+                                                   [[ToastComponent shareToastComponent] showWithMessage:LocalizedString(@"connection_failed")];
+                                               }
+                                               if (block) {
+                                                   block(result);
+                                               }
+                                           }];
 }
 
 @end

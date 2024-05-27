@@ -1,7 +1,7 @@
-// 
+//
 // Copyright (c) 2023 BytePlus Pte. Ltd.
 // SPDX-License-Identifier: MIT
-// 
+//
 
 #import "GroupVideoCallRTCManager.h"
 #import "AlertActionManager.h"
@@ -11,11 +11,12 @@
 
 // RTC / RTS room object
 @property (nonatomic, strong, nullable) ByteRTCRoom *rtcRoom;
-@property (nonatomic, strong) NSMutableDictionary <NSString *, GroupVideoCallRoomParamInfoModel *>*videoStatsInfoDic;
-@property (nonatomic, strong) NSMutableDictionary <NSString *, GroupVideoCallRoomParamInfoModel *>*audioStatsInfoDic;
+@property (nonatomic, strong) NSMutableDictionary<NSString *, GroupVideoCallRoomParamInfoModel *> *videoStatsInfoDic;
+@property (nonatomic, strong) NSMutableDictionary<NSString *, GroupVideoCallRoomParamInfoModel *> *audioStatsInfoDic;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, UIView *> *streamViewDic;
 @property (nonatomic, assign) NSInteger currnetCameraID;
 @property (nonatomic, assign) ByteRTCAudioRoute audioRoute;
+@property (nonatomic, assign) ByteRTCAudioRoute curAudioRoute;
 @property (nonatomic, strong) UIView *localVideoView;
 
 @end
@@ -107,20 +108,20 @@
 - (void)switchCamera {
     // Switch front/rear camera
     GroupVideoCallMockDataComponent *mockData = [GroupVideoCallMockDataComponent shared];
-        
+
     ByteRTCCameraID cameraID = self.currnetCameraID;
     if (cameraID == ByteRTCCameraIDFront) {
         cameraID = ByteRTCCameraIDBack;
     } else {
         cameraID = ByteRTCCameraIDFront;
     }
-    
+
     if (cameraID == ByteRTCCameraIDFront && mockData.isOpenMirror) {
         [self.rtcEngineKit setLocalVideoMirrorType:ByteRTCMirrorTypeRenderAndEncoder];
     } else {
         [self.rtcEngineKit setLocalVideoMirrorType:ByteRTCMirrorTypeNone];
     }
-    
+
     [self.rtcEngineKit switchCamera:cameraID];
     self.currnetCameraID = cameraID;
 }
@@ -133,7 +134,7 @@
             return;
         }
         self.audioRoute = route;
-        
+
         [self.rtcEngineKit setDefaultAudioRoute:route];
     }
 }
@@ -188,27 +189,27 @@
 
 - (void)bingScreenCanvasViewToUid:(NSString *)uid {
     dispatch_queue_async_safe(dispatch_get_main_queue(), (^{
-        UIView *remoteRoomView = [self getScreenStreamViewWithUid:uid];
-        if (!remoteRoomView) {
-            remoteRoomView = [[UIView alloc] init];
-            remoteRoomView.hidden = YES;
-            ByteRTCVideoCanvas *canvas = [[ByteRTCVideoCanvas alloc] init];
-            canvas.renderMode = ByteRTCRenderModeFit;
-            canvas.view.backgroundColor = [UIColor clearColor];
-            canvas.view = remoteRoomView;
-            
-            ByteRTCRemoteStreamKey *streamKey = [[ByteRTCRemoteStreamKey alloc] init];
-            streamKey.userId = uid;
-            streamKey.roomId = self.rtcRoom.getRoomId;
-            streamKey.streamIndex = ByteRTCStreamIndexScreen;
-            
-            [self.rtcEngineKit setRemoteVideoCanvas:streamKey
-                                         withCanvas:canvas];
-            
-            NSString *groupKey = [NSString stringWithFormat:@"screen_%@", uid];
-            [self.streamViewDic setValue:remoteRoomView forKey:groupKey];
-        }
-    }));
+                                  UIView *remoteRoomView = [self getScreenStreamViewWithUid:uid];
+                                  if (!remoteRoomView) {
+                                      remoteRoomView = [[UIView alloc] init];
+                                      remoteRoomView.hidden = YES;
+                                      ByteRTCVideoCanvas *canvas = [[ByteRTCVideoCanvas alloc] init];
+                                      canvas.renderMode = ByteRTCRenderModeFit;
+                                      canvas.view.backgroundColor = [UIColor clearColor];
+                                      canvas.view = remoteRoomView;
+
+                                      ByteRTCRemoteStreamKey *streamKey = [[ByteRTCRemoteStreamKey alloc] init];
+                                      streamKey.userId = uid;
+                                      streamKey.roomId = self.rtcRoom.getRoomId;
+                                      streamKey.streamIndex = ByteRTCStreamIndexScreen;
+
+                                      [self.rtcEngineKit setRemoteVideoCanvas:streamKey
+                                                                   withCanvas:canvas];
+
+                                      NSString *groupKey = [NSString stringWithFormat:@"screen_%@", uid];
+                                      [self.streamViewDic setValue:remoteRoomView forKey:groupKey];
+                                  }
+                              }));
 }
 
 - (UIView *)getScreenStreamViewWithUid:(NSString *)uid {
@@ -224,11 +225,11 @@
 #pragma mark - ByteRTCRoomDelegate
 
 - (void)rtcRoom:(ByteRTCRoom *)rtcRoom onRoomStateChanged:(NSString *)roomId
-        withUid:(NSString *)uid
-          state:(NSInteger)state
-      extraInfo:(NSString *)extraInfo {
+               withUid:(NSString *)uid
+                 state:(NSInteger)state
+             extraInfo:(NSString *)extraInfo {
     [super rtcRoom:rtcRoom onRoomStateChanged:roomId withUid:uid state:state extraInfo:extraInfo];
-    
+
     dispatch_queue_async_safe(dispatch_get_main_queue(), ^{
         RTCJoinModel *joinModel = [RTCJoinModel modelArrayWithClass:extraInfo state:state roomId:roomId];
         if ([self.delegate respondsToSelector:@selector(groupVideoCallRTCManager:onRoomStateChanged:)]) {
@@ -239,11 +240,11 @@
 
 - (void)rtcRoom:(ByteRTCRoom *)rtcRoom onUserJoined:(ByteRTCUserInfo *)userInfo elapsed:(NSInteger)elapsed {
     NSString *name = userInfo.userId;
-    if(userInfo.extraInfo) {
+    if (userInfo.extraInfo) {
         NSDictionary *extraInfo =
-        [NSJSONSerialization JSONObjectWithData:[userInfo.extraInfo dataUsingEncoding:NSUTF8StringEncoding]
-                                        options:NSJSONReadingMutableContainers
-                                          error:nil];
+            [NSJSONSerialization JSONObjectWithData:[userInfo.extraInfo dataUsingEncoding:NSUTF8StringEncoding]
+                                            options:NSJSONReadingMutableContainers
+                                              error:nil];
         if (extraInfo) {
             id value = extraInfo[@"user_name"];
             if ([value isKindOfClass:[NSString class]]) {
@@ -251,11 +252,10 @@
             }
         }
     }
-    
+
     if ([self.delegate respondsToSelector:@selector(rtcManager:onUserJoined:userName:)]) {
         [self.delegate rtcManager:self onUserJoined:userInfo.userId userName:name];
     }
-
 }
 - (void)rtcRoom:(ByteRTCRoom *)rtcRoom onUserLeave:(NSString *)uid reason:(ByteRTCUserOfflineReason)reason {
     if ([self.delegate respondsToSelector:@selector(rtcManager:onUserLeaved:)]) {
@@ -277,7 +277,6 @@
 }
 
 - (void)rtcRoom:(ByteRTCRoom *)rtcRoom onLocalStreamStats:(ByteRTCLocalStreamStats *)stats {
-
     GroupVideoCallRoomParamInfoModel *videoStatsInfo = [GroupVideoCallRoomParamInfoModel new];
     videoStatsInfo.uid = [LocalUserComponent userModel].uid;
     videoStatsInfo.width = stats.videoStats.encodedFrameWidth;
@@ -286,13 +285,13 @@
     videoStatsInfo.fps = stats.videoStats.sentFrameRate;
     videoStatsInfo.delay = stats.videoStats.rtt;
     videoStatsInfo.lost = stats.videoStats.videoLossRate;
-    
+
     GroupVideoCallRoomParamInfoModel *audioStatsInfo = [GroupVideoCallRoomParamInfoModel new];
     audioStatsInfo.uid = [LocalUserComponent userModel].uid;
     audioStatsInfo.bitRate = stats.audioStats.sentKBitrate;
     audioStatsInfo.delay = stats.audioStats.rtt;
     audioStatsInfo.lost = stats.audioStats.audioLossRate;
-    
+
     ByteRTCNetworkQuality quality = MAX(stats.txQuality, stats.rxQuality);
     GroupVideoCallRoomParamNetQuality netQuality;
     switch (quality) {
@@ -329,13 +328,13 @@
     videoStatsInfo.fps = stats.videoStats.receivedFrameRate;
     videoStatsInfo.delay = stats.videoStats.rtt;
     videoStatsInfo.lost = stats.videoStats.videoLossRate;
-    
+
     GroupVideoCallRoomParamInfoModel *audioStatsInfo = [GroupVideoCallRoomParamInfoModel new];
     audioStatsInfo.uid = stats.uid;
     audioStatsInfo.bitRate = stats.audioStats.receivedKBitrate;
     audioStatsInfo.delay = stats.audioStats.rtt;
     audioStatsInfo.lost = stats.audioStats.audioLossRate;
-    
+
     ByteRTCNetworkQuality quality = MAX(stats.txQuality, stats.txQuality);
     GroupVideoCallRoomParamNetQuality netQuality;
     switch (quality) {
@@ -409,6 +408,7 @@
         device == ByteRTCAudioRouteHeadsetUSB) {
         // Plug in headphones
         isHeadset = 1;
+        self.curAudioRoute = self.audioRoute;
         self.audioRoute = device;
     } else {
         if (self.audioRoute == ByteRTCAudioRouteDefault ||
@@ -418,26 +418,26 @@
             // Unplug the headset
             isHeadset = 2;
             // When the headset is pulled out, the SDK will automatically switch to the speaker mode
-            self.audioRoute = ByteRTCAudioRouteSpeakerphone;
+            self.audioRoute = self.curAudioRoute;
         } else {
             // Normal settings for receiver/loud speaker
         }
     }
     if (isHeadset > 0) {
         dispatch_queue_async_safe(dispatch_get_main_queue(), ^{
-            if ([self.delegate respondsToSelector:@selector(rtcManager:onAudioRouteChanged:)]) {
+            if ([self.delegate respondsToSelector:@selector(rtcManager:onAudioRouteChanged:isSpeakerphone:)]) {
                 BOOL isHeadsetBool = (isHeadset == 1) ? YES : NO;
-                [self.delegate rtcManager:self onAudioRouteChanged:isHeadsetBool];
+                BOOL isSpeakerphone = (self.audioRoute == ByteRTCAudioRouteSpeakerphone) ? YES : NO;
+                [self.delegate rtcManager:self onAudioRouteChanged:isHeadsetBool isSpeakerphone:isSpeakerphone];
             }
         });
     }
 }
 
 - (void)rtcEngine:(ByteRTCVideo *)engine reportSysStats:(const ByteRTCSysStats *)stats {
-    
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onLocalAudioPropertiesReport:(NSArray<ByteRTCLocalAudioPropertiesInfo *> * _Nonnull)audioPropertiesInfos {
+- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onLocalAudioPropertiesReport:(NSArray<ByteRTCLocalAudioPropertiesInfo *> *_Nonnull)audioPropertiesInfos {
     NSInteger minVolume = 10;
     NSMutableDictionary *parDic = [[NSMutableDictionary alloc] init];
     for (int i = 0; i < audioPropertiesInfos.count; i++) {
@@ -446,7 +446,7 @@
             [parDic setValue:@(model.audioPropertiesInfo.linearVolume) forKey:[LocalUserComponent userModel].uid];
         }
     }
-    
+
     dispatch_queue_async_safe(dispatch_get_main_queue(), ^{
         if ([self.delegate respondsToSelector:@selector(rtcManager:reportAllAudioVolume:)]) {
             [self.delegate rtcManager:self reportAllAudioVolume:[parDic copy]];
@@ -455,7 +455,6 @@
 }
 
 - (void)rtcEngine:(ByteRTCVideo *)engine onRemoteAudioPropertiesReport:(NSArray<ByteRTCRemoteAudioPropertiesInfo *> *)audioPropertiesInfos totalRemoteVolume:(NSInteger)totalRemoteVolume {
-    
     NSInteger minVolume = 10;
     NSMutableDictionary *parDic = [[NSMutableDictionary alloc] init];
     for (int i = 0; i < audioPropertiesInfos.count; i++) {
@@ -464,7 +463,7 @@
             [parDic setValue:@(model.audioPropertiesInfo.linearVolume) forKey:model.streamKey.userId];
         }
     }
-    
+
     dispatch_queue_async_safe(dispatch_get_main_queue(), ^{
         if ([self.delegate respondsToSelector:@selector(rtcManager:reportAllAudioVolume:)]) {
             [self.delegate rtcManager:self reportAllAudioVolume:[parDic copy]];
@@ -479,7 +478,7 @@
     if ([self.delegate respondsToSelector:@selector(rtcManager:didUpdateVideoStatsInfo:)]) {
         [self.delegate rtcManager:self didUpdateVideoStatsInfo:self.videoStatsInfoDic];
     }
-    
+
     [self.audioStatsInfoDic setObject:audioStatsInfo forKey:audioStatsInfo.uid];
     if ([self.delegate respondsToSelector:@selector(rtcManager:didUpdateAudioStatsInfo:)]) {
         [self.delegate rtcManager:self didUpdateAudioStatsInfo:self.audioStatsInfoDic];
@@ -507,14 +506,14 @@
     return _streamViewDic;
 }
 
-- (NSMutableDictionary<NSString *,GroupVideoCallRoomParamInfoModel *> *)videoStatsInfoDic {
+- (NSMutableDictionary<NSString *, GroupVideoCallRoomParamInfoModel *> *)videoStatsInfoDic {
     if (!_videoStatsInfoDic) {
         _videoStatsInfoDic = [NSMutableDictionary dictionary];
     }
     return _videoStatsInfoDic;
 }
 
-- (NSMutableDictionary<NSString *,GroupVideoCallRoomParamInfoModel *> *)audioStatsInfoDic {
+- (NSMutableDictionary<NSString *, GroupVideoCallRoomParamInfoModel *> *)audioStatsInfoDic {
     if (!_audioStatsInfoDic) {
         _audioStatsInfoDic = [NSMutableDictionary dictionary];
     }
