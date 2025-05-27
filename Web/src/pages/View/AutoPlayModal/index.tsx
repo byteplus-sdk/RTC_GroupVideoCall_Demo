@@ -36,7 +36,7 @@ function AutoPlayModal() {
       style={{ top: '20%', minHeight: 150 }}
     >
       <Button className={styles.button} block size="large" onClick={handleAutoPlay}>
-        自动播放
+        Click to auto play
       </Button>
     </Modal>
   );

@@ -387,12 +387,11 @@ export class RtcClient {
   };
 
   /**
-   * 设置视频流播放器
    * @param userId
    * @param renderDom
    */
   setVideoPlayer = (userId: string, renderDom?: string | HTMLElement) => {
-    // 本端用户
+    // Local
     if (this.config && userId === this.config.uid) {
       RtcSdkApiWrapper('setLocalVideoPlayer', () => {
         return this.engine.setLocalVideoPlayer(StreamIndex.STREAM_INDEX_MAIN, {
@@ -402,7 +401,7 @@ export class RtcClient {
         });
       });
     }
-    // 远端用户
+    // Remote
     else {
       RtcSdkApiWrapper('setRemoteVideoPlayer', () => {
         return this.engine.setRemoteVideoPlayer(StreamIndex.STREAM_INDEX_MAIN, {
@@ -415,12 +414,11 @@ export class RtcClient {
   };
 
   /**
-   * 设置分享流播放器
    * @param userId
    * @param renderDom
    */
   setScreenPlayer = (userId: string, renderDom?: string | HTMLElement) => {
-    // 本端用户
+    // Local
     if (this.config && userId === this.config.uid) {
       RtcSdkApiWrapper('setLocalVideoPlayer', () => {
         return this.engine.setLocalVideoPlayer(StreamIndex.STREAM_INDEX_SCREEN, {
@@ -430,7 +428,7 @@ export class RtcClient {
         });
       });
     }
-    // 远端用户
+    // Remote
     else {
       RtcSdkApiWrapper('setRemoteVideoPlayer', () => {
         return this.engine.setRemoteVideoPlayer(StreamIndex.STREAM_INDEX_SCREEN, {
@@ -442,10 +440,6 @@ export class RtcClient {
     }
   };
 
-  /**
-   * 订阅远端用户屏幕流
-   * @param userId
-   */
   subscribeScreen = async (userId: string): Promise<void> => {
     await RtcSdkApiWrapper('subscribeScreen', () => {
       return this.engine.subscribeScreen(userId, MediaType.AUDIO_AND_VIDEO);
@@ -453,7 +447,7 @@ export class RtcClient {
   };
 
   /**
-   * 设置业务标识参数
+   * Set the service identification parameters
    * @param businessId
    */
   setBusinessId = (businessId: string) => {
@@ -462,9 +456,6 @@ export class RtcClient {
     });
   };
 
-  /**
-   * 开始屏幕共享
-   */
   startScreenCapture = async () => {
     try {
       await this.engine
@@ -488,9 +479,6 @@ export class RtcClient {
     }
   };
 
-  /**
-   * 停止屏幕共享
-   */
   stopScreenCapture = async () => {
     await RtcSdkApiWrapper('stopScreenCapture', () => {
       return this.engine.stopScreenCapture();
@@ -502,7 +490,7 @@ export class RtcClient {
   };
 
   /**
-   * 镜像模式
+   * Mirror Mode
    * @param mirrorType
    */
   setMirrorType = (mirrorType: MirrorType) => {
@@ -512,7 +500,7 @@ export class RtcClient {
   };
 
   /**
-   * 设置音质档位
+   * Set the sound quality level
    */
   setAudioProfile = (profile: AudioProfileType) => {
     RtcSdkApiWrapper('setAudioProfile', () => {
@@ -521,7 +509,7 @@ export class RtcClient {
   };
 
   /**
-   * 设置画质
+   * Set the image quality
    * @param streamIndex
    * @param descriptions
    */
@@ -533,7 +521,7 @@ export class RtcClient {
   };
 
   /**
-   * 设置屏幕共享画质
+   * Set screen sharing quality
    * @param streamIndex
    * @param descriptions
    */
@@ -550,7 +538,7 @@ export class RtcClient {
   };
 
   /**
-   * 切换设备
+   * Swtich device
    */
   switchDevice = async (deviceType: 'camera' | 'microphone', deviceId: string) => {
     if (deviceType === 'microphone') {
