@@ -288,9 +288,9 @@ const useRtcListeners = (isDev: boolean): IEventListener => {
     );
   };
 
-  const addFailUser = (userId: string) => {
-    dispatch(addAutoPlayFail({ userId }));
-  };
+  // const addFailUser = (userId: string) => {
+  //   dispatch(addAutoPlayFail({ userId }));
+  // };
 
   const playerFail = (params: { type: 'audio' | 'video'; userId: string }) => {
     const { type, userId } = params;
@@ -298,11 +298,11 @@ const useRtcListeners = (isDev: boolean): IEventListener => {
 
     playUser = { ...playUser, [type]: false };
 
-    const { audio, video } = playUser;
+    // const { audio, video } = playUser;
 
-    if (audio === false || video === false) {
-      addFailUser(userId);
-    }
+    // if (audio === false || video === false) {
+    //   addFailUser(userId);
+    // }
 
     return playUser;
   };
