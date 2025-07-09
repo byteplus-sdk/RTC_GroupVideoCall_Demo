@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@byteplus/rtc": "~4.58.20",
+    "@byteplus/rtc": "~4.58.21",
     "@reduxjs/toolkit": "1.8.3",
     "antd": "4.24.15",
     "@datarangers/sdk-javascript": "0.0.4",
